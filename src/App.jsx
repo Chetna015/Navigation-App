@@ -77,7 +77,7 @@ export default function App() {
   };
 
   // App settings & preferences
-  const [theme, setTheme] = useState('dark');
+  const [theme, setTheme] = useState('light');
   const [bookmarks, setBookmarks] = useState(['S01', 'S08']);
   const [accessibilityOptions, setAccessibilityOptions] = useState({
     wheelchairRoute: false,

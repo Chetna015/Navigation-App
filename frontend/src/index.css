@@ -39,17 +39,25 @@
 
 /* Light Theme Variables */
 [data-theme='light'] {
-  --bg-primary: #F1F5F9;
-  --bg-surface: #FFFFFF;
-  --bg-surface-elevated: #F8FAFC;
-  --bg-glass: rgba(255, 255, 255, 0.85);
-  --bg-glass-card: rgba(255, 255, 255, 0.95);
-  --border-glass: rgba(15, 23, 42, 0.1);
-  --border-glass-light: rgba(0, 102, 255, 0.3);
+  --bg-primary: #E2E8F0;
+  --bg-surface: #F8FAFC;
+  --bg-surface-elevated: #F1F5F9;
+  --bg-glass: rgba(248, 250, 252, 0.95);
+  --bg-glass-card: rgba(241, 245, 249, 0.98);
+  --border-glass: rgba(15, 23, 42, 0.15);
+  --border-glass-light: rgba(234, 88, 12, 0.4);
+  
+  --color-primary: #EA580C;
+  --color-primary-glow: rgba(234, 88, 12, 0.4);
+  --color-cyan: #C2410C;
+  --color-cyan-glow: rgba(194, 65, 12, 0.35);
+  --color-emerald: #15803D;
+  --color-amber: #D97706;
+  --color-rose: #E11D48;
   
   --text-main: #0F172A;
-  --text-muted: #475569;
-  --text-dim: #64748B;
+  --text-muted: #1E293B;
+  --text-dim: #334155;
 }
 
 /* High Contrast Mode */

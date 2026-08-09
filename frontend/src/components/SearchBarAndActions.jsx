@@ -101,7 +101,7 @@ export default function SearchBarAndActions({
           <input
             type="text"
             readOnly
-            value={currentLocation ? `${currentLocation.name} (Lat: ${currentLocation.lat ? currentLocation.lat.toFixed(4) : '26.4970'}° N, Lng: ${currentLocation.lng ? currentLocation.lng.toFixed(4) : '80.2666'}° E)` : 'You Are Here 📍 (Lat: 26.4970° N, Lng: 80.2666° E)'}
+            value={currentLocation?.name || 'You Are Here 📍'}
             style={{
               flex: 1,
               background: 'transparent',
@@ -112,18 +112,6 @@ export default function SearchBarAndActions({
               outline: 'none'
             }}
           />
-          <span style={{
-            background: 'rgba(16, 185, 129, 0.2)',
-            border: '1px solid #10B981',
-            color: '#10B981',
-            fontSize: '10px',
-            fontWeight: 900,
-            padding: '3px 8px',
-            borderRadius: '10px',
-            whiteSpace: 'nowrap'
-          }}>
-            YOU ARE HERE 📍
-          </span>
         </div>
 
         {/* ROW 2: TO (Blank Input Field in Rectangle Form) */}

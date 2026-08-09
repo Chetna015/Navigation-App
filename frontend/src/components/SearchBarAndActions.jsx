@@ -154,30 +154,26 @@ export default function SearchBarAndActions({
             />
           )}
 
-          {/* Voice Search Mic Button (Dark Red) */}
+          {/* Voice Search Mic Symbol Button (Dark Red Circular Icon Only) */}
           <button
             onClick={startVoiceSearch}
-            title="Click to Search by Voice"
+            title="Search by Voice"
             style={{
+              width: '34px',
+              height: '34px',
+              borderRadius: '50%',
               background: isListening ? '#EF4444' : '#B91C1C',
               border: 'none',
-              borderRadius: '20px',
-              padding: '6px 12px',
-              color: '#FFF',
-              fontSize: '12px',
-              fontWeight: 800,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: '6px',
               cursor: 'pointer',
               boxShadow: '0 2px 8px rgba(185, 28, 28, 0.4)',
-              whiteSpace: 'nowrap',
-              flexShrink: 0
+              flexShrink: 0,
+              padding: 0
             }}
           >
-            <Mic size={15} color="#FFF" />
-            <span>{isListening ? 'Listening...' : 'Voice Search'}</span>
+            <Mic size={17} color="#FFF" />
           </button>
 
           {/* Pin Location & Manage Pins Buttons (ONLY Visible in Local Development Mode) */}

@@ -53,72 +53,74 @@ export default function HeaderNavbar({
         </div>
       </div>
 
-      {/* Right Actions */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        {/* Upload 360 Admin Dashboard Button (ONLY Visible in Local Development Mode) */}
-        {(import.meta.env.DEV || (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'))) && onOpenAdmin360 && (
+      {/* Right Actions (ONLY Visible in Local Development Mode) */}
+      {(import.meta.env.DEV || (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'))) && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {/* Upload 360 Admin Dashboard Button */}
+          {onOpenAdmin360 && (
+            <button
+              onClick={onOpenAdmin360}
+              title="Upload custom 360 panoramas & manage hotspots"
+              className="btn-glass"
+              style={{
+                padding: '8px 12px',
+                borderRadius: 'var(--radius-md)',
+                color: '#FFF',
+                fontWeight: 800,
+                fontSize: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                border: '1px solid rgba(0, 102, 255, 0.5)',
+                background: 'linear-gradient(135deg, rgba(0, 102, 255, 0.3) 0%, rgba(0, 240, 255, 0.3) 100%)',
+                boxShadow: '0 0 12px rgba(0, 240, 255, 0.25)',
+                cursor: 'pointer'
+              }}
+            >
+              📷 <span>Upload 360</span>
+            </button>
+          )}
+
+          {/* Accessibility Button */}
           <button
-            onClick={onOpenAdmin360}
-            title="Upload custom 360 panoramas & manage hotspots"
+            onClick={onOpenAccessibility}
+            title="Accessibility & Wheelchair Options"
             className="btn-glass"
+            style={{ padding: '8px 12px', borderRadius: 'var(--radius-md)' }}
+          >
+            <Accessibility size={18} color="var(--color-cyan)" />
+          </button>
+
+          {/* Emergency SOS Button */}
+          <button
+            onClick={onOpenEmergency}
             style={{
-              padding: '8px 12px',
+              background: 'rgba(244, 63, 94, 0.15)',
+              border: '1px solid rgba(244, 63, 94, 0.4)',
+              color: '#F43F5E',
+              padding: '8px 14px',
               borderRadius: 'var(--radius-md)',
-              color: '#FFF',
-              fontWeight: 800,
+              fontWeight: 700,
               fontSize: '12px',
+              cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: '6px',
-              border: '1px solid rgba(0, 102, 255, 0.5)',
-              background: 'linear-gradient(135deg, rgba(0, 102, 255, 0.3) 0%, rgba(0, 240, 255, 0.3) 100%)',
-              boxShadow: '0 0 12px rgba(0, 240, 255, 0.25)',
-              cursor: 'pointer'
+              gap: '6px'
             }}
           >
-            📷 <span>Upload 360</span>
+            <AlertTriangle size={15} /> SOS Help
           </button>
-        )}
 
-        {/* Accessibility Button */}
-        <button
-          onClick={onOpenAccessibility}
-          title="Accessibility & Wheelchair Options"
-          className="btn-glass"
-          style={{ padding: '8px 12px', borderRadius: 'var(--radius-md)' }}
-        >
-          <Accessibility size={18} color="var(--color-cyan)" />
-        </button>
-
-        {/* Emergency SOS Button */}
-        <button
-          onClick={onOpenEmergency}
-          style={{
-            background: 'rgba(244, 63, 94, 0.15)',
-            border: '1px solid rgba(244, 63, 94, 0.4)',
-            color: '#F43F5E',
-            padding: '8px 14px',
-            borderRadius: 'var(--radius-md)',
-            fontWeight: 700,
-            fontSize: '12px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px'
-          }}
-        >
-          <AlertTriangle size={15} /> SOS Help
-        </button>
-
-        {/* Dark/Light Switch */}
-        <button
-          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-          className="btn-glass"
-          style={{ padding: '8px 12px', borderRadius: 'var(--radius-md)' }}
-        >
-          {theme === 'dark' ? <Sun size={18} color="#F59E0B" /> : <Moon size={18} color="#0066FF" />}
-        </button>
-      </div>
+          {/* Dark/Light Switch */}
+          <button
+            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            className="btn-glass"
+            style={{ padding: '8px 12px', borderRadius: 'var(--radius-md)' }}
+          >
+            {theme === 'dark' ? <Sun size={18} color="#F59E0B" /> : <Moon size={18} color="#0066FF" />}
+          </button>
+        </div>
+      )}
     </header>
   );
 }

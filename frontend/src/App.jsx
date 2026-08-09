@@ -52,9 +52,21 @@ export default function App() {
     distanceMeters,
     stepsCount,
     isOffTrack,
-    voiceEnabled,
-    setVoiceEnabled
   } = useLiveNavigationVoice({ currentLocation, destination });
+
+  // Automatically update currentLocation with exact real-time phone GPS position when received
+  useEffect(() => {
+    if (userPos && userPos.lat && userPos.lng) {
+      setCurrentLocation(prev => ({
+        ...prev,
+        name: 'My Live GPS Location 📍',
+        lat: userPos.lat,
+        lng: userPos.lng,
+        isLiveUser: true
+      }));
+    }
+  }, [userPos]);
+
   const [activeFloor, setActiveFloor] = useState('outdoor');
   const [searchQuery, setSearchQuery] = useState('');
   const [highlightDomain, setHighlightDomain] = useState(null);

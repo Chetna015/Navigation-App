@@ -206,52 +206,55 @@ export default function SearchBarAndActions({
             <Bot size={14} /> AI Guide
           </button>
 
-          {/* Pin Location Button */}
-          {onStartPinningMode && (
-            <button
-              onClick={onStartPinningMode}
-              title="Click to drop a pin on the map"
-              style={{
-                background: 'linear-gradient(135deg, #EF4444 0%, #FF6B81 100%)',
-                border: 'none',
-                borderRadius: '12px',
-                padding: '6px 12px',
-                color: '#FFF',
-                fontSize: '12px',
-                fontWeight: 800,
-                display: 'flex',
-                alignItems: 'center',
-                gap: '4px',
-                cursor: 'pointer',
-                whiteSpace: 'nowrap'
-              }}
-            >
-              📍 Pin Location
-            </button>
-          )}
+          {/* Pin Location & Manage Pins Buttons (ONLY Visible in Local Development Mode) */}
+          {(import.meta.env.DEV || (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'))) && (
+            <>
+              {onStartPinningMode && (
+                <button
+                  onClick={onStartPinningMode}
+                  title="Click to drop a pin on the map"
+                  style={{
+                    background: 'linear-gradient(135deg, #EF4444 0%, #FF6B81 100%)',
+                    border: 'none',
+                    borderRadius: '12px',
+                    padding: '6px 12px',
+                    color: '#FFF',
+                    fontSize: '12px',
+                    fontWeight: 800,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  📍 Pin Location
+                </button>
+              )}
 
-          {/* Manage Pins Button */}
-          {onOpenManagePins && (
-            <button
-              onClick={onOpenManagePins}
-              title="Manage location pins"
-              style={{
-                background: 'rgba(255, 255, 255, 0.08)',
-                border: '1px solid rgba(255, 255, 255, 0.15)',
-                borderRadius: '12px',
-                padding: '6px 12px',
-                color: '#00F0FF',
-                fontSize: '12px',
-                fontWeight: 700,
-                display: 'flex',
-                alignItems: 'center',
-                gap: '4px',
-                cursor: 'pointer',
-                whiteSpace: 'nowrap'
-              }}
-            >
-              📍 Manage Pins
-            </button>
+              {onOpenManagePins && (
+                <button
+                  onClick={onOpenManagePins}
+                  title="Manage location pins"
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.08)',
+                    border: '1px solid rgba(255, 255, 255, 0.15)',
+                    borderRadius: '12px',
+                    padding: '6px 12px',
+                    color: '#00F0FF',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  📍 Manage Pins
+                </button>
+              )}
+            </>
           )}
         </div>
 

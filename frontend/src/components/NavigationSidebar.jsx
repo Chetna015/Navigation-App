@@ -320,7 +320,7 @@ export default function NavigationSidebar({
   if (navMode === 'preview') {
     return (
       <div 
-        className="glass-panel animate-slide-up"
+        className="glass-panel animate-slide-up navigation-sidebar-card"
         style={{
           position: 'absolute',
           bottom: '24px',
@@ -488,7 +488,7 @@ export default function NavigationSidebar({
   if (navMode === 'active') {
     return (
       <div 
-        className="animate-slide-up"
+        className="animate-slide-up navigation-active-card"
         style={{
           position: 'absolute',
           top: '20px',

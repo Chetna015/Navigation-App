@@ -23,53 +23,52 @@ export default function HeaderNavbar({
   return (
     <header className="glass-panel" style={{
       zIndex: 100,
-      padding: '12px 24px',
+      padding: '10px 16px',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
-      gap: '16px',
-      borderBottom: '1px solid var(--border-glass)'
+      gap: '10px',
+      borderBottom: '1px solid var(--border-glass)',
+      flexWrap: 'wrap'
     }}>
       {/* Brand & Emblem */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
         <img
           src="/csjm_logo.png"
           alt="CSJMU Logo"
           style={{
-            height: '75px',
-            width: '75px',
+            height: 'clamp(42px, 6vw, 75px)',
+            width: 'clamp(42px, 6vw, 75px)',
             objectFit: 'contain',
             flexShrink: 0
           }}
         />
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <h1 style={{ fontSize: '18px', fontWeight: 900, color: 'var(--text-main)', letterSpacing: '0.2px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+            <h1 style={{ fontSize: 'clamp(14px, 2vw, 18px)', fontWeight: 900, color: 'var(--text-main)', letterSpacing: '0.2px' }}>
               CSJMU AI SUMMIT 2026
             </h1>
             <span style={{
               background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
               color: '#FFF',
-              fontSize: '10px',
+              fontSize: '9px',
               fontWeight: 800,
-              padding: '2px 8px',
-              borderRadius: '12px',
+              padding: '2px 6px',
+              borderRadius: '10px',
               textTransform: 'uppercase',
-              boxShadow: '0 0 10px rgba(16, 185, 129, 0.4)'
+              boxShadow: '0 0 8px rgba(16, 185, 129, 0.4)'
             }}>
-              LIVE DIGITAL TWIN
+              DIGITAL TWIN
             </span>
           </div>
-          <p style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 600 }}>
+          <p style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600 }}>
             Smart Campus & Grand Auditorium • Kanpur, UP
           </p>
         </div>
       </div>
 
-      {/* Center Location Selector */}
       {/* Right Actions */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         {/* Upload 360 Admin Dashboard Button */}
         {onOpenAdmin360 && (
           <button
@@ -77,7 +76,7 @@ export default function HeaderNavbar({
             title="Upload custom 360 panoramas & manage hotspots"
             className="btn-glass"
             style={{
-              padding: '8px 14px',
+              padding: '8px 12px',
               borderRadius: 'var(--radius-md)',
               color: '#FFF',
               fontWeight: 800,
@@ -87,10 +86,11 @@ export default function HeaderNavbar({
               gap: '6px',
               border: '1px solid rgba(0, 102, 255, 0.5)',
               background: 'linear-gradient(135deg, rgba(0, 102, 255, 0.3) 0%, rgba(0, 240, 255, 0.3) 100%)',
-              boxShadow: '0 0 12px rgba(0, 240, 255, 0.25)'
+              boxShadow: '0 0 12px rgba(0, 240, 255, 0.25)',
+              cursor: 'pointer'
             }}
           >
-            📷 Upload 360
+            📷 <span>Upload 360</span>
           </button>
         )}
 

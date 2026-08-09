@@ -260,3 +260,87 @@ h1, h2, h3, h4, h5, h6 {
   background: rgba(255, 255, 255, 0.15);
   border-color: var(--color-cyan);
 }
+
+/* ==========================================================================
+   MOBILE-FIRST RESPONSIVE DESIGN SYSTEM & TOUCH OPTIMIZATIONS
+   ========================================================================== */
+
+@media (max-width: 768px) {
+  /* Prevent horizontal scrolling & overflow on phones */
+  html, body {
+    overflow-x: hidden;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Full mobile viewport layout */
+  .app-viewport {
+    height: 100dvh; /* Dynamic viewport height for mobile browsers */
+  }
+
+  .main-content {
+    flex-direction: column-reverse; /* Stack map on top, panel below on mobile */
+  }
+
+  /* Modal Dialogs Mobile Bottom Sheet Style */
+  .animate-scale-up {
+    max-width: 95vw !important;
+    max-height: 90vh !important;
+    border-radius: 20px !important;
+    margin: 10px auto !important;
+  }
+
+  /* Increase button tap targets for mobile fingers */
+  button, input, select, a {
+    min-height: 44px;
+    touch-action: manipulation;
+  }
+
+  /* Compact Leaflet Map Controls for Mobile */
+  .leaflet-control-container .leaflet-top {
+    top: 10px !important;
+  }
+
+  .leaflet-control-zoom {
+    margin-right: 10px !important;
+    border: none !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2) !important;
+  }
+
+  /* Navigation Cards Mobile Responsiveness */
+  .navigation-sidebar-card {
+    left: 12px !important;
+    right: 12px !important;
+    bottom: 12px !important;
+    width: auto !important;
+    max-width: calc(100vw - 24px) !important;
+    padding: 16px !important;
+  }
+
+  .navigation-active-card {
+    left: 10px !important;
+    right: 10px !important;
+    top: 10px !important;
+    bottom: 10px !important;
+    width: auto !important;
+    max-width: calc(100vw - 20px) !important;
+    max-height: calc(100vh - 20px) !important;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Extra Small Mobile Screen Fine-Tuning */
+  .glass-panel, .glass-card {
+    padding: 12px !important;
+  }
+
+  h1 { font-size: 1.3rem !important; }
+  h2 { font-size: 1.15rem !important; }
+  h3 { font-size: 1.0rem !important; }
+  
+  /* Touch-friendly modal headers */
+  .modal-header-responsive {
+    padding: 14px 16px !important;
+  }
+}
+

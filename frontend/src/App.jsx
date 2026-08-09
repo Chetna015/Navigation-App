@@ -206,8 +206,8 @@ export default function App() {
         onOpenAdmin360={() => setShowAdmin360Modal(true)}
       />
 
-      {/* 4. Search Bar & Smart Quick Action Cards (Hidden during live navigation mode) */}
-      {navMode !== 'active' && (
+      {/* 4. Search Bar & Smart Quick Action Cards (Automatically hidden once both locations/destination are entered) */}
+      {!destination && navMode !== 'active' && (
         <SearchBarAndActions
           currentLocation={currentLocation}
           destination={destination}

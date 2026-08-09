@@ -178,6 +178,30 @@ export default function ManagePinsModal({
               <Plus size={16} /> Pin New Location on Map
             </button>
 
+            <button
+              onClick={() => {
+                const exportData = JSON.stringify(Object.values(allBuildings), null, 2);
+                navigator.clipboard.writeText(exportData);
+                alert("📋 Copied your exact pinned locations JSON to your clipboard!\n\nPaste this text into the chat so we can push your exact coordinates permanently to Vercel.");
+              }}
+              style={{
+                background: 'rgba(0, 240, 255, 0.15)',
+                border: '1px solid #00F0FF',
+                color: '#00F0FF',
+                padding: '8px 14px',
+                borderRadius: '12px',
+                fontSize: '12px',
+                fontWeight: 800,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+              title="Copy your exact custom pinned locations JSON to clipboard"
+            >
+              📋 Copy Pinned Locations Code
+            </button>
+
             {locationsList.length > 0 && (
               <button
                 onClick={handleClearAllCustomPins}

@@ -154,44 +154,30 @@ export default function SearchBarAndActions({
             />
           )}
 
-          {/* Voice Search Mic Button */}
+          {/* Voice Search Mic Button (Dark Red) */}
           <button
             onClick={startVoiceSearch}
-            title="Voice Search"
+            title="Click to Search by Voice"
             style={{
-              background: isListening ? 'var(--color-rose)' : 'rgba(0, 102, 255, 0.2)',
-              border: '1px solid rgba(255, 255, 255, 0.15)',
-              borderRadius: '50%',
-              width: '32px',
-              height: '32px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer'
-            }}
-          >
-            <Mic size={15} color={isListening ? '#FFF' : 'var(--color-cyan)'} />
-          </button>
-
-          {/* AI Guide Button */}
-          <button
-            onClick={onOpenAIAssistant}
-            style={{
-              background: 'linear-gradient(135deg, #0066FF 0%, #00F0FF 100%)',
+              background: isListening ? '#EF4444' : '#B91C1C',
               border: 'none',
-              borderRadius: '12px',
+              borderRadius: '20px',
               padding: '6px 12px',
               color: '#FFF',
               fontSize: '12px',
               fontWeight: 800,
               display: 'flex',
               alignItems: 'center',
-              gap: '4px',
+              justifyContent: 'center',
+              gap: '6px',
               cursor: 'pointer',
-              whiteSpace: 'nowrap'
+              boxShadow: '0 2px 8px rgba(185, 28, 28, 0.4)',
+              whiteSpace: 'nowrap',
+              flexShrink: 0
             }}
           >
-            <Bot size={14} /> AI Guide
+            <Mic size={15} color="#FFF" />
+            <span>{isListening ? 'Listening...' : 'Voice Search'}</span>
           </button>
 
           {/* Pin Location & Manage Pins Buttons (ONLY Visible in Local Development Mode) */}

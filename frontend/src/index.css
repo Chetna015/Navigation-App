@@ -45,15 +45,15 @@
   --bg-glass: rgba(248, 250, 252, 0.95);
   --bg-glass-card: rgba(241, 245, 249, 0.98);
   --border-glass: rgba(15, 23, 42, 0.15);
-  --border-glass-light: rgba(234, 88, 12, 0.4);
+  --border-glass-light: rgba(185, 28, 28, 0.4);
   
-  --color-primary: #EA580C;
-  --color-primary-glow: rgba(234, 88, 12, 0.4);
-  --color-cyan: #C2410C;
-  --color-cyan-glow: rgba(194, 65, 12, 0.35);
+  --color-primary: #B91C1C;
+  --color-primary-glow: rgba(185, 28, 28, 0.4);
+  --color-cyan: #1E3A8A;
+  --color-cyan-glow: rgba(30, 58, 138, 0.35);
   --color-emerald: #15803D;
   --color-amber: #D97706;
-  --color-rose: #E11D48;
+  --color-rose: #991B1B;
   
   --text-main: #0F172A;
   --text-muted: #1E293B;

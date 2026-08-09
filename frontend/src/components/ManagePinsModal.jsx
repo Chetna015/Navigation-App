@@ -77,7 +77,7 @@ export default function ManagePinsModal({
         maxHeight: '85vh',
         borderRadius: '24px',
         background: '#F1F5F9',
-        border: '2px solid #EA580C',
+        border: '2px solid #B91C1C',
         boxShadow: '0 20px 40px rgba(0, 0, 0, 0.2)',
         display: 'flex',
         flexDirection: 'column',
@@ -85,7 +85,7 @@ export default function ManagePinsModal({
       }}>
         {/* Modal Header */}
         <div style={{
-          background: 'linear-gradient(135deg, #EA580C 0%, #C2410C 100%)',
+          background: 'linear-gradient(135deg, #B91C1C 0%, #991B1B 100%)',
           padding: '20px 24px',
           display: 'flex',
           alignItems: 'center',
@@ -96,7 +96,7 @@ export default function ManagePinsModal({
               width: '42px',
               height: '42px',
               borderRadius: '12px',
-              background: '#9A3412',
+              background: '#1E3A8A',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -108,7 +108,7 @@ export default function ManagePinsModal({
               <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#FFF' }}>
                 Manage Location Pins & Custom Plotting
               </h3>
-              <p style={{ fontSize: '12px', color: '#FFEDD5', fontWeight: 600 }}>
+              <p style={{ fontSize: '12px', color: '#FEE2E2', fontWeight: 600 }}>
                 Drop new custom pins on the map — saved permanently in LocalStorage
               </p>
             </div>
@@ -144,7 +144,7 @@ export default function ManagePinsModal({
           background: '#F8FAFC'
         }}>
           <div style={{ position: 'relative', flex: 1, minWidth: '220px' }}>
-            <Search size={16} color="#EA580C" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
+            <Search size={16} color="#1E3A8A" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
             <input
               type="text"
               placeholder="Search custom location pins..."
@@ -171,7 +171,7 @@ export default function ManagePinsModal({
                 if (onStartPinningMode) onStartPinningMode();
               }}
               style={{
-                background: '#EA580C',
+                background: '#B91C1C',
                 border: 'none',
                 color: '#FFF',
                 padding: '8px 14px',
@@ -182,7 +182,7 @@ export default function ManagePinsModal({
                 display: 'flex',
                 alignItems: 'center',
                 gap: '6px',
-                boxShadow: '0 4px 12px rgba(234, 88, 12, 0.35)'
+                boxShadow: '0 4px 12px rgba(185, 28, 28, 0.35)'
               }}
             >
               <Plus size={16} color="#FFF" /> Pin New Location on Map
@@ -195,9 +195,9 @@ export default function ManagePinsModal({
                 alert("📋 Copied your exact pinned locations JSON to your clipboard!\n\nPaste this text into the chat so we can push your exact coordinates permanently to Vercel.");
               }}
               style={{
-                background: '#FFF7ED',
-                border: '1.5px solid #EA580C',
-                color: '#C2410C',
+                background: '#EFF6FF',
+                border: '1.5px solid #1E3A8A',
+                color: '#1E3A8A',
                 padding: '8px 14px',
                 borderRadius: '12px',
                 fontSize: '12px',
@@ -217,8 +217,8 @@ export default function ManagePinsModal({
                 onClick={handleClearAllCustomPins}
                 style={{
                   background: '#FEF2F2',
-                  border: '1.5px solid #EF4444',
-                  color: '#DC2626',
+                  border: '1.5px solid #991B1B',
+                  color: '#991B1B',
                   padding: '8px 12px',
                   borderRadius: '12px',
                   fontSize: '12px',
@@ -230,7 +230,7 @@ export default function ManagePinsModal({
                 }}
                 title="Clear all saved custom pins"
               >
-                <Trash2 size={14} color="#DC2626" /> Clear All Pins
+                <Trash2 size={14} color="#991B1B" /> Clear All Pins
               </button>
             )}
           </div>
@@ -248,8 +248,8 @@ export default function ManagePinsModal({
         }}>
           {locationsList.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '40px 20px', color: '#334155', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px' }}>
-              <div style={{ width: '50px', height: '50px', borderRadius: '50%', background: '#FFEDD5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <MapPin size={26} color="#EA580C" />
+              <div style={{ width: '50px', height: '50px', borderRadius: '50%', background: '#DBEAFE', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <MapPin size={26} color="#1E3A8A" />
               </div>
               <h4 style={{ color: '#0F172A', fontSize: '16px', fontWeight: 800 }}>No Location Pins Yet</h4>
               <p style={{ fontSize: '13px', maxWidth: '380px', lineHeight: '1.5', color: '#334155' }}>
@@ -262,7 +262,7 @@ export default function ManagePinsModal({
                 }}
                 style={{
                   marginTop: '8px',
-                  background: '#EA580C',
+                  background: '#B91C1C',
                   border: 'none',
                   color: '#FFF',
                   padding: '10px 18px',
@@ -273,7 +273,7 @@ export default function ManagePinsModal({
                   display: 'flex',
                   alignItems: 'center',
                   gap: '6px',
-                  boxShadow: '0 4px 12px rgba(234, 88, 12, 0.35)'
+                  boxShadow: '0 4px 12px rgba(185, 28, 28, 0.35)'
                 }}
               >
                 <Plus size={16} color="#FFF" /> Drop Your First Pin Now
@@ -303,15 +303,15 @@ export default function ManagePinsModal({
                       width: '38px',
                       height: '38px',
                       borderRadius: '10px',
-                      background: '#FFEDD5',
-                      border: '1px solid #FDBA74',
+                      background: '#DBEAFE',
+                      border: '1px solid #93C5FD',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      color: '#EA580C',
+                      color: '#1E3A8A',
                       fontSize: '18px'
                     }}>
-                      <MapPin size={20} color="#EA580C" />
+                      <MapPin size={20} color="#1E3A8A" />
                     </div>
 
                     <div>
@@ -320,7 +320,7 @@ export default function ManagePinsModal({
                           {loc.name}
                         </span>
                       </div>
-                      <div style={{ fontSize: '12px', color: '#C2410C', marginTop: '2px', fontFamily: 'monospace', fontWeight: 700 }}>
+                      <div style={{ fontSize: '12px', color: '#1E3A8A', marginTop: '2px', fontFamily: 'monospace', fontWeight: 700 }}>
                         📍 Lat: {loc.lat ? loc.lat.toFixed(6) : '26.49830'}° N | Lng: {loc.lng ? loc.lng.toFixed(6) : '80.26580'}° E
                       </div>
                     </div>
@@ -333,9 +333,9 @@ export default function ManagePinsModal({
                         onClose();
                       }}
                       style={{
-                        background: '#FFEDD5',
-                        border: '1.5px solid #EA580C',
-                        color: '#C2410C',
+                        background: '#EFF6FF',
+                        border: '1.5px solid #1E3A8A',
+                        color: '#1E3A8A',
                         padding: '6px 14px',
                         borderRadius: '10px',
                         fontSize: '12px',
@@ -346,15 +346,15 @@ export default function ManagePinsModal({
                         gap: '4px'
                       }}
                     >
-                      <Eye size={14} color="#EA580C" /> Fly To
+                      <Eye size={14} color="#1E3A8A" /> Fly To
                     </button>
 
                     <button
                       onClick={() => handleDelete(loc)}
                       style={{
                         background: '#FEF2F2',
-                        border: '1.5px solid #EF4444',
-                        color: '#DC2626',
+                        border: '1.5px solid #991B1B',
+                        color: '#991B1B',
                         padding: '6px 12px',
                         borderRadius: '10px',
                         fontSize: '12px',
@@ -365,7 +365,7 @@ export default function ManagePinsModal({
                         gap: '4px'
                       }}
                     >
-                      <Trash2 size={14} color="#DC2626" /> Remove
+                      <Trash2 size={14} color="#991B1B" /> Remove
                     </button>
                   </div>
                 </div>

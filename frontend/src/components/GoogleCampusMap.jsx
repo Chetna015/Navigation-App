@@ -546,96 +546,13 @@ export default function GoogleCampusMap({
         </div>
       )}
 
-      {/* Top Left Controls: Pin Location, Manage Pins, Satellite Source Picker, Mask Toggle */}
+      {/* Top Left Controls: Mask Toggle */}
       <div style={{
         position: 'absolute',
         top: '16px',
         left: '16px',
-        zIndex: 400,
-        display: 'flex',
-        flexWrap: 'wrap',
-        gap: '10px',
-        maxWidth: 'calc(100% - 100px)'
+        zIndex: 400
       }}>
-        {/* Pin Location Button */}
-        <button
-          onClick={() => setIsPlottingMode(!isPlottingMode)}
-          style={{
-            background: isPlottingMode ? 'linear-gradient(135deg, #EF4444 0%, #F43F5E 100%)' : 'linear-gradient(135deg, #EF4444 0%, #FF6B81 100%)',
-            color: '#FFF',
-            border: 'none',
-            borderRadius: '14px',
-            padding: '10px 16px',
-            fontSize: '13px',
-            fontWeight: 800,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            cursor: 'pointer',
-            boxShadow: '0 0 15px rgba(239, 68, 68, 0.5)'
-          }}
-          title="Click to drop a pin on the map and tag a location"
-        >
-          <Plus size={16} />
-          <span>{isPlottingMode ? 'Cancel Pinning' : '📍 Pin Location'}</span>
-        </button>
-
-        {/* Manage Pins Button */}
-        <button
-          onClick={() => setShowManagePinsModal(true)}
-          style={{
-            background: 'rgba(14, 23, 38, 0.92)',
-            backdropFilter: 'blur(14px)',
-            border: '1px solid var(--border-glass-light)',
-            color: '#00F0FF',
-            borderRadius: '14px',
-            padding: '10px 16px',
-            fontSize: '13px',
-            fontWeight: 800,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            cursor: 'pointer'
-          }}
-          title="Manage, view, and remove location pins"
-        >
-          <span>📍 Manage Pins</span>
-        </button>
-
-        {/* Satellite & Map Provider Selector */}
-        <div style={{
-          background: 'rgba(14, 23, 38, 0.92)',
-          backdropFilter: 'blur(14px)',
-          border: '1px solid var(--border-glass)',
-          borderRadius: '14px',
-          padding: '4px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '4px'
-        }}>
-          <select
-            value={mapType}
-            onChange={(e) => setMapType(e.target.value)}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              color: '#00F0FF',
-              fontSize: '12px',
-              fontWeight: 800,
-              padding: '6px 10px',
-              cursor: 'pointer',
-              outline: 'none'
-            }}
-          >
-            {Object.entries(TILE_PROVIDERS).map(([key, provider]) => (
-              <option key={key} value={key} style={{ background: '#0F172A', color: '#FFF' }}>
-                {provider.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Outer Dark Mask Toggle Button */}
         <button
           onClick={() => setShowOuterMask(!showOuterMask)}
           title="Toggle Dark Outer Perimeter Mask"

@@ -283,7 +283,118 @@ export const STARTUP_STALLS = [
   }
 ];
 
-export const MAP_LOCATIONS = [];
+export const MAP_LOCATIONS = [
+  {
+    id: "loc_auditorium",
+    name: "CSJMU Grand Auditorium",
+    code: "AUD-MAIN",
+    category: "Auditorium & Summit Hub",
+    lat: 26.4983,
+    lng: 80.2658,
+    floors: 3,
+    description: "Main plenary hall for AI Summit 2026, keynote speeches, and startup exhibition arena.",
+    departments: ["AI Summit Main Stage", "Startup Exhibition Arena", "VIP Speaker Lounge"]
+  },
+  {
+    id: "loc_senate_hall",
+    name: "Senate Hall & VC Office",
+    code: "ADM-SENATE",
+    category: "Administrative Block",
+    lat: 26.4965,
+    lng: 80.2662,
+    floors: 3,
+    description: "Executive Administrative Complex, Vice-Chancellor Office, and Academic Council Hall.",
+    departments: ["Vice-Chancellor Secretariat", "Registrar Office", "Executive Council Hall"]
+  },
+  {
+    id: "loc_uiet_eng",
+    name: "UIET School of Engineering",
+    code: "ENG-UIET",
+    category: "Academic Block",
+    lat: 26.5005,
+    lng: 80.2675,
+    floors: 4,
+    description: "Engineering & Technology Wing housing AI & Data Science, CSE, Robotics, and Electronics Labs.",
+    departments: ["Computer Science & Eng", "AI & Robotics Lab", "Electronics & Communication"]
+  },
+  {
+    id: "loc_central_library",
+    name: "Central Library & Digital Hub",
+    code: "LIB-CENTRAL",
+    category: "Library Block",
+    lat: 26.4990,
+    lng: 80.2670,
+    floors: 3,
+    description: "University Central Library, e-resource center, and research publication archives.",
+    departments: ["Digital Resource Hall", "Reference Reading Section", "Periodicals & Journals"]
+  },
+  {
+    id: "loc_main_gate",
+    name: "CSJMU Main Gate 1 (GT Road)",
+    code: "GATE-01",
+    category: "Campus Gateway",
+    lat: 26.4969,
+    lng: 80.2666,
+    floors: 1,
+    description: "Main campus entrance gate on Kanpur GT Road.",
+    departments: ["Security Reception", "Visitor Registration Desk"]
+  },
+  {
+    id: "loc_guest_house",
+    name: "University Guest House & VIP Suites",
+    code: "GH-VIP",
+    category: "Hospitality & Guest House",
+    lat: 26.4975,
+    lng: 80.2650,
+    floors: 2,
+    description: "Guest house accommodation for AI Summit keynote speakers, delegates, and official guests.",
+    departments: ["VIP Reception", "Dining Hall", "Executive Suites"]
+  },
+  {
+    id: "loc_food_court",
+    name: "Central Food Court & Cafeteria",
+    code: "FC-CENTRAL",
+    category: "Food & Dining",
+    lat: 26.4988,
+    lng: 80.2650,
+    floors: 1,
+    description: "Multicuisine food court, refreshment counters, and coffee stalls.",
+    departments: ["Food Counters", "Dining Hall", "Beverage Bar"]
+  },
+  {
+    id: "loc_registration",
+    name: "AI Summit Registration & Badge Counter",
+    code: "REG-DESK",
+    category: "Event Desk",
+    lat: 26.4981,
+    lng: 80.2656,
+    floors: 1,
+    description: "Delegate check-in, QR badge printing, and information helpline.",
+    departments: ["Badge Printing", "Information Counter", "Helpdesk"]
+  },
+  {
+    id: "loc_medical_booth",
+    name: "Emergency First-Aid Medical Booth",
+    code: "MED-HELP",
+    category: "Emergency & Health",
+    lat: 26.4980,
+    lng: 80.2660,
+    floors: 1,
+    description: "24/7 Paramedic team, ambulance dispatch, and emergency first-aid station.",
+    departments: ["First-Aid Station", "Ambulance Desk"]
+  },
+  {
+    id: "loc_parking_p1",
+    name: "Central Campus Parking (P1)",
+    code: "PARK-P1",
+    category: "Parking Area",
+    lat: 26.4960,
+    lng: 80.2660,
+    floors: 1,
+    description: "Designated visitor parking for cars and two-wheelers.",
+    departments: ["VIP Car Parking", "General Parking"]
+  }
+];
 
 export const SESSIONS_DATA = [
   {

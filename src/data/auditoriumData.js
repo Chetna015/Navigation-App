@@ -285,114 +285,343 @@ export const STARTUP_STALLS = [
 
 export const MAP_LOCATIONS = [
   {
-    id: "loc_auditorium",
-    name: "CSJMU Grand Auditorium",
-    code: "AUD-MAIN",
-    category: "Auditorium & Summit Hub",
-    lat: 26.4983,
-    lng: 80.2658,
-    floors: 3,
-    description: "Main plenary hall for AI Summit 2026, keynote speeches, and startup exhibition arena.",
-    departments: ["AI Summit Main Stage", "Startup Exhibition Arena", "VIP Speaker Lounge"]
+    "id": "loc_auditorium",
+    "name": "CSJMU Grand Auditorium",
+    "code": "AUD-MAIN",
+    "category": "Auditorium & Summit Hub",
+    "lat": 26.4983,
+    "lng": 80.2658,
+    "floors": 3,
+    "description": "Main plenary hall for AI Summit 2026, keynote speeches, and startup exhibition arena.",
+    "departments": [
+      "AI Summit Main Stage",
+      "Startup Exhibition Arena",
+      "VIP Speaker Lounge"
+    ]
   },
   {
-    id: "loc_senate_hall",
-    name: "Senate Hall & VC Office",
-    code: "ADM-SENATE",
-    category: "Administrative Block",
-    lat: 26.4965,
-    lng: 80.2662,
-    floors: 3,
-    description: "Executive Administrative Complex, Vice-Chancellor Office, and Academic Council Hall.",
-    departments: ["Vice-Chancellor Secretariat", "Registrar Office", "Executive Council Hall"]
+    "id": "loc_uiet_eng",
+    "name": "UIET School of Engineering",
+    "code": "ENG-UIET",
+    "category": "Academic Block",
+    "lat": 26.5005,
+    "lng": 80.2675,
+    "floors": 4,
+    "description": "Engineering & Technology Wing housing AI & Data Science, CSE, Robotics, and Electronics Labs.",
+    "departments": [
+      "Computer Science & Eng",
+      "AI & Robotics Lab",
+      "Electronics & Communication"
+    ]
   },
   {
-    id: "loc_uiet_eng",
-    name: "UIET School of Engineering",
-    code: "ENG-UIET",
-    category: "Academic Block",
-    lat: 26.5005,
-    lng: 80.2675,
-    floors: 4,
-    description: "Engineering & Technology Wing housing AI & Data Science, CSE, Robotics, and Electronics Labs.",
-    departments: ["Computer Science & Eng", "AI & Robotics Lab", "Electronics & Communication"]
+    "id": "loc_central_library",
+    "name": "Central Library & Digital Hub",
+    "code": "LIB-CENTRAL",
+    "category": "Library Block",
+    "lat": 26.499,
+    "lng": 80.267,
+    "floors": 3,
+    "description": "University Central Library, e-resource center, and research publication archives.",
+    "departments": [
+      "Digital Resource Hall",
+      "Reference Reading Section",
+      "Periodicals & Journals"
+    ]
   },
   {
-    id: "loc_central_library",
-    name: "Central Library & Digital Hub",
-    code: "LIB-CENTRAL",
-    category: "Library Block",
-    lat: 26.4990,
-    lng: 80.2670,
-    floors: 3,
-    description: "University Central Library, e-resource center, and research publication archives.",
-    departments: ["Digital Resource Hall", "Reference Reading Section", "Periodicals & Journals"]
+    "id": "loc_guest_house",
+    "name": "University Guest House & VIP Suites",
+    "code": "GH-VIP",
+    "category": "Hospitality & Guest House",
+    "lat": 26.4975,
+    "lng": 80.265,
+    "floors": 2,
+    "description": "Guest house accommodation for AI Summit keynote speakers, delegates, and official guests.",
+    "departments": [
+      "VIP Reception",
+      "Dining Hall",
+      "Executive Suites"
+    ]
   },
   {
-    id: "loc_main_gate",
-    name: "CSJMU Main Gate 1 (GT Road)",
-    code: "GATE-01",
-    category: "Campus Gateway",
-    lat: 26.4969,
-    lng: 80.2666,
-    floors: 1,
-    description: "Main campus entrance gate on Kanpur GT Road.",
-    departments: ["Security Reception", "Visitor Registration Desk"]
+    "id": "loc_food_court",
+    "name": "Central Food Court & Cafeteria",
+    "code": "FC-CENTRAL",
+    "category": "Food & Dining",
+    "lat": 26.4988,
+    "lng": 80.265,
+    "floors": 1,
+    "description": "Multicuisine food court, refreshment counters, and coffee stalls.",
+    "departments": [
+      "Food Counters",
+      "Dining Hall",
+      "Beverage Bar"
+    ]
   },
   {
-    id: "loc_guest_house",
-    name: "University Guest House & VIP Suites",
-    code: "GH-VIP",
-    category: "Hospitality & Guest House",
-    lat: 26.4975,
-    lng: 80.2650,
-    floors: 2,
-    description: "Guest house accommodation for AI Summit keynote speakers, delegates, and official guests.",
-    departments: ["VIP Reception", "Dining Hall", "Executive Suites"]
+    "id": "loc_registration",
+    "name": "AI Summit Registration & Badge Counter",
+    "code": "REG-DESK",
+    "category": "Event Desk",
+    "lat": 26.4981,
+    "lng": 80.2656,
+    "floors": 1,
+    "description": "Delegate check-in, QR badge printing, and information helpline.",
+    "departments": [
+      "Badge Printing",
+      "Information Counter",
+      "Helpdesk"
+    ]
   },
   {
-    id: "loc_food_court",
-    name: "Central Food Court & Cafeteria",
-    code: "FC-CENTRAL",
-    category: "Food & Dining",
-    lat: 26.4988,
-    lng: 80.2650,
-    floors: 1,
-    description: "Multicuisine food court, refreshment counters, and coffee stalls.",
-    departments: ["Food Counters", "Dining Hall", "Beverage Bar"]
+    "id": "loc_medical_booth",
+    "name": "Emergency First-Aid Medical Booth",
+    "code": "MED-HELP",
+    "category": "Emergency & Health",
+    "lat": 26.498,
+    "lng": 80.266,
+    "floors": 1,
+    "description": "24/7 Paramedic team, ambulance dispatch, and emergency first-aid station.",
+    "departments": [
+      "First-Aid Station",
+      "Ambulance Desk"
+    ]
   },
   {
-    id: "loc_registration",
-    name: "AI Summit Registration & Badge Counter",
-    code: "REG-DESK",
-    category: "Event Desk",
-    lat: 26.4981,
-    lng: 80.2656,
-    floors: 1,
-    description: "Delegate check-in, QR badge printing, and information helpline.",
-    departments: ["Badge Printing", "Information Counter", "Helpdesk"]
+    "id": "loc_parking_p1",
+    "name": "Central Campus Parking (P1)",
+    "code": "PARK-P1",
+    "category": "Parking Area",
+    "lat": 26.496,
+    "lng": 80.266,
+    "floors": 1,
+    "description": "Designated visitor parking for cars and two-wheelers.",
+    "departments": [
+      "VIP Car Parking",
+      "General Parking"
+    ]
   },
   {
-    id: "loc_medical_booth",
-    name: "Emergency First-Aid Medical Booth",
-    code: "MED-HELP",
-    category: "Emergency & Health",
-    lat: 26.4980,
-    lng: 80.2660,
-    floors: 1,
-    description: "24/7 Paramedic team, ambulance dispatch, and emergency first-aid station.",
-    departments: ["First-Aid Station", "Ambulance Desk"]
+    "id": "custom_bld_1786257941375",
+    "name": "CSJM Main Gate",
+    "code": "Entrance",
+    "category": "Entrance",
+    "lat": 26.496921,
+    "lng": 80.266628,
+    "x": 490,
+    "y": 397,
+    "floors": 1,
+    "description": "Main entrance of the University",
+    "departments": [
+      "General Dept",
+      "Faculty Offices"
+    ],
+    "isCustom": true
   },
   {
-    id: "loc_parking_p1",
-    name: "Central Campus Parking (P1)",
-    code: "PARK-P1",
-    category: "Parking Area",
-    lat: 26.4960,
-    lng: 80.2660,
-    floors: 1,
-    description: "Designated visitor parking for cars and two-wheelers.",
-    departments: ["VIP Car Parking", "General Parking"]
+    "id": "custom_bld_1786257973496",
+    "name": "Girls Hostel",
+    "code": "Hostel",
+    "category": "Entrance",
+    "lat": 26.499581,
+    "lng": 80.267972,
+    "x": 385,
+    "y": 488,
+    "floors": 1,
+    "description": "Custom Plotted University Facility",
+    "departments": [
+      "General Dept",
+      "Faculty Offices"
+    ],
+    "isCustom": true
+  },
+  {
+    "id": "custom_bld_1786257986309",
+    "name": "Namarta Marg",
+    "code": "BLD-119",
+    "category": "Entrance",
+    "lat": 26.499831,
+    "lng": 80.267597,
+    "x": 381,
+    "y": 456,
+    "floors": 1,
+    "description": "Custom Plotted University Facility",
+    "departments": [
+      "General Dept",
+      "Faculty Offices"
+    ],
+    "isCustom": true
+  },
+  {
+    "id": "custom_bld_1786258664884",
+    "name": "Central Library",
+    "code": "BLD-355",
+    "category": "Entrance",
+    "lat": 26.50113,
+    "lng": 80.267006,
+    "x": 320,
+    "y": 449,
+    "floors": 1,
+    "description": "Custom Plotted University Facility",
+    "departments": [
+      "General Dept",
+      "Faculty Offices"
+    ],
+    "isCustom": true
+  },
+  {
+    "id": "custom_bld_1786258679894",
+    "name": "Nataraj Point",
+    "code": "BLD-711",
+    "category": "Entrance",
+    "lat": 26.500645,
+    "lng": 80.267897,
+    "x": 422,
+    "y": 409,
+    "floors": 1,
+    "description": "Custom Plotted University Facility",
+    "departments": [
+      "General Dept",
+      "Faculty Offices"
+    ],
+    "isCustom": true
+  },
+  {
+    "id": "custom_bld_1786258694497",
+    "name": "Uiet",
+    "code": "BLD-445",
+    "category": "Entrance",
+    "lat": 26.500924,
+    "lng": 80.265507,
+    "x": 451,
+    "y": 329,
+    "floors": 1,
+    "description": "Custom Plotted University Facility",
+    "departments": [
+      "General Dept",
+      "Faculty Offices"
+    ],
+    "isCustom": true
+  },
+  {
+    "id": "custom_bld_1786258709544",
+    "name": "Lecture Hall Complex",
+    "code": "BLD-438",
+    "category": "Entrance",
+    "lat": 26.501216,
+    "lng": 80.264579,
+    "x": 411,
+    "y": 499,
+    "floors": 1,
+    "description": "Custom Plotted University Facility",
+    "departments": [
+      "General Dept",
+      "Faculty Offices"
+    ],
+    "isCustom": true
+  },
+  {
+    "id": "custom_bld_1786258750057",
+    "name": "Open Air Theatre",
+    "code": "BLD-712",
+    "category": "Entrance",
+    "lat": 26.501838,
+    "lng": 80.265006,
+    "x": 405,
+    "y": 420,
+    "floors": 1,
+    "description": "Custom Plotted University Facility",
+    "departments": [
+      "General Dept",
+      "Faculty Offices"
+    ],
+    "isCustom": true
+  },
+  {
+    "id": "custom_bld_1786258953264",
+    "name": "Boys Hostel",
+    "code": "BLD-355",
+    "category": "Entrance",
+    "lat": 26.508427,
+    "lng": 80.26879,
+    "x": 363,
+    "y": 430,
+    "floors": 1,
+    "description": "Custom Plotted University Facility",
+    "departments": [
+      "General Dept",
+      "Faculty Offices"
+    ],
+    "isCustom": true
+  },
+  {
+    "id": "custom_bld_1786259088845",
+    "name": "CSJMU Metro Station",
+    "code": "BLD-367",
+    "category": "Entrance",
+    "lat": 26.49648,
+    "lng": 80.267272,
+    "x": 367,
+    "y": 478,
+    "floors": 1,
+    "description": "Custom Plotted University Facility",
+    "departments": [
+      "General Dept",
+      "Faculty Offices"
+    ],
+    "isCustom": true
+  },
+  {
+    "id": "custom_bld_1786259290495",
+    "name": "Cafeteria",
+    "code": "BLD-102",
+    "category": "Entrance",
+    "lat": 26.499776,
+    "lng": 80.266065,
+    "x": 386,
+    "y": 316,
+    "floors": 1,
+    "description": "Custom Plotted University Facility",
+    "departments": [
+      "General Dept",
+      "Faculty Offices"
+    ],
+    "isCustom": true
+  },
+  {
+    "id": "custom_bld_1786259345815",
+    "name": "School of Business Management(SBM)",
+    "code": "BLD-973",
+    "category": "Entrance",
+    "lat": 26.503022,
+    "lng": 80.266371,
+    "x": 334,
+    "y": 304,
+    "floors": 1,
+    "description": "Custom Plotted University Facility",
+    "departments": [
+      "General Dept",
+      "Faculty Offices"
+    ],
+    "isCustom": true
+  },
+  {
+    "id": "custom_bld_1786259378721",
+    "name": "Uiet 4",
+    "code": "BLD-645",
+    "category": "Entrance",
+    "lat": 26.502772,
+    "lng": 80.264965,
+    "x": 346,
+    "y": 375,
+    "floors": 1,
+    "description": "Custom Plotted University Facility",
+    "departments": [
+      "General Dept",
+      "Faculty Offices"
+    ],
+    "isCustom": true
   }
 ];
 

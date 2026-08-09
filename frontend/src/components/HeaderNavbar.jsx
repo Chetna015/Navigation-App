@@ -44,25 +44,11 @@ export default function HeaderNavbar({
           }}
         />
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-            <h1 style={{ fontSize: 'clamp(14px, 2vw, 18px)', fontWeight: 900, color: 'var(--text-main)', letterSpacing: '0.2px' }}>
-              CSJMU AI SUMMIT 2026
-            </h1>
-            <span style={{
-              background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
-              color: '#FFF',
-              fontSize: '9px',
-              fontWeight: 800,
-              padding: '2px 6px',
-              borderRadius: '10px',
-              textTransform: 'uppercase',
-              boxShadow: '0 0 8px rgba(16, 185, 129, 0.4)'
-            }}>
-              DIGITAL TWIN
-            </span>
-          </div>
-          <p style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600 }}>
-            Smart Campus & Grand Auditorium • Kanpur, UP
+          <h1 style={{ fontSize: 'clamp(13px, 1.8vw, 17px)', fontWeight: 900, color: 'var(--text-main)', letterSpacing: '0.2px' }}>
+            Chhatrapati Shahuji Maharaj University Welcomes You !!
+          </h1>
+          <p style={{ fontSize: '12px', color: '#B91C1C', fontWeight: 800, marginTop: '2px' }}>
+            Smart Navigation
           </p>
         </div>
       </div>

@@ -69,8 +69,8 @@ export default function HeaderNavbar({
 
       {/* Right Actions */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        {/* Upload 360 Admin Dashboard Button */}
-        {onOpenAdmin360 && (
+        {/* Upload 360 Admin Dashboard Button (ONLY Visible in Local Development Mode) */}
+        {(import.meta.env.DEV || (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'))) && onOpenAdmin360 && (
           <button
             onClick={onOpenAdmin360}
             title="Upload custom 360 panoramas & manage hotspots"

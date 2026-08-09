@@ -19,7 +19,7 @@ import useLiveNavigationVoice from './hooks/useLiveNavigationVoice';
 import { MAP_LOCATIONS, STARTUP_STALLS } from './data/auditoriumData';
 
 export default function App() {
-  const [showSplash, setShowSplash] = useState(true);
+  const [showSplash, setShowSplash] = useState(false);
 
   // Core navigation state locked to exact user location (Lat: 26.4970° N, Lng: 80.2666° E)
   const defaultLiveLocation = {

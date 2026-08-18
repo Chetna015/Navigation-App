@@ -9,13 +9,7 @@
   "scripts": {
     "dev": "cd frontend && npm run dev",
     "build": "cd frontend && npm run build",
-    "dev:backend": "cd backend && nodemon server.js",
-    "start:backend": "cd backend && nodemon server.js"
-  },
-  "dependencies": {
-    "playwright": "^1.62.1"
-  },
-  "devDependencies": {
-    "nodemon": "^3.1.14"
+    "start:backend": "cd backend && node server.js"
   }
 }
+

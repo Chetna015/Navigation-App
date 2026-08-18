@@ -26,50 +26,71 @@ export default function AccessibilityModal({
       position: 'fixed',
       inset: 0,
       zIndex: 9999,
-      background: 'rgba(5, 8, 16, 0.85)',
-      backdropFilter: 'blur(12px)',
+      background: 'rgba(0, 0, 0, 0.65)',
+      backdropFilter: 'blur(8px)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       padding: '20px'
     }}>
-      <div className="glass-panel" style={{
+      <div style={{
         width: '100%',
         maxWidth: '520px',
-        borderRadius: 'var(--radius-xl)',
+        borderRadius: '12px',
         padding: '24px',
         display: 'flex',
         flexDirection: 'column',
         gap: '20px',
-        border: '1px solid var(--border-glass-light)',
-        boxShadow: '0 25px 60px rgba(0, 0, 0, 0.6)'
+        border: '1px solid var(--colors-hairline-strong)',
+        boxShadow: 'var(--shadow-md)',
+        background: 'var(--colors-surface-card)'
       }}>
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div style={{
-              width: '40px',
-              height: '40px',
-              borderRadius: '12px',
-              background: 'rgba(0, 240, 255, 0.15)',
+              width: '36px',
+              height: '36px',
+              borderRadius: '9999px',
+              background: 'var(--colors-primary)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center'
             }}>
-              <Accessibility size={22} color="var(--color-cyan)" />
+              <Accessibility size={18} color="var(--colors-on-primary)" />
             </div>
             <div>
-              <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#FFF' }}>
+              <h2 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--colors-ink)', fontFamily: 'var(--font-heading)' }}>
                 Accessibility & Inclusivity Suite
               </h2>
-              <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+              <p style={{ fontSize: '12px', color: 'var(--colors-body)', fontFamily: 'var(--font-main)' }}>
                 CSJMU Auditorium Inclusive Navigation Settings
               </p>
             </div>
           </div>
 
-          <button onClick={onClose} className="btn-glass" style={{ padding: '6px', borderRadius: '50%' }}>
-            <X size={18} color="var(--text-muted)" />
+          <button
+            onClick={onClose}
+            title="Close Modal"
+            style={{
+              width: '32px',
+              height: '32px',
+              minWidth: '32px',
+              minHeight: '32px',
+              borderRadius: '50%',
+              background: '#000000',
+              color: '#ffffff',
+              border: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              fontWeight: 700,
+              fontSize: '16px',
+              lineHeight: 1
+            }}
+          >
+            ✕
           </button>
         </div>
 
@@ -78,10 +99,11 @@ export default function AccessibilityModal({
           {/* Wheelchair Route */}
           <div
             onClick={() => toggleOption('wheelchairRoute')}
-            className="glass-card"
             style={{
               padding: '14px 18px',
-              borderRadius: 'var(--radius-md)',
+              borderRadius: '12px',
+              background: 'var(--colors-surface-soft)',
+              border: '1px solid var(--colors-hairline)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
@@ -89,12 +111,12 @@ export default function AccessibilityModal({
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <Accessibility size={20} color="var(--color-cyan)" />
+              <Accessibility size={20} color="var(--colors-ink)" />
               <div>
-                <div style={{ fontSize: '14px', fontWeight: 700, color: '#FFF' }}>
+                <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--colors-ink)', fontFamily: 'var(--font-heading)' }}>
                   Wheelchair Accessible Routing
                 </div>
-                <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                <div style={{ fontSize: '12px', color: 'var(--colors-body)', fontFamily: 'var(--font-main)' }}>
                   Prioritize ramps and elevators, bypass all staircases
                 </div>
               </div>
@@ -103,23 +125,24 @@ export default function AccessibilityModal({
             <div style={{
               width: '24px',
               height: '24px',
-              borderRadius: '6px',
-              background: accessibilityOptions.wheelchairRoute ? '#00F0FF' : 'rgba(255, 255, 255, 0.1)',
+              borderRadius: '9999px',
+              background: accessibilityOptions.wheelchairRoute ? 'var(--colors-primary)' : 'var(--colors-hairline)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center'
             }}>
-              {accessibilityOptions.wheelchairRoute && <Check size={16} color="#000" />}
+              {accessibilityOptions.wheelchairRoute && <Check size={14} color="var(--colors-on-primary)" />}
             </div>
           </div>
 
           {/* High Contrast Mode */}
           <div
             onClick={() => toggleOption('highContrast')}
-            className="glass-card"
             style={{
               padding: '14px 18px',
-              borderRadius: 'var(--radius-md)',
+              borderRadius: '12px',
+              background: 'var(--colors-surface-soft)',
+              border: '1px solid var(--colors-hairline)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
@@ -127,12 +150,12 @@ export default function AccessibilityModal({
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <Eye size={20} color="#F59E0B" />
+              <Eye size={20} color="var(--colors-ink)" />
               <div>
-                <div style={{ fontSize: '14px', fontWeight: 700, color: '#FFF' }}>
+                <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--colors-ink)', fontFamily: 'var(--font-heading)' }}>
                   High Contrast Theme
                 </div>
-                <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                <div style={{ fontSize: '12px', color: 'var(--colors-body)', fontFamily: 'var(--font-main)' }}>
                   Maximum color contrast for visual clarity
                 </div>
               </div>
@@ -141,23 +164,24 @@ export default function AccessibilityModal({
             <div style={{
               width: '24px',
               height: '24px',
-              borderRadius: '6px',
-              background: accessibilityOptions.highContrast ? '#F59E0B' : 'rgba(255, 255, 255, 0.1)',
+              borderRadius: '9999px',
+              background: accessibilityOptions.highContrast ? 'var(--colors-primary)' : 'var(--colors-hairline)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center'
             }}>
-              {accessibilityOptions.highContrast && <Check size={16} color="#000" />}
+              {accessibilityOptions.highContrast && <Check size={14} color="var(--colors-on-primary)" />}
             </div>
           </div>
 
           {/* Large Font Mode */}
           <div
             onClick={() => toggleOption('largeFont')}
-            className="glass-card"
             style={{
               padding: '14px 18px',
-              borderRadius: 'var(--radius-md)',
+              borderRadius: '12px',
+              background: 'var(--colors-surface-soft)',
+              border: '1px solid var(--colors-hairline)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
@@ -165,12 +189,12 @@ export default function AccessibilityModal({
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <Type size={20} color="#10B981" />
+              <Type size={20} color="var(--colors-ink)" />
               <div>
-                <div style={{ fontSize: '14px', fontWeight: 700, color: '#FFF' }}>
+                <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--colors-ink)', fontFamily: 'var(--font-heading)' }}>
                   Large Typography
                 </div>
-                <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                <div style={{ fontSize: '12px', color: 'var(--colors-body)', fontFamily: 'var(--font-main)' }}>
                   Increase UI font scale for easy reading
                 </div>
               </div>
@@ -179,20 +203,20 @@ export default function AccessibilityModal({
             <div style={{
               width: '24px',
               height: '24px',
-              borderRadius: '6px',
-              background: accessibilityOptions.largeFont ? '#10B981' : 'rgba(255, 255, 255, 0.1)',
+              borderRadius: '9999px',
+              background: accessibilityOptions.largeFont ? 'var(--colors-primary)' : 'var(--colors-hairline)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center'
             }}>
-              {accessibilityOptions.largeFont && <Check size={16} color="#000" />}
+              {accessibilityOptions.largeFont && <Check size={14} color="var(--colors-on-primary)" />}
             </div>
           </div>
         </div>
 
         {/* SOS Emergency Help Launcher */}
         <div style={{
-          borderTop: '1px solid var(--border-glass)',
+          borderTop: '1px solid var(--colors-hairline)',
           paddingTop: '16px'
         }}>
           <button
@@ -202,22 +226,21 @@ export default function AccessibilityModal({
             }}
             style={{
               width: '100%',
-              background: 'linear-gradient(135deg, #EF4444 0%, #F43F5E 100%)',
-              color: '#FFF',
-              border: 'none',
-              borderRadius: 'var(--radius-md)',
+              background: 'var(--colors-surface-dark)',
+              color: 'var(--colors-on-dark)',
+              border: '1px solid var(--colors-hairline-strong)',
+              borderRadius: '9999px',
               padding: '12px',
-              fontWeight: 800,
+              fontWeight: 600,
               fontSize: '14px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               gap: '8px',
-              cursor: 'pointer',
-              boxShadow: '0 0 20px rgba(244, 63, 94, 0.4)'
+              cursor: 'pointer'
             }}
           >
-            <HeartPulse size={18} /> Trigger SOS Emergency Medical Help
+            <HeartPulse size={18} color="#EF4444" /> Trigger SOS Emergency Medical Help
           </button>
         </div>
       </div>

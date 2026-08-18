@@ -60,47 +60,49 @@ export default function BuildingPlotterModal({
       right: 0,
       bottom: 0,
       zIndex: 1000,
-      background: 'rgba(7, 11, 20, 0.82)',
-      backdropFilter: 'blur(12px)',
+      background: 'rgba(0, 0, 0, 0.6)',
+      backdropFilter: 'blur(8px)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       padding: '20px'
     }}>
-      <div className="glass-panel animate-scale-up" style={{
+      <div className="animate-scale-up" style={{
         width: '100%',
         maxWidth: '540px',
-        borderRadius: '24px',
-        border: '1px solid var(--border-glass-light)',
-        boxShadow: 'var(--shadow-glow)',
+        borderRadius: '16px',
+        border: '1px solid var(--colors-hairline-strong)',
+        boxShadow: 'var(--shadow-md)',
+        background: 'var(--colors-surface-card)',
         overflow: 'hidden'
       }}>
         {/* Modal Header */}
         <div style={{
-          background: 'linear-gradient(135deg, rgba(0, 102, 255, 0.2) 0%, rgba(0, 240, 255, 0.1) 100%)',
           padding: '20px 24px',
-          borderBottom: '1px solid var(--border-glass)',
+          borderBottom: '1px solid var(--colors-hairline)',
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'space-between'
+          justifyContent: 'space-between',
+          background: 'var(--colors-surface-card)'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div style={{
-              width: '42px',
-              height: '42px',
+              width: '40px',
+              height: '40px',
               borderRadius: '12px',
-              background: 'linear-gradient(135deg, #0066FF 0%, #00F0FF 100%)',
+              background: 'var(--colors-surface-dark)',
+              color: 'var(--colors-on-dark)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center'
             }}>
-              <Building2 size={22} color="#FFF" />
+              <Building2 size={20} color="var(--colors-on-dark)" />
             </div>
             <div>
-              <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#FFF' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--colors-ink)', fontFamily: 'var(--font-heading)' }}>
                 📍 Pin & Tag Location on Map
               </h3>
-              <p style={{ fontSize: '12px', color: 'var(--color-cyan)' }}>
+              <p style={{ fontSize: '12px', color: 'var(--colors-body)', fontFamily: 'var(--font-main)' }}>
                 Set exact coordinates, tag, pin color, and name for any campus location
               </p>
             </div>
@@ -108,17 +110,33 @@ export default function BuildingPlotterModal({
 
           <button
             onClick={onClose}
-            className="btn-glass"
-            style={{ width: '36px', height: '36px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            title="Close Modal"
+            style={{
+              width: '32px',
+              height: '32px',
+              minWidth: '32px',
+              minHeight: '32px',
+              borderRadius: '50%',
+              background: '#000000',
+              color: '#ffffff',
+              border: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              fontWeight: 700,
+              fontSize: '16px',
+              lineHeight: 1
+            }}
           >
-            <X size={18} color="var(--text-muted)" />
+            ✕
           </button>
         </div>
 
         {/* Modal Form */}
         <form onSubmit={handleSubmit} style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div>
-            <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '6px', display: 'block' }}>
+            <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--colors-ink)', fontFamily: 'var(--font-heading)', marginBottom: '6px', display: 'block' }}>
               Location Name *
             </label>
             <input
@@ -129,12 +147,13 @@ export default function BuildingPlotterModal({
               onChange={(e) => setName(e.target.value)}
               style={{
                 width: '100%',
-                padding: '12px 16px',
-                borderRadius: '12px',
-                background: 'rgba(255, 255, 255, 0.05)',
-                border: '1px solid var(--border-glass)',
-                color: '#FFF',
-                fontSize: '14px',
+                padding: '10px 14px',
+                borderRadius: '10px',
+                background: 'var(--colors-surface-soft)',
+                border: '1px solid var(--colors-hairline)',
+                color: 'var(--colors-ink)',
+                fontSize: '13px',
+                fontFamily: 'var(--font-main)',
                 outline: 'none'
               }}
             />
@@ -142,7 +161,7 @@ export default function BuildingPlotterModal({
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '6px', display: 'block' }}>
+              <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--colors-ink)', fontFamily: 'var(--font-heading)', marginBottom: '6px', display: 'block' }}>
                 Location Code / Tag
               </label>
               <input
@@ -152,19 +171,20 @@ export default function BuildingPlotterModal({
                 onChange={(e) => setCode(e.target.value)}
                 style={{
                   width: '100%',
-                  padding: '12px 16px',
-                  borderRadius: '12px',
-                  background: 'rgba(255, 255, 255, 0.05)',
-                  border: '1px solid var(--border-glass)',
-                  color: '#FFF',
-                  fontSize: '14px',
+                  padding: '10px 14px',
+                  borderRadius: '10px',
+                  background: 'var(--colors-surface-soft)',
+                  border: '1px solid var(--colors-hairline)',
+                  color: 'var(--colors-ink)',
+                  fontSize: '13px',
+                  fontFamily: 'var(--font-main)',
                   outline: 'none'
                 }}
               />
             </div>
 
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '6px', display: 'block' }}>
+              <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--colors-ink)', fontFamily: 'var(--font-heading)', marginBottom: '6px', display: 'block' }}>
                 Pin Tag & Category
               </label>
               <select
@@ -172,12 +192,13 @@ export default function BuildingPlotterModal({
                 onChange={(e) => setCategory(e.target.value)}
                 style={{
                   width: '100%',
-                  padding: '12px 16px',
-                  borderRadius: '12px',
-                  background: 'rgba(14, 23, 38, 0.9)',
-                  border: '1px solid var(--border-glass)',
-                  color: '#FFF',
-                  fontSize: '14px',
+                  padding: '10px 14px',
+                  borderRadius: '10px',
+                  background: 'var(--colors-surface-soft)',
+                  border: '1px solid var(--colors-hairline)',
+                  color: 'var(--colors-ink)',
+                  fontSize: '13px',
+                  fontFamily: 'var(--font-main)',
                   outline: 'none'
                 }}
               >
@@ -195,7 +216,7 @@ export default function BuildingPlotterModal({
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '6px', display: 'block' }}>
+              <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--colors-ink)', fontFamily: 'var(--font-heading)', marginBottom: '6px', display: 'block' }}>
                 Floors
               </label>
               <input
@@ -206,19 +227,20 @@ export default function BuildingPlotterModal({
                 onChange={(e) => setFloors(e.target.value)}
                 style={{
                   width: '100%',
-                  padding: '12px 12px',
-                  borderRadius: '12px',
-                  background: 'rgba(255, 255, 255, 0.05)',
-                  border: '1px solid var(--border-glass)',
-                  color: '#FFF',
-                  fontSize: '14px',
+                  padding: '10px 12px',
+                  borderRadius: '10px',
+                  background: 'var(--colors-surface-soft)',
+                  border: '1px solid var(--colors-hairline)',
+                  color: 'var(--colors-ink)',
+                  fontSize: '13px',
+                  fontFamily: 'var(--font-main)',
                   outline: 'none'
                 }}
               />
             </div>
 
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '6px', display: 'block' }}>
+              <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--colors-ink)', fontFamily: 'var(--font-heading)', marginBottom: '6px', display: 'block' }}>
                 Latitude (°N) *
               </label>
               <input
@@ -229,21 +251,21 @@ export default function BuildingPlotterModal({
                 onChange={(e) => setLat(e.target.value)}
                 style={{
                   width: '100%',
-                  padding: '12px 10px',
-                  borderRadius: '12px',
-                  background: 'rgba(0, 0, 0, 0.4)',
-                  border: '1px solid rgba(0, 240, 255, 0.3)',
-                  color: '#00F0FF',
-                  fontSize: '13px',
-                  fontFamily: 'monospace',
-                  fontWeight: 700,
+                  padding: '10px 10px',
+                  borderRadius: '10px',
+                  background: 'var(--colors-surface-soft)',
+                  border: '1px solid var(--colors-hairline)',
+                  color: 'var(--colors-ink)',
+                  fontSize: '12px',
+                  fontFamily: 'var(--font-code)',
+                  fontWeight: 600,
                   outline: 'none'
                 }}
               />
             </div>
 
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '6px', display: 'block' }}>
+              <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--colors-ink)', fontFamily: 'var(--font-heading)', marginBottom: '6px', display: 'block' }}>
                 Longitude (°E) *
               </label>
               <input
@@ -254,14 +276,14 @@ export default function BuildingPlotterModal({
                 onChange={(e) => setLng(e.target.value)}
                 style={{
                   width: '100%',
-                  padding: '12px 10px',
-                  borderRadius: '12px',
-                  background: 'rgba(0, 0, 0, 0.4)',
-                  border: '1px solid rgba(0, 240, 255, 0.3)',
-                  color: '#00F0FF',
-                  fontSize: '13px',
-                  fontFamily: 'monospace',
-                  fontWeight: 700,
+                  padding: '10px 10px',
+                  borderRadius: '10px',
+                  background: 'var(--colors-surface-soft)',
+                  border: '1px solid var(--colors-hairline)',
+                  color: 'var(--colors-ink)',
+                  fontSize: '12px',
+                  fontFamily: 'var(--font-code)',
+                  fontWeight: 600,
                   outline: 'none'
                 }}
               />
@@ -269,7 +291,7 @@ export default function BuildingPlotterModal({
           </div>
 
           <div>
-            <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '6px', display: 'block' }}>
+            <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--colors-ink)', fontFamily: 'var(--font-heading)', marginBottom: '6px', display: 'block' }}>
               Departments & Laboratories (Comma separated)
             </label>
             <input
@@ -279,19 +301,20 @@ export default function BuildingPlotterModal({
               onChange={(e) => setDepartmentsText(e.target.value)}
               style={{
                 width: '100%',
-                padding: '12px 16px',
-                borderRadius: '12px',
-                background: 'rgba(255, 255, 255, 0.05)',
-                border: '1px solid var(--border-glass)',
-                color: '#FFF',
-                fontSize: '14px',
+                padding: '10px 14px',
+                borderRadius: '10px',
+                background: 'var(--colors-surface-soft)',
+                border: '1px solid var(--colors-hairline)',
+                color: 'var(--colors-ink)',
+                fontSize: '13px',
+                fontFamily: 'var(--font-main)',
                 outline: 'none'
               }}
             />
           </div>
 
           <div>
-            <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '6px', display: 'block' }}>
+            <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--colors-ink)', fontFamily: 'var(--font-heading)', marginBottom: '6px', display: 'block' }}>
               Building Description
             </label>
             <textarea
@@ -301,12 +324,13 @@ export default function BuildingPlotterModal({
               onChange={(e) => setDescription(e.target.value)}
               style={{
                 width: '100%',
-                padding: '12px 16px',
-                borderRadius: '12px',
-                background: 'rgba(255, 255, 255, 0.05)',
-                border: '1px solid var(--border-glass)',
-                color: '#FFF',
-                fontSize: '14px',
+                padding: '10px 14px',
+                borderRadius: '10px',
+                background: 'var(--colors-surface-soft)',
+                border: '1px solid var(--colors-hairline)',
+                color: 'var(--colors-ink)',
+                fontSize: '13px',
+                fontFamily: 'var(--font-main)',
                 outline: 'none',
                 resize: 'none'
               }}
@@ -317,30 +341,17 @@ export default function BuildingPlotterModal({
             <button
               type="button"
               onClick={onClose}
-              className="btn-glass"
-              style={{ flex: 1, padding: '12px', borderRadius: '12px', fontWeight: 700 }}
+              className="ollama-btn-secondary"
+              style={{ flex: 1, height: '40px', borderRadius: '9999px' }}
             >
               Cancel
             </button>
             <button
               type="submit"
-              style={{
-                flex: 1,
-                padding: '12px',
-                borderRadius: '12px',
-                background: 'linear-gradient(135deg, #0066FF 0%, #00F0FF 100%)',
-                color: '#FFF',
-                fontWeight: 800,
-                border: 'none',
-                cursor: 'pointer',
-                boxShadow: '0 0 20px rgba(0, 240, 255, 0.4)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px'
-              }}
+              className="ollama-btn-primary"
+              style={{ flex: 1, height: '40px', borderRadius: '9999px' }}
             >
-              <Plus size={18} /> Plot Building on Map
+              <Plus size={16} /> Plot Building on Map
             </button>
           </div>
         </form>

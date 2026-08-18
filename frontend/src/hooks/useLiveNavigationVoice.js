@@ -10,15 +10,51 @@ export default function useLiveNavigationVoice({ currentLocation, destination })
   const [distanceMeters, setDistanceMeters] = useState(0);
   const [stepsCount, setStepsCount] = useState(0);
   const [voiceEnabled, setVoiceEnabled] = useState(true);
+  const lastPosRef = useRef(null);
+  const lastTimeRef = useRef(0);
   const lastSpokenRef = useRef(0);
 
-  // 1. Fetch & Watch Live Geolocation
+  // Helper to compute Haversine distance in meters
+  const calcMeters = (lat1, lon1, lat2, lon2) => {
+    const R = 6371000;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  };
+
+  // 1. Fetch & Watch Live Geolocation with Jitter Filtering
   useEffect(() => {
     if (!('geolocation' in navigator)) return;
 
     const handleSuccess = (pos) => {
       const { latitude, longitude } = pos.coords;
-      setUserPos({ lat: latitude, lng: longitude });
+      const now = Date.now();
+
+      if (!lastPosRef.current) {
+        lastPosRef.current = { lat: latitude, lng: longitude };
+        lastTimeRef.current = now;
+        setUserPos({ lat: latitude, lng: longitude });
+        return;
+      }
+
+      const distMeters = calcMeters(
+        lastPosRef.current.lat,
+        lastPosRef.current.lng,
+        latitude,
+        longitude
+      );
+
+      const timeElapsed = now - lastTimeRef.current;
+
+      // Only update state if moved >= 3.5 meters OR (moved >= 1.5 meters AND >= 3000ms elapsed)
+      if (distMeters >= 3.5 || (distMeters >= 1.5 && timeElapsed >= 3000)) {
+        lastPosRef.current = { lat: latitude, lng: longitude };
+        lastTimeRef.current = now;
+        setUserPos({ lat: latitude, lng: longitude });
+      }
     };
 
     const handleError = (err) => {
@@ -29,14 +65,14 @@ export default function useLiveNavigationVoice({ currentLocation, destination })
     navigator.geolocation.getCurrentPosition(handleSuccess, handleError, {
       enableHighAccuracy: true,
       timeout: 10000,
-      maximumAge: 0
+      maximumAge: 2000
     });
 
-    // Continuous position watch
+    // Continuous position watch with maximumAge to prevent rapid battery/sensor polling
     const watchId = navigator.geolocation.watchPosition(handleSuccess, handleError, {
       enableHighAccuracy: true,
       timeout: 15000,
-      maximumAge: 1000
+      maximumAge: 3000
     });
 
     return () => navigator.geolocation.clearWatch(watchId);
@@ -61,15 +97,20 @@ export default function useLiveNavigationVoice({ currentLocation, destination })
       setStepsCount(Math.round(meters / 0.75)); // Average 0.75m per step
 
       // Speak initial navigation instruction
-      if (voiceEnabled && 'speechSynthesis' in window) {
+      if (voiceEnabled && typeof window !== 'undefined' && 'speechSynthesis' in window) {
         const now = Date.now();
         if (now - lastSpokenRef.current > 12000) {
           lastSpokenRef.current = now;
-          const msg = new SpeechSynthesisUtterance(
-            `Navigating to ${destination.name}. Distance is ${meters} meters, approximately ${Math.round(meters / 0.75)} steps.`
-          );
-          msg.rate = 0.95;
-          window.speechSynthesis.speak(msg);
+          try {
+            window.speechSynthesis.cancel();
+            const msg = new SpeechSynthesisUtterance(
+              `Navigating to ${destination.name || 'destination'}. Distance is ${meters} meters, approximately ${Math.round(meters / 0.75)} steps.`
+            );
+            msg.rate = 0.95;
+            window.speechSynthesis.speak(msg);
+          } catch (e) {
+            console.warn("SpeechSynthesis error:", e);
+          }
         }
       }
     } else {

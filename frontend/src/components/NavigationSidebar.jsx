@@ -142,17 +142,19 @@ function EmbeddedMiniTrackingMap({ currentLocation, destination, routeInfo }) {
     // 3. Polyline Route
     const routePoints = (routeInfo && routeInfo.latLngList && routeInfo.latLngList.length >= 2)
       ? routeInfo.latLngList
-      : [[fromLat, fromLng], [toLat, toLng]];
+      : null;
 
-    const polyline = L.polyline(routePoints, {
-      color: '#1D4ED8',
-      weight: 6,
-      opacity: 0.95,
-      lineCap: 'round',
-      lineJoin: 'round'
-    }).addTo(map);
+    if (routePoints && routePoints.length >= 2) {
+      const polyline = L.polyline(routePoints, {
+        color: '#1D4ED8',
+        weight: 6,
+        opacity: 0.95,
+        lineCap: 'round',
+        lineJoin: 'round'
+      }).addTo(map);
 
-    polylineRef.current = polyline;
+      polylineRef.current = polyline;
+    }
 
     // Center map view on user position
     try {
@@ -241,13 +243,16 @@ export default function NavigationSidebar({
   const [currentStepIdx, setCurrentStepIdx] = useState(0);
   const [showStepsModal, setShowStepsModal] = useState(false);
 
-  // Fetch road route info whenever origin or destination changes
+  const lastSidebarParamsRef = useRef(null);
+
+  // Fetch road route info whenever origin or destination changes (with 5m thresholding)
   useEffect(() => {
     let isCancelled = false;
 
     async function fetchInfo() {
       if (!currentLocation || !destination) {
         setRouteInfo(null);
+        lastSidebarParamsRef.current = null;
         return;
       }
 
@@ -256,9 +261,42 @@ export default function NavigationSidebar({
       const eLat = destination.lat || 26.5015;
       const eLng = destination.lng || 80.2688;
 
+      if (lastSidebarParamsRef.current) {
+        const p = lastSidebarParamsRef.current;
+        const isSameDest = Math.abs(p.eLat - eLat) < 0.00001 && Math.abs(p.eLng - eLng) < 0.00001;
+        const dStart = Math.abs(p.sLat - sLat) + Math.abs(p.sLng - sLng);
+        if (dStart < 0.00005 && isSameDest) {
+          return;
+        }
+        if (!isSameDest) {
+          setRouteInfo(null);
+        }
+      }
+
+      lastSidebarParamsRef.current = { sLat, sLng, eLat, eLng };
       const info = await getCampusRoute(sLat, sLng, eLat, eLng);
-      if (!isCancelled && info) {
-        setRouteInfo(info);
+      if (!isCancelled) {
+        if (info) {
+          setRouteInfo(info);
+        } else {
+          // Haversine distance metric calculation for info card without drawing straight path
+          const dLat = (eLat - sLat) * Math.PI / 180;
+          const dLon = (eLng - sLng) * Math.PI / 180;
+          const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                    Math.cos(sLat * Math.PI / 180) * Math.cos(eLat * Math.PI / 180) *
+                    Math.sin(dLon/2) * Math.sin(dLon/2);
+          const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+          const distMeters = Math.max(20, Math.round(6371000 * c));
+
+          setRouteInfo({
+            path: null,
+            latLngList: null,
+            totalDistanceMeters: distMeters,
+            walkingTimeMins: Math.max(1, Math.round(distMeters / 75)),
+            totalSteps: Math.round(distMeters / 0.75),
+            directions: []
+          });
+        }
       }
     }
 
@@ -320,45 +358,43 @@ export default function NavigationSidebar({
   if (navMode === 'preview') {
     return (
       <div 
-        className="glass-panel animate-slide-up navigation-sidebar-card"
+        className="animate-slide-up navigation-sidebar-card"
         style={{
           position: 'absolute',
           bottom: '24px',
           left: '24px',
           width: '380px',
           maxWidth: 'calc(100vw - 48px)',
-          borderRadius: '24px',
-          padding: '22px',
+          borderRadius: '12px',
+          padding: '20px',
           zIndex: 600,
-          border: '1px solid var(--border-glass-light)',
-          boxShadow: '0 0 40px rgba(0, 240, 255, 0.3)',
-          background: 'rgba(14, 23, 38, 0.95)',
-          backdropFilter: 'blur(20px)'
+          border: '1px solid var(--colors-hairline-strong)',
+          boxShadow: 'var(--shadow-md)',
+          background: 'var(--colors-surface-card)'
         }}
       >
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <div style={{
-              width: '40px',
-              height: '40px',
-              borderRadius: '12px',
-              background: 'linear-gradient(135deg, #0284C7 0%, #00F0FF 100%)',
+              width: '36px',
+              height: '36px',
+              borderRadius: '9999px',
+              background: 'var(--colors-primary)',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 0 16px rgba(0, 240, 255, 0.4)'
+              justifyContent: 'center'
             }}>
-              <Navigation size={22} color="#FFF" />
+              <Navigation size={18} color="var(--colors-on-primary)" />
             </div>
             <div>
-              <div style={{ fontSize: '11px', fontWeight: 800, color: '#00F0FF', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                Route Preview (OSRM Road-Snapped)
+              <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--colors-body)', textTransform: 'uppercase', fontFamily: 'var(--font-heading)' }}>
+                Route Preview
               </div>
-              <div style={{ fontSize: '15px', fontWeight: 800, color: '#FFF', marginTop: '2px' }}>
+              <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--colors-ink)', fontFamily: 'var(--font-heading)' }}>
                 {currentLocation?.name || 'Current GPS Location'}
               </div>
-              <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 600 }}>
+              <div style={{ fontSize: '12px', color: 'var(--colors-body)', fontFamily: 'var(--font-main)' }}>
                 ➔ {destination?.name || 'Destination'}
               </div>
             </div>
@@ -366,11 +402,11 @@ export default function NavigationSidebar({
 
           <button
             onClick={handleExitRoute}
-            className="btn-glass"
-            style={{ width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            className="ollama-btn-secondary"
+            style={{ width: '32px', height: '32px', borderRadius: '9999px', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             title="Cancel Route"
           >
-            <X size={16} color="var(--text-muted)" />
+            <X size={16} color="var(--colors-ink)" />
           </button>
         </div>
 
@@ -379,49 +415,49 @@ export default function NavigationSidebar({
           display: 'grid',
           gridTemplateColumns: 'repeat(3, 1fr)',
           gap: '8px',
-          marginBottom: '18px'
+          marginBottom: '16px'
         }}>
           <div style={{
-            background: 'rgba(255, 255, 255, 0.04)',
-            border: '1px solid var(--border-glass)',
-            borderRadius: '14px',
-            padding: '10px 8px',
+            background: 'var(--colors-surface-soft)',
+            border: '1px solid var(--colors-hairline)',
+            borderRadius: '8px',
+            padding: '8px',
             textAlign: 'center'
           }}>
-            <div style={{ fontSize: '10px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '3px' }}>
-              <Compass size={12} color="#00F0FF" /> Distance
+            <div style={{ fontSize: '11px', color: 'var(--colors-body)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '3px' }}>
+              <Compass size={12} /> Distance
             </div>
-            <div style={{ fontSize: '16px', fontWeight: 800, color: '#FFF', marginTop: '2px' }}>
+            <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--colors-ink)', fontFamily: 'var(--font-code)', marginTop: '2px' }}>
               {distance} m
             </div>
           </div>
 
           <div style={{
-            background: 'rgba(255, 255, 255, 0.04)',
-            border: '1px solid var(--border-glass)',
-            borderRadius: '14px',
-            padding: '10px 8px',
+            background: 'var(--colors-surface-soft)',
+            border: '1px solid var(--colors-hairline)',
+            borderRadius: '8px',
+            padding: '8px',
             textAlign: 'center'
           }}>
-            <div style={{ fontSize: '10px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '3px' }}>
-              <Clock size={12} color="#F59E0B" /> Time
+            <div style={{ fontSize: '11px', color: 'var(--colors-body)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '3px' }}>
+              <Clock size={12} /> Time
             </div>
-            <div style={{ fontSize: '16px', fontWeight: 800, color: '#FFF', marginTop: '2px' }}>
+            <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--colors-ink)', fontFamily: 'var(--font-code)', marginTop: '2px' }}>
               {walkTime} min
             </div>
           </div>
 
           <div style={{
-            background: 'rgba(255, 255, 255, 0.04)',
-            border: '1px solid var(--border-glass)',
-            borderRadius: '14px',
-            padding: '10px 8px',
+            background: 'var(--colors-surface-soft)',
+            border: '1px solid var(--colors-hairline)',
+            borderRadius: '8px',
+            padding: '8px',
             textAlign: 'center'
           }}>
-            <div style={{ fontSize: '10px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '3px' }}>
-              <Footprints size={12} color="#10B981" /> Steps
+            <div style={{ fontSize: '11px', color: 'var(--colors-body)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '3px' }}>
+              <Footprints size={12} /> Steps
             </div>
-            <div style={{ fontSize: '16px', fontWeight: 800, color: '#FFF', marginTop: '2px' }}>
+            <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--colors-ink)', fontFamily: 'var(--font-code)', marginTop: '2px' }}>
               {estimatedSteps}
             </div>
           </div>
@@ -432,50 +468,29 @@ export default function NavigationSidebar({
           {onOpenStreetView && (
             <button
               onClick={onOpenStreetView}
+              className="ollama-btn-secondary"
               style={{
                 flex: '0 0 auto',
-                padding: '14px 16px',
-                borderRadius: '16px',
-                background: 'rgba(2, 132, 199, 0.25)',
-                border: '1.5px solid #00F0FF',
-                color: '#00F0FF',
-                fontSize: '14px',
-                fontWeight: 800,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '6px',
-                boxShadow: '0 0 15px rgba(0, 240, 255, 0.25)'
+                height: '40px',
+                fontSize: '13px'
               }}
               title="Open 360° Panoramic Street View"
             >
-              <Eye size={18} color="#00F0FF" />
+              <Eye size={16} />
               <span>360° View</span>
             </button>
           )}
 
           <button
             onClick={handleStartLiveNavigation}
+            className="ollama-btn-primary"
             style={{
               flex: 1,
-              padding: '16px',
-              borderRadius: '16px',
-              background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
-              color: '#FFF',
-              border: 'none',
-              fontSize: '15px',
-              fontWeight: 900,
-              cursor: 'pointer',
-              boxShadow: '0 0 25px rgba(16, 185, 129, 0.5)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '10px',
-              letterSpacing: '0.3px'
+              height: '40px',
+              fontSize: '14px'
             }}
           >
-            <Navigation size={20} className="animate-pulse" /> START LIVE NAVIGATION
+            <Navigation size={16} /> START LIVE NAVIGATION
           </button>
         </div>
       </div>
@@ -498,46 +513,45 @@ export default function NavigationSidebar({
           maxWidth: 'calc(100vw - 40px)',
           maxHeight: 'calc(100vh - 40px)',
           zIndex: 850,
-          borderRadius: '24px',
+          borderRadius: '12px',
           overflow: 'hidden',
-          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.45), 0 0 20px rgba(0, 0, 0, 0.2)',
-          border: '1.5px solid rgba(16, 185, 129, 0.6)',
+          boxShadow: 'var(--shadow-md)',
+          border: '1px solid var(--colors-hairline-strong)',
           display: 'flex',
           flexDirection: 'column',
-          background: '#FFFFFF'
+          background: 'var(--colors-surface-card)'
         }}
       >
-        {/* UPPER PART: GREEN HEADER BANNER */}
+        {/* UPPER PART: OLLAMA SURFACE DARK HEADER BANNER */}
         <div style={{
           flexShrink: 0,
-          background: 'linear-gradient(135deg, #004D40 0%, #044E44 60%, #064E3B 100%)',
-          color: '#FFFFFF',
+          background: 'var(--colors-surface-dark)',
+          color: 'var(--colors-on-dark)',
           padding: '14px 18px',
           display: 'flex',
           flexDirection: 'column',
-          gap: '8px'
+          gap: '8px',
+          borderBottom: '1px solid var(--colors-hairline)'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <div style={{
-                width: '44px',
-                height: '44px',
-                borderRadius: '14px',
-                background: 'rgba(255, 255, 255, 0.2)',
-                backdropFilter: 'blur(8px)',
+                width: '36px',
+                height: '36px',
+                borderRadius: '9999px',
+                background: 'rgba(255, 255, 255, 0.15)',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center',
-                border: '1px solid rgba(255, 255, 255, 0.3)'
+                justifyContent: 'center'
               }}>
-                <StepIcon size={26} color="#FFF" />
+                <StepIcon size={20} color="var(--colors-on-dark)" />
               </div>
 
               <div>
-                <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.5px', opacity: 0.85, fontWeight: 700 }}>
+                <div style={{ fontSize: '11px', textTransform: 'uppercase', opacity: 0.7, fontWeight: 500, fontFamily: 'var(--font-heading)' }}>
                   towards
                 </div>
-                <div style={{ fontSize: '17px', fontWeight: 900, lineHeight: '1.2' }}>
+                <div style={{ fontSize: '16px', fontWeight: 600, fontFamily: 'var(--font-heading)', lineHeight: '1.2' }}>
                   {destination?.name || 'Destination'}
                 </div>
               </div>
@@ -547,39 +561,39 @@ export default function NavigationSidebar({
               <button
                 onClick={() => setVoiceEnabled(!voiceEnabled)}
                 style={{
-                  background: 'rgba(255, 255, 255, 0.2)',
+                  background: 'rgba(255, 255, 255, 0.15)',
                   border: 'none',
-                  borderRadius: '50%',
-                  width: '36px',
-                  height: '36px',
+                  borderRadius: '9999px',
+                  width: '32px',
+                  height: '32px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: '#FFF',
+                  color: 'var(--colors-on-dark)',
                   cursor: 'pointer'
                 }}
                 title={voiceEnabled ? 'Mute Voice' : 'Unmute Voice'}
               >
-                {voiceEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
+                {voiceEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
               </button>
 
               <button
                 onClick={handleExitRoute}
                 style={{
-                  background: 'rgba(255, 255, 255, 0.2)',
+                  background: 'rgba(255, 255, 255, 0.15)',
                   border: 'none',
-                  borderRadius: '50%',
-                  width: '36px',
-                  height: '36px',
+                  borderRadius: '9999px',
+                  width: '32px',
+                  height: '32px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: '#FFF',
+                  color: 'var(--colors-on-dark)',
                   cursor: 'pointer'
                 }}
                 title="Cancel Live Navigation"
               >
-                <X size={18} />
+                <X size={16} />
               </button>
             </div>
           </div>

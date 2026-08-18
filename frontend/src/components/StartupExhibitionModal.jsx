@@ -40,51 +40,51 @@ export default function StartupExhibitionModal({
       position: 'fixed',
       inset: 0,
       zIndex: 9999,
-      background: 'rgba(5, 8, 16, 0.85)',
-      backdropFilter: 'blur(12px)',
+      background: 'rgba(0, 0, 0, 0.65)',
+      backdropFilter: 'blur(8px)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       padding: '20px'
     }}>
-      <div className="glass-panel" style={{
+      <div style={{
         width: '100%',
         maxWidth: '1080px',
         maxHeight: '90vh',
-        borderRadius: 'var(--radius-xl)',
+        borderRadius: '12px',
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',
-        border: '1px solid var(--border-glass-light)',
-        boxShadow: '0 25px 60px rgba(0, 0, 0, 0.6)'
+        border: '1px solid var(--colors-hairline-strong)',
+        boxShadow: 'var(--shadow-md)',
+        background: 'var(--colors-surface-card)'
       }}>
         {/* Modal Header */}
         <div style={{
-          padding: '20px 24px',
-          background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(0, 102, 255, 0.15) 100%)',
-          borderBottom: '1px solid var(--border-glass)',
+          padding: '16px 24px',
+          background: 'var(--colors-surface-soft)',
+          borderBottom: '1px solid var(--colors-hairline)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div style={{
-              width: '44px',
-              height: '44px',
-              borderRadius: '14px',
-              background: '#10B981',
+              width: '36px',
+              height: '36px',
+              borderRadius: '9999px',
+              background: 'var(--colors-primary)',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 0 20px rgba(16, 185, 129, 0.4)'
+              justifyContent: 'center'
             }}>
-              <Rocket size={24} color="#FFF" />
+              <Rocket size={18} color="var(--colors-on-primary)" />
             </div>
             <div>
-              <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#FFF' }}>
+              <h2 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--colors-ink)', fontFamily: 'var(--font-heading)' }}>
                 Startup Exhibition Arena (Stalls S01 - S20)
               </h2>
-              <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+              <p style={{ fontSize: '12px', color: 'var(--colors-body)', fontFamily: 'var(--font-main)' }}>
                 Discover 20 High-Impact AI Startups at Chhatrapati Shahu Ji Maharaj University
               </p>
             </div>
@@ -92,10 +92,10 @@ export default function StartupExhibitionModal({
 
           <button
             onClick={onClose}
-            className="btn-glass"
-            style={{ padding: '8px', borderRadius: '50%' }}
+            className="modal-close-btn"
+            title="Close Modal"
           >
-            <X size={20} color="var(--text-muted)" />
+            <X size={16} color="var(--colors-ink)" />
           </button>
         </div>
 

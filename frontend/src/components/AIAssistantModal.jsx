@@ -140,37 +140,32 @@ export default function AIAssistantModal({
       display: 'flex',
       flexDirection: 'column',
       overflow: 'hidden',
-      border: '1px solid var(--border-glass-light)',
-      boxShadow: '0 20px 50px rgba(0, 0, 0, 0.5)'
+      border: '1px solid var(--colors-hairline-strong)',
+      boxShadow: 'var(--shadow-md)',
+      background: 'var(--colors-surface-card)',
+      borderRadius: '12px'
     }}>
-      {/* Assistant Header */}
+      {/* Terminal Assistant Header with macOS Traffic Lights */}
       <div style={{
-        padding: '16px',
-        background: 'linear-gradient(135deg, rgba(0, 102, 255, 0.25) 0%, rgba(0, 240, 255, 0.15) 100%)',
-        borderBottom: '1px solid var(--border-glass)',
+        padding: '12px 16px',
+        background: 'var(--colors-surface-soft)',
+        borderBottom: '1px solid var(--colors-hairline)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div style={{
-            width: '36px',
-            height: '36px',
-            borderRadius: '50%',
-            background: 'linear-gradient(135deg, #0066FF 0%, #00F0FF 100%)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 0 15px rgba(0, 240, 255, 0.5)'
-          }}>
-            <Bot size={20} color="#FFF" />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          {/* Ollama macOS Traffic Light Dots */}
+          <div className="ollama-traffic-lights">
+            <div className="ollama-traffic-light red" />
+            <div className="ollama-traffic-light yellow" />
+            <div className="ollama-traffic-light green" />
           </div>
-          <div>
-            <div style={{ fontSize: '14px', fontWeight: 800, color: '#FFF' }}>
-              CSJMU Gemini Assistant
-            </div>
-            <div style={{ fontSize: '11px', color: 'var(--color-cyan)' }}>
-              Online • Conversational AI Guide
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: '6px' }}>
+            <Bot size={16} color="var(--colors-ink)" />
+            <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--colors-ink)', fontFamily: 'var(--font-heading)' }}>
+              CSJMU Gemini AI Terminal
             </div>
           </div>
         </div>
@@ -178,17 +173,17 @@ export default function AIAssistantModal({
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <button
             onClick={() => setVoiceSynthesize(!voiceSynthesize)}
-            className="btn-glass"
-            style={{ padding: '6px', borderRadius: '50%' }}
+            className="ollama-btn-secondary"
+            style={{ width: '28px', height: '28px', borderRadius: '9999px', padding: 0 }}
           >
-            {voiceSynthesize ? <Volume2 size={16} color="var(--color-cyan)" /> : <VolumeX size={16} color="var(--text-muted)" />}
+            {voiceSynthesize ? <Volume2 size={14} /> : <VolumeX size={14} />}
           </button>
           <button
             onClick={onClose}
-            className="btn-glass"
-            style={{ padding: '6px', borderRadius: '50%' }}
+            className="modal-close-btn"
+            title="Close Assistant"
           >
-            <X size={16} color="var(--text-muted)" />
+            <X size={16} color="var(--colors-ink)" />
           </button>
         </div>
       </div>
@@ -200,7 +195,8 @@ export default function AIAssistantModal({
         overflowY: 'auto',
         display: 'flex',
         flexDirection: 'column',
-        gap: '12px'
+        gap: '12px',
+        background: 'var(--colors-canvas)'
       }}>
         {messages.map((msg, index) => (
           <div
@@ -215,19 +211,19 @@ export default function AIAssistantModal({
           >
             <div style={{
               background: msg.sender === 'user' 
-                ? 'linear-gradient(135deg, #0066FF 0%, #00F0FF 100%)' 
-                : 'rgba(255, 255, 255, 0.07)',
-              border: msg.sender === 'user' ? 'none' : '1px solid var(--border-glass)',
-              color: '#FFF',
+                ? 'var(--colors-primary)' 
+                : 'var(--colors-surface-soft)',
+              border: msg.sender === 'user' ? 'none' : '1px solid var(--colors-hairline)',
+              color: msg.sender === 'user' ? 'var(--colors-on-primary)' : 'var(--colors-ink)',
               padding: '10px 14px',
-              borderRadius: msg.sender === 'user' ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
+              borderRadius: '12px',
               fontSize: '13px',
-              lineHeight: 1.4,
-              boxShadow: 'var(--shadow-sm)'
+              fontFamily: msg.sender === 'user' ? 'var(--font-main)' : 'var(--font-code)',
+              lineHeight: 1.5
             }}>
               {msg.text}
             </div>
-            <span style={{ fontSize: '10px', color: 'var(--text-dim)', marginTop: '4px', padding: '0 4px' }}>
+            <span style={{ fontSize: '10px', color: 'var(--colors-body)', marginTop: '4px', padding: '0 4px', fontFamily: 'var(--font-code)' }}>
               {msg.time}
             </span>
           </div>
@@ -235,13 +231,14 @@ export default function AIAssistantModal({
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Quick Prompt Suggestion Chips */}
+      {/* Quick Prompt Suggestion Command Tags */}
       <div style={{
         padding: '8px 16px',
         display: 'flex',
-        gap: '8px',
+        gap: '6px',
         overflowX: 'auto',
-        borderTop: '1px solid var(--border-glass)'
+        background: 'var(--colors-surface-soft)',
+        borderTop: '1px solid var(--colors-hairline)'
       }}>
         {[
           "Take me to Stage",
@@ -255,17 +252,18 @@ export default function AIAssistantModal({
             onClick={() => handleSendMessage(prompt)}
             style={{
               flexShrink: 0,
-              background: 'rgba(0, 240, 255, 0.08)',
-              border: '1px solid rgba(0, 240, 255, 0.2)',
-              color: 'var(--color-cyan)',
-              fontSize: '11px',
-              fontWeight: 600,
+              background: 'var(--colors-canvas)',
+              border: '1px solid var(--colors-hairline-strong)',
+              color: 'var(--colors-ink)',
+              fontSize: '12px',
+              fontFamily: 'var(--font-code)',
+              fontWeight: 500,
               padding: '4px 10px',
-              borderRadius: '12px',
+              borderRadius: '9999px',
               cursor: 'pointer'
             }}
           >
-            {prompt}
+            $ {prompt}
           </button>
         ))}
       </div>
@@ -273,26 +271,23 @@ export default function AIAssistantModal({
       {/* Chat Input Bar */}
       <div style={{
         padding: '12px 16px',
-        background: 'rgba(0,0,0,0.2)',
+        background: 'var(--colors-surface-card)',
+        borderTop: '1px solid var(--colors-hairline)',
         display: 'flex',
         alignItems: 'center',
         gap: '8px'
       }}>
         <button
           onClick={startVoiceInput}
+          className="ollama-btn-secondary"
           style={{
-            background: isListening ? 'var(--color-rose)' : 'rgba(255, 255, 255, 0.08)',
-            border: '1px solid var(--border-glass)',
-            borderRadius: '50%',
-            width: '36px',
-            height: '36px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer'
+            borderRadius: '9999px',
+            width: '34px',
+            height: '34px',
+            padding: 0
           }}
         >
-          <Mic size={16} color={isListening ? '#FFF' : 'var(--color-cyan)'} />
+          <Mic size={15} color={isListening ? '#EF4444' : 'var(--colors-ink)'} />
         </button>
 
         <input
@@ -300,21 +295,24 @@ export default function AIAssistantModal({
           value={inputQuery}
           onChange={(e) => setInputQuery(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-          placeholder="Ask AI where to go..."
+          placeholder="Type command or query..."
           style={{
             flex: 1,
-            background: 'transparent',
-            border: 'none',
-            color: '#FFF',
+            background: 'var(--colors-surface-soft)',
+            border: '1px solid var(--colors-hairline)',
+            borderRadius: '9999px',
+            padding: '8px 14px',
+            color: 'var(--colors-ink)',
             fontSize: '13px',
+            fontFamily: 'var(--font-code)',
             outline: 'none'
           }}
         />
 
         <button
           onClick={() => handleSendMessage()}
-          className="btn-primary"
-          style={{ padding: '8px', borderRadius: '50%' }}
+          className="ollama-btn-primary"
+          style={{ width: '34px', height: '34px', borderRadius: '9999px', padding: 0 }}
         >
           <Send size={14} />
         </button>

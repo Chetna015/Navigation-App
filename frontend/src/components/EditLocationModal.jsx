@@ -14,8 +14,6 @@ export default function EditLocationModal({
   initialLocation,
   onLocationSaved
 }) {
-  if (!isOpen) return null;
-
   // Build combined list of all locations (default + custom)
   const [allLocations, setAllLocations] = useState([]);
   const [selectedLocId, setSelectedLocId] = useState('');
@@ -143,6 +141,8 @@ export default function EditLocationModal({
     );
   };
 
+  if (!isOpen) return null;
+
   return (
     <div style={{
       position: 'fixed',
@@ -201,10 +201,10 @@ export default function EditLocationModal({
 
           <button
             onClick={onClose}
-            className="btn-glass"
-            style={{ width: '36px', height: '36px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            className="modal-close-btn"
+            title="Close Modal"
           >
-            <X size={18} color="var(--text-muted)" />
+            <X size={16} color="var(--colors-ink)" />
           </button>
         </div>
 

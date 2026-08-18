@@ -17,64 +17,102 @@ export default function HeaderNavbar({
   onOpenEditLocation,
   onStartPinningMode,
   onOpenManagePins,
-  onOpenAdmin360
+  onOpenAdmin360,
+  onOpenSBMIndoor
 }) {
   const activeLocations = getMergedMapLocations();
   return (
-    <header className="glass-panel" style={{
+    <header style={{
       zIndex: 100,
-      padding: '10px 16px',
+      padding: '0 20px',
+      height: '56px',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
-      gap: '10px',
-      borderBottom: '1px solid var(--border-glass)',
-      flexWrap: 'wrap'
+      gap: '12px',
+      backgroundColor: 'var(--colors-canvas)',
+      borderBottom: '1px solid var(--colors-hairline)',
+      boxShadow: 'none'
     }}>
       {/* Brand & Emblem */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
         <img
           src="/csjm_logo.png"
           alt="CSJMU Logo"
           style={{
-            height: 'clamp(42px, 6vw, 75px)',
-            width: 'clamp(42px, 6vw, 75px)',
+            height: '36px',
+            width: '36px',
             objectFit: 'contain',
             flexShrink: 0
           }}
         />
         <div>
-          <h1 style={{ fontSize: 'clamp(13px, 1.8vw, 17px)', fontWeight: 900, color: 'var(--text-main)', letterSpacing: '0.2px' }}>
+          <h1 style={{
+            fontSize: '15px',
+            fontWeight: 600,
+            color: 'var(--colors-ink)',
+            fontFamily: 'var(--font-heading)',
+            lineHeight: 1.2
+          }}>
             Chhatrapati Shahuji Maharaj University Welcomes You !!
           </h1>
-          <p style={{ fontSize: '12px', color: '#B91C1C', fontWeight: 800, marginTop: '2px' }}>
+          <p style={{
+            fontSize: '12px',
+            color: 'var(--colors-body)',
+            fontFamily: 'var(--font-main)',
+            fontWeight: 500
+          }}>
             Smart Navigation
           </p>
         </div>
       </div>
 
-      {/* Right Actions (ONLY Visible in Local Development Mode) */}
-      {(import.meta.env.DEV || (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'))) && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+      {/* Right Actions Header Buttons */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {/* SBM Building Indoor & Watercoolers Button */}
+          {onOpenSBMIndoor && (
+            <button
+              onClick={onOpenSBMIndoor}
+              title="Open SBM Building Rooms, Classrooms, Watercoolers & Corridors Blueprint"
+              className="ollama-btn-secondary"
+              style={{
+                padding: '6px 14px',
+                borderRadius: '9999px',
+                color: 'var(--colors-ink)',
+                fontWeight: 500,
+                fontSize: '13px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                border: '1px solid var(--colors-hairline-strong)',
+                background: 'var(--colors-surface-soft)',
+                cursor: 'pointer',
+                height: '32px'
+              }}
+            >
+              🏢 <span>SBM Indoor & Watercoolers</span>
+            </button>
+          )}
+
           {/* Upload 360 Admin Dashboard Button */}
           {onOpenAdmin360 && (
             <button
               onClick={onOpenAdmin360}
               title="Upload custom 360 panoramas & manage hotspots"
-              className="btn-glass"
+              className="ollama-btn-secondary"
               style={{
-                padding: '8px 12px',
-                borderRadius: 'var(--radius-md)',
-                color: '#FFF',
-                fontWeight: 800,
-                fontSize: '12px',
+                padding: '6px 14px',
+                borderRadius: '9999px',
+                color: 'var(--colors-ink)',
+                fontWeight: 500,
+                fontSize: '13px',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '6px',
-                border: '1px solid rgba(0, 102, 255, 0.5)',
-                background: 'linear-gradient(135deg, rgba(0, 102, 255, 0.3) 0%, rgba(0, 240, 255, 0.3) 100%)',
-                boxShadow: '0 0 12px rgba(0, 240, 255, 0.25)',
-                cursor: 'pointer'
+                border: '1px solid var(--colors-hairline-strong)',
+                background: 'var(--colors-surface-soft)',
+                cursor: 'pointer',
+                height: '32px'
               }}
             >
               📷 <span>Upload 360</span>
@@ -85,42 +123,58 @@ export default function HeaderNavbar({
           <button
             onClick={onOpenAccessibility}
             title="Accessibility & Wheelchair Options"
-            className="btn-glass"
-            style={{ padding: '8px 12px', borderRadius: 'var(--radius-md)' }}
+            className="ollama-btn-secondary"
+            style={{
+              padding: '6px 12px',
+              borderRadius: '9999px',
+              border: '1px solid var(--colors-hairline)',
+              background: 'var(--colors-canvas)',
+              color: 'var(--colors-ink)',
+              height: '32px',
+              cursor: 'pointer'
+            }}
           >
-            <Accessibility size={18} color="var(--color-cyan)" />
+            <Accessibility size={16} />
           </button>
 
           {/* Emergency SOS Button */}
           <button
             onClick={onOpenEmergency}
             style={{
-              background: 'rgba(244, 63, 94, 0.15)',
-              border: '1px solid rgba(244, 63, 94, 0.4)',
-              color: '#F43F5E',
-              padding: '8px 14px',
-              borderRadius: 'var(--radius-md)',
-              fontWeight: 700,
-              fontSize: '12px',
+              background: 'var(--colors-surface-dark)',
+              border: '1px solid var(--colors-hairline-strong)',
+              color: 'var(--colors-on-dark)',
+              padding: '6px 14px',
+              borderRadius: '9999px',
+              fontWeight: 500,
+              fontSize: '13px',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: '6px'
+              gap: '6px',
+              height: '32px'
             }}
           >
-            <AlertTriangle size={15} /> SOS Help
+            <AlertTriangle size={14} color="#EF4444" /> SOS Help
           </button>
 
           {/* Dark/Light Switch */}
           <button
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-            className="btn-glass"
-            style={{ padding: '8px 12px', borderRadius: 'var(--radius-md)' }}
+            className="ollama-btn-secondary"
+            style={{
+              padding: '6px 12px',
+              borderRadius: '9999px',
+              border: '1px solid var(--colors-hairline)',
+              background: 'var(--colors-canvas)',
+              color: 'var(--colors-ink)',
+              height: '32px',
+              cursor: 'pointer'
+            }}
           >
-            {theme === 'dark' ? <Sun size={18} color="#F59E0B" /> : <Moon size={18} color="#0066FF" />}
+            {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
           </button>
         </div>
-      )}
     </header>
   );
 }

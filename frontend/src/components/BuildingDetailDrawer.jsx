@@ -11,8 +11,11 @@ export default function BuildingDetailDrawer({
   onNavigateToBuilding,
   onBuildingDeleted,
   onEditCoordinates,
-  onOpen3DView
+  onOpen3DView,
+  onOpenSBMIndoor
 }) {
+  const [selectedFloorLevel, setSelectedFloorLevel] = React.useState('Ground');
+
   if (!building) return null;
 
   const handleDelete = () => {
@@ -25,7 +28,7 @@ export default function BuildingDetailDrawer({
   };
 
   return (
-    <div className="glass-card animate-slide-up" style={{
+    <div className="animate-slide-up" style={{
       position: 'absolute',
       top: '20px',
       right: '20px',
@@ -33,11 +36,10 @@ export default function BuildingDetailDrawer({
       maxHeight: 'calc(100% - 40px)',
       overflowY: 'auto',
       zIndex: 700,
-      borderRadius: '24px',
-      border: '1px solid var(--border-glass-light)',
-      boxShadow: 'var(--shadow-glow)',
-      background: 'rgba(14, 23, 38, 0.94)',
-      backdropFilter: 'blur(20px)',
+      borderRadius: '16px',
+      border: '1px solid var(--colors-hairline-strong)',
+      boxShadow: 'var(--shadow-md)',
+      background: 'var(--colors-surface-card)',
       padding: '24px'
     }}>
       {/* Header */}
@@ -47,19 +49,20 @@ export default function BuildingDetailDrawer({
             width: '40px',
             height: '40px',
             borderRadius: '12px',
-            background: 'linear-gradient(135deg, #0066FF 0%, #00F0FF 100%)',
+            background: 'var(--colors-surface-dark)',
+            color: 'var(--colors-on-dark)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: '0 0 15px rgba(0, 240, 255, 0.4)'
+            boxShadow: 'var(--shadow-sm)'
           }}>
-            <Building2 size={22} color="#FFF" />
+            <Building2 size={20} color="var(--colors-on-dark)" />
           </div>
           <div>
-            <div style={{ fontSize: '13px', color: '#00F0FF', fontWeight: 800, fontFamily: 'monospace' }}>
+            <div style={{ fontSize: '12px', color: 'var(--colors-ink)', fontWeight: 600, fontFamily: 'var(--font-code)' }}>
               📍 Lat: {building.lat ? building.lat.toFixed(6) : '26.498300'}° N | Lng: {building.lng ? building.lng.toFixed(6) : '80.265800'}° E
             </div>
-            <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600 }}>
+            <div style={{ fontSize: '11px', color: 'var(--colors-body)', fontWeight: 500, fontFamily: 'var(--font-code)' }}>
               CODE: {building.code || 'BLD-CSJMU'}
             </div>
           </div>
@@ -67,19 +70,35 @@ export default function BuildingDetailDrawer({
 
         <button
           onClick={onClose}
-          className="btn-glass"
-          style={{ width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          title="Close Drawer"
+          style={{
+            width: '32px',
+            height: '32px',
+            minWidth: '32px',
+            minHeight: '32px',
+            borderRadius: '50%',
+            background: '#000000',
+            color: '#ffffff',
+            border: 'none',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            fontWeight: 700,
+            fontSize: '16px',
+            lineHeight: 1
+          }}
         >
-          <X size={16} color="var(--text-muted)" />
+          ✕
         </button>
       </div>
 
       {/* Building Name */}
-      <h3 style={{ fontSize: '20px', fontWeight: 800, color: '#FFF', marginBottom: '8px' }}>
+      <h3 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--colors-ink)', fontFamily: 'var(--font-heading)', marginBottom: '6px' }}>
         {building.name}
       </h3>
 
-      <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '18px', lineHeight: '1.5' }}>
+      <p style={{ fontSize: '13px', color: 'var(--colors-body)', fontFamily: 'var(--font-main)', marginBottom: '18px', lineHeight: '1.5' }}>
         {building.description || 'Official University Infrastructure Facility'}
       </p>
 
@@ -91,29 +110,29 @@ export default function BuildingDetailDrawer({
         marginBottom: '20px'
       }}>
         <div style={{
-          background: 'rgba(255, 255, 255, 0.04)',
-          border: '1px solid var(--border-glass)',
-          borderRadius: '14px',
+          background: 'var(--colors-surface-soft)',
+          border: '1px solid var(--colors-hairline)',
+          borderRadius: '12px',
           padding: '12px'
         }}>
-          <div style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <Layers size={13} color="var(--color-cyan)" /> Floors
+          <div style={{ fontSize: '11px', color: 'var(--colors-body)', display: 'flex', alignItems: 'center', gap: '4px', fontFamily: 'var(--font-main)' }}>
+            <Layers size={13} color="var(--colors-ink)" /> Floors
           </div>
-          <div style={{ fontSize: '16px', fontWeight: 800, color: '#FFF', marginTop: '2px' }}>
+          <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--colors-ink)', fontFamily: 'var(--font-heading)', marginTop: '2px' }}>
             {building.floors || 2} Storey Block
           </div>
         </div>
 
         <div style={{
-          background: 'rgba(255, 255, 255, 0.04)',
-          border: '1px solid var(--border-glass)',
-          borderRadius: '14px',
+          background: 'var(--colors-surface-soft)',
+          border: '1px solid var(--colors-hairline)',
+          borderRadius: '12px',
           padding: '12px'
         }}>
-          <div style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <MapPin size={13} color="var(--color-emerald)" /> GPS Location
+          <div style={{ fontSize: '11px', color: 'var(--colors-body)', display: 'flex', alignItems: 'center', gap: '4px', fontFamily: 'var(--font-main)' }}>
+            <MapPin size={13} color="var(--colors-ink)" /> GPS Location
           </div>
-          <div style={{ fontSize: '13px', fontWeight: 800, color: '#FFF', marginTop: '4px' }}>
+          <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--colors-ink)', fontFamily: 'var(--font-code)', marginTop: '4px' }}>
             {building.lat ? `${building.lat.toFixed(4)}, ${building.lng.toFixed(4)}` : 'Campus Quad'}
           </div>
         </div>
@@ -121,7 +140,7 @@ export default function BuildingDetailDrawer({
 
       {/* Department & Lab Directory */}
       <div style={{ marginBottom: '20px' }}>
-        <h4 style={{ fontSize: '13px', fontWeight: 800, color: 'var(--color-cyan)', textTransform: 'uppercase', marginBottom: '10px' }}>
+        <h4 style={{ fontSize: '12px', fontWeight: 700, color: 'var(--colors-ink)', textTransform: 'uppercase', fontFamily: 'var(--font-heading)', marginBottom: '10px' }}>
           🏢 Housed Departments & Labs
         </h4>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
@@ -129,13 +148,14 @@ export default function BuildingDetailDrawer({
             <span
               key={idx}
               style={{
-                background: 'rgba(0, 102, 255, 0.12)',
-                border: '1px solid rgba(0, 102, 255, 0.3)',
-                color: '#FFF',
-                padding: '6px 12px',
-                borderRadius: '12px',
+                background: 'var(--colors-surface-soft)',
+                border: '1px solid var(--colors-hairline-strong)',
+                color: 'var(--colors-ink)',
+                padding: '5px 12px',
+                borderRadius: '9999px',
                 fontSize: '12px',
-                fontWeight: 600
+                fontWeight: 500,
+                fontFamily: 'var(--font-main)'
               }}
             >
               • {dept}
@@ -144,22 +164,80 @@ export default function BuildingDetailDrawer({
         </div>
       </div>
 
-      {/* Floor Directory Breakdown */}
+      {/* Interactive Multi-Level Indoor Floor Plan Selector */}
       <div style={{ marginBottom: '22px' }}>
-        <h4 style={{ fontSize: '13px', fontWeight: 800, color: 'var(--color-cyan)', textTransform: 'uppercase', marginBottom: '10px' }}>
-          📐 Floor Directory
-        </h4>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-glass)', padding: '10px 14px', borderRadius: '12px', fontSize: '12px' }}>
-            <strong style={{ color: '#00F0FF' }}>Ground Floor:</strong> Reception Foyer, Visitor Waiting Hall, Ramps
-          </div>
-          <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-glass)', padding: '10px 14px', borderRadius: '12px', fontSize: '12px' }}>
-            <strong style={{ color: '#10B981' }}>1st Floor:</strong> Primary Laboratories, Faculty Offices & Dean Chamber
-          </div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+          <h4 style={{ fontSize: '12px', fontWeight: 700, color: 'var(--colors-ink)', textTransform: 'uppercase', fontFamily: 'var(--font-heading)' }}>
+            📐 Interactive Floor-by-Floor Map View
+          </h4>
+        </div>
+
+        {/* Floor Level Tabs */}
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+          <button
+            onClick={() => setSelectedFloorLevel('Ground')}
+            className={selectedFloorLevel === 'Ground' ? 'ollama-btn-primary' : 'ollama-btn-secondary'}
+            style={{ height: '32px', borderRadius: '9999px', fontSize: '12px', padding: '0 14px' }}
+          >
+            Ground Floor (G)
+          </button>
+          <button
+            onClick={() => setSelectedFloorLevel('1st')}
+            className={selectedFloorLevel === '1st' ? 'ollama-btn-primary' : 'ollama-btn-secondary'}
+            style={{ height: '32px', borderRadius: '9999px', fontSize: '12px', padding: '0 14px' }}
+          >
+            1st Floor (1F)
+          </button>
           {(building.floors || 2) > 2 && (
-            <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-glass)', padding: '10px 14px', borderRadius: '12px', fontSize: '12px' }}>
-              <strong style={{ color: '#F59E0B' }}>2nd Floor+:</strong> Research Centers, Seminar Halls & Conference Suites
-            </div>
+            <button
+              onClick={() => setSelectedFloorLevel('2nd')}
+              className={selectedFloorLevel === '2nd' ? 'ollama-btn-primary' : 'ollama-btn-secondary'}
+              style={{ height: '32px', borderRadius: '9999px', fontSize: '12px', padding: '0 14px' }}
+            >
+              2nd Floor (2F)
+            </button>
+          )}
+        </div>
+
+        {/* Indoor Rooms on Active Floor */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {selectedFloorLevel === 'Ground' && (
+            <>
+              <div style={{ background: 'var(--colors-surface-soft)', border: '1px solid var(--colors-hairline)', padding: '10px 14px', borderRadius: '10px', fontSize: '12px', color: 'var(--colors-ink)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span><strong>G-01:</strong> Reception & Visitor Registration</span>
+                <span style={{ fontSize: '10px', color: '#10B981', fontWeight: 600 }}>Ramp Access</span>
+              </div>
+              <div style={{ background: 'var(--colors-surface-soft)', border: '1px solid var(--colors-hairline)', padding: '10px 14px', borderRadius: '10px', fontSize: '12px', color: 'var(--colors-ink)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span><strong>G-04:</strong> Dean & Administrative Office</span>
+                <span style={{ fontSize: '10px', color: '#10B981', fontWeight: 600 }}>Elevator Near</span>
+              </div>
+            </>
+          )}
+
+          {selectedFloorLevel === '1st' && (
+            <>
+              <div style={{ background: 'var(--colors-surface-soft)', border: '1px solid var(--colors-hairline)', padding: '10px 14px', borderRadius: '10px', fontSize: '12px', color: 'var(--colors-ink)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span><strong>101:</strong> AI & Neural Networks Research Lab</span>
+                <span style={{ fontSize: '10px', color: '#00F0FF', fontWeight: 600 }}>AC Lab</span>
+              </div>
+              <div style={{ background: 'var(--colors-surface-soft)', border: '1px solid var(--colors-hairline)', padding: '10px 14px', borderRadius: '10px', fontSize: '12px', color: 'var(--colors-ink)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span><strong>105:</strong> HOD Computer Science Chamber</span>
+                <span style={{ fontSize: '10px', color: '#F59E0B', fontWeight: 600 }}>Office Hours</span>
+              </div>
+            </>
+          )}
+
+          {selectedFloorLevel === '2nd' && (
+            <>
+              <div style={{ background: 'var(--colors-surface-soft)', border: '1px solid var(--colors-hairline)', padding: '10px 14px', borderRadius: '10px', fontSize: '12px', color: 'var(--colors-ink)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span><strong>202:</strong> High-Performance Computing Cluster</span>
+                <span style={{ fontSize: '10px', color: '#00F0FF', fontWeight: 600 }}>GPU Server Room</span>
+              </div>
+              <div style={{ background: 'var(--colors-surface-soft)', border: '1px solid var(--colors-hairline)', padding: '10px 14px', borderRadius: '10px', fontSize: '12px', color: 'var(--colors-ink)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span><strong>208:</strong> CSJMU Seminar & Keynote Hall B</span>
+                <span style={{ fontSize: '10px', color: '#10B981', fontWeight: 600 }}>120 Seats</span>
+              </div>
+            </>
           )}
         </div>
       </div>
@@ -169,17 +247,14 @@ export default function BuildingDetailDrawer({
         {onOpen3DView && (
           <button
             onClick={() => onOpen3DView(building)}
+            className="ollama-btn-secondary"
             style={{
               width: '100%',
-              padding: '14px',
-              borderRadius: '14px',
-              background: 'linear-gradient(135deg, #8B5CF6 0%, #D946EF 100%)',
-              color: '#FFF',
-              border: 'none',
-              fontSize: '14px',
-              fontWeight: 800,
+              height: '42px',
+              borderRadius: '9999px',
+              fontSize: '13px',
+              fontWeight: 600,
               cursor: 'pointer',
-              boxShadow: '0 0 20px rgba(217, 70, 239, 0.4)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -191,39 +266,61 @@ export default function BuildingDetailDrawer({
         )}
 
         <button
-          onClick={() => onNavigateToBuilding(building)}
+          onClick={() => {
+            if (onNavigateToBuilding) onNavigateToBuilding(building);
+            onClose();
+          }}
+          className="ollama-btn-primary"
           style={{
             width: '100%',
-            padding: '14px',
-            borderRadius: '14px',
-            background: 'linear-gradient(135deg, #0066FF 0%, #00F0FF 100%)',
-            color: '#FFF',
-            border: 'none',
-            fontSize: '14px',
-            fontWeight: 800,
+            height: '42px',
+            borderRadius: '9999px',
+            fontSize: '13px',
+            fontWeight: 600,
             cursor: 'pointer',
-            boxShadow: '0 0 20px rgba(0, 240, 255, 0.4)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             gap: '8px'
           }}
         >
-          <Navigation size={18} /> Show Shortest Path to {building.name}
+          <Navigation size={16} /> Show Shortest Path to {building.name}
         </button>
+
+        {onOpenSBMIndoor && (
+          <button
+            onClick={() => {
+              onOpenSBMIndoor();
+              onClose();
+            }}
+            className="ollama-btn-secondary"
+            style={{
+              width: '100%',
+              height: '38px',
+              borderRadius: '9999px',
+              fontSize: '12px',
+              fontWeight: 500,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px'
+            }}
+          >
+            🏢 Open SBM Rooms, Watercoolers & Corridors
+          </button>
+        )}
 
         {onEditCoordinates && (
           <button
             onClick={() => onEditCoordinates(building)}
+            className="ollama-btn-secondary"
             style={{
               width: '100%',
-              padding: '12px',
-              borderRadius: '12px',
-              background: 'rgba(0, 240, 255, 0.1)',
-              border: '1px solid rgba(0, 240, 255, 0.3)',
-              color: '#00F0FF',
-              fontSize: '13px',
-              fontWeight: 700,
+              height: '38px',
+              borderRadius: '9999px',
+              fontSize: '12px',
+              fontWeight: 500,
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
@@ -239,22 +336,21 @@ export default function BuildingDetailDrawer({
           onClick={handleDelete}
           style={{
             width: '100%',
-            padding: '12px',
-            borderRadius: '12px',
-            background: 'rgba(244, 63, 94, 0.15)',
-            border: '1px solid rgba(244, 63, 94, 0.4)',
-            color: '#F43F5E',
-            fontSize: '13px',
-            fontWeight: 700,
+            height: '38px',
+            borderRadius: '9999px',
+            background: 'var(--colors-surface-soft)',
+            border: '1px solid #EF4444',
+            color: '#EF4444',
+            fontSize: '12px',
+            fontWeight: 600,
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: '8px',
-            transition: 'all 0.2s ease'
+            gap: '6px'
           }}
         >
-          <Trash2 size={15} /> Remove / Delete Location Pin
+          <Trash2 size={15} /> Remove Pin from Map
         </button>
       </div>
     </div>

@@ -13,6 +13,10 @@ export default function SearchBarAndActions({
   onOpenStalls,
   onOpenSessions,
   onOpenAIAssistant,
+  onOpenShuttle,
+  onOpenCampusLife,
+  onOpenParking,
+  onOpenSBMIndoor,
   isListening,
   startVoiceSearch,
   onStartPinningMode,
@@ -45,40 +49,39 @@ export default function SearchBarAndActions({
 
   return (
     <div style={{
-      padding: '14px 20px',
+      padding: '12px 20px',
       display: 'flex',
       flexDirection: 'column',
       gap: '10px',
-      background: 'var(--bg-surface)',
-      borderBottom: '1px solid var(--border-glass)'
+      background: 'var(--colors-canvas)',
+      borderBottom: '1px solid var(--colors-hairline)'
     }}>
       {/* OFF-TRACK DISTRACTION WARNING TOAST */}
       {isOffTrack && (
-        <div className="animate-pulse" style={{
-          background: 'linear-gradient(135deg, #7F1D1D 0%, #991B1B 100%)',
-          border: '1.5px solid #EF4444',
-          color: '#FFF',
+        <div style={{
+          background: 'var(--colors-surface-dark)',
+          border: '1px solid var(--colors-hairline-strong)',
+          color: '#EF4444',
           padding: '10px 16px',
-          borderRadius: '14px',
+          borderRadius: '9999px',
           display: 'flex',
           alignItems: 'center',
           gap: '10px',
-          boxShadow: '0 0 25px rgba(239, 68, 68, 0.6)',
           fontSize: '13px',
-          fontWeight: 800
+          fontWeight: 600,
+          fontFamily: 'var(--font-main)'
         }}>
-          <AlertTriangle size={18} color="#FFD1D1" />
+          <AlertTriangle size={16} color="#EF4444" />
           <span>⚠️ OFF-TRACK DISTRACTION WARNING: You have drifted away from your destination! Turn around to reconnect.</span>
         </div>
       )}
 
       {/* RECTANGLE FORM NAVIGATION SEARCH CARD */}
       <div style={{
-        background: 'rgba(10, 20, 38, 0.95)',
-        border: '1.5px solid rgba(0, 240, 255, 0.35)',
-        borderRadius: '20px',
+        background: 'var(--colors-surface-card)',
+        border: '1px solid var(--colors-hairline)',
+        borderRadius: '12px',
         padding: '14px 18px',
-        boxShadow: '0 0 30px rgba(0, 240, 255, 0.15)',
         display: 'flex',
         flexDirection: 'column',
         gap: '10px',
@@ -88,16 +91,16 @@ export default function SearchBarAndActions({
         <div style={{
           display: 'flex',
           alignItems: 'center',
-          background: 'rgba(255, 255, 255, 0.05)',
-          border: '1px solid rgba(255, 255, 255, 0.12)',
-          borderRadius: '12px',
-          padding: '8px 14px',
+          background: 'var(--colors-surface-soft)',
+          border: '1px solid var(--colors-hairline)',
+          borderRadius: '9999px',
+          padding: '6px 14px',
           gap: '10px'
         }}>
-          <div style={{ background: '#10B981', borderRadius: '50%', padding: '5px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <MapPin size={14} color="#FFF" />
+          <div style={{ background: 'var(--colors-primary)', borderRadius: '50%', padding: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <MapPin size={12} color="var(--colors-on-primary)" />
           </div>
-          <span style={{ fontSize: '11px', fontWeight: 900, color: '#10B981', minWidth: '45px' }}>FROM:</span>
+          <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--colors-ink)', fontFamily: 'var(--font-heading)', minWidth: '45px' }}>FROM:</span>
           <input
             type="text"
             readOnly
@@ -106,9 +109,10 @@ export default function SearchBarAndActions({
               flex: 1,
               background: 'transparent',
               border: 'none',
-              color: '#FFF',
+              color: 'var(--colors-ink)',
               fontSize: '13px',
-              fontWeight: 700,
+              fontWeight: 500,
+              fontFamily: 'var(--font-main)',
               outline: 'none'
             }}
           />
@@ -118,17 +122,17 @@ export default function SearchBarAndActions({
         <div style={{
           display: 'flex',
           alignItems: 'center',
-          background: 'rgba(0, 240, 255, 0.06)',
-          border: '1.5px solid rgba(0, 240, 255, 0.4)',
-          borderRadius: '12px',
-          padding: '8px 14px',
+          background: 'var(--colors-surface-soft)',
+          border: '1px solid var(--colors-hairline-strong)',
+          borderRadius: '9999px',
+          padding: '6px 14px',
           gap: '10px',
           position: 'relative'
         }}>
-          <div style={{ background: '#EF4444', borderRadius: '50%', padding: '5px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Navigation size={14} color="#FFF" />
+          <div style={{ background: 'var(--colors-primary)', borderRadius: '50%', padding: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Navigation size={12} color="var(--colors-on-primary)" />
           </div>
-          <span style={{ fontSize: '11px', fontWeight: 900, color: '#EF4444', minWidth: '45px' }}>TO:</span>
+          <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--colors-ink)', fontFamily: 'var(--font-heading)', minWidth: '45px' }}>TO:</span>
           <input
             type="text"
             placeholder="Where to? (e.g. Senate Hall, UIET, Auditorium)..."
@@ -139,62 +143,55 @@ export default function SearchBarAndActions({
               flex: 1,
               background: 'transparent',
               border: 'none',
-              color: '#FFF',
+              color: 'var(--colors-ink)',
               fontSize: '13px',
-              fontWeight: 700,
+              fontWeight: 500,
+              fontFamily: 'var(--font-main)',
               outline: 'none'
             }}
           />
           {searchQuery && (
             <X
               size={16}
-              color="var(--text-muted)"
+              color="var(--colors-body)"
               style={{ cursor: 'pointer' }}
               onClick={() => setSearchQuery('')}
             />
           )}
 
-          {/* Voice Search Mic Symbol Button (Dark Red Circular Icon Only) */}
+          {/* Voice Search Mic Symbol Button */}
           <button
             onClick={startVoiceSearch}
             title="Search by Voice"
             style={{
-              width: '34px',
-              height: '34px',
+              width: '32px',
+              height: '32px',
               borderRadius: '50%',
-              background: isListening ? '#EF4444' : '#B91C1C',
+              background: isListening ? '#EF4444' : 'var(--colors-primary)',
               border: 'none',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               cursor: 'pointer',
-              boxShadow: '0 2px 8px rgba(185, 28, 28, 0.4)',
               flexShrink: 0,
               padding: 0
             }}
           >
-            <Mic size={17} color="#FFF" />
+            <Mic size={15} color="var(--colors-on-primary)" />
           </button>
 
-          {/* Pin Location & Manage Pins Buttons (ONLY Visible in Local Development Mode) */}
+          {/* Pin Location & Manage Pins Buttons */}
           {(import.meta.env.DEV || (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'))) && (
             <>
               {onStartPinningMode && (
                 <button
                   onClick={onStartPinningMode}
                   title="Click to drop a pin on the map"
+                  className="ollama-btn-primary"
                   style={{
-                    background: 'linear-gradient(135deg, #EF4444 0%, #FF6B81 100%)',
-                    border: 'none',
-                    borderRadius: '12px',
-                    padding: '6px 12px',
-                    color: '#FFF',
+                    padding: '4px 12px',
                     fontSize: '12px',
-                    fontWeight: 800,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    cursor: 'pointer',
+                    height: '28px',
                     whiteSpace: 'nowrap'
                   }}
                 >
@@ -206,18 +203,11 @@ export default function SearchBarAndActions({
                 <button
                   onClick={onOpenManagePins}
                   title="Manage location pins"
+                  className="ollama-btn-secondary"
                   style={{
-                    background: 'rgba(255, 255, 255, 0.08)',
-                    border: '1px solid rgba(255, 255, 255, 0.15)',
-                    borderRadius: '12px',
-                    padding: '6px 12px',
-                    color: '#00F0FF',
+                    padding: '4px 12px',
                     fontSize: '12px',
-                    fontWeight: 700,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    cursor: 'pointer',
+                    height: '28px',
                     whiteSpace: 'nowrap'
                   }}
                 >
@@ -228,60 +218,101 @@ export default function SearchBarAndActions({
           )}
         </div>
 
+        {/* ROW 3: SMART CAMPUS LIFE & MOBILITY QUICK ACTIONS */}
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '2px' }}>
+          {onOpenSBMIndoor && (
+            <button
+              onClick={onOpenSBMIndoor}
+              className="ollama-btn-secondary"
+              style={{ height: '30px', padding: '0 12px', fontSize: '11px', borderRadius: '9999px' }}
+            >
+              🏢 SBM Rooms & Watercoolers
+            </button>
+          )}
 
+          {onOpenShuttle && (
+            <button
+              onClick={onOpenShuttle}
+              className="ollama-btn-secondary"
+              style={{ height: '30px', padding: '0 12px', fontSize: '11px', borderRadius: '9999px' }}
+            >
+              🚌 E-Rickshaw Tracker
+            </button>
+          )}
 
-          {/* SUGGESTIONS DROPDOWN */}
-          {showSuggestions && (
-            <div style={{
-              position: 'absolute',
-              top: 'calc(100% + 8px)',
-              left: 0,
-              right: 0,
-              zIndex: 999,
-              background: 'rgba(10, 20, 38, 0.98)',
-              backdropFilter: 'blur(20px)',
-              border: '1.5px solid #00F0FF',
-              borderRadius: '16px',
-              boxShadow: '0 10px 40px rgba(0,0,0,0.8), 0 0 25px rgba(0, 240, 255, 0.3)',
-              maxHeight: '260px',
-              overflowY: 'auto',
-              padding: '8px'
-            }}>
-              {suggestions.length === 0 ? (
-                <div style={{ padding: '14px', textAlign: 'center', color: '#EF4444', fontSize: '12px', fontWeight: 800 }}>
-                  No results found.
-                </div>
-              ) : (
-                suggestions.map((item) => (
-                  <div
-                    key={item.id}
-                    onClick={() => {
-                      onSelectLocation(item);
-                      setSearchQuery(item.name);
-                      setShowSuggestions(false);
-                    }}
-                    style={{
-                      padding: '10px 12px',
-                      borderRadius: '10px',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      marginBottom: '4px',
-                      background: 'rgba(255, 255, 255, 0.03)'
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <MapPin size={14} color="#00F0FF" />
-                      <div style={{ fontSize: '13px', fontWeight: 700, color: '#FFF' }}>{item.name}</div>
-                    </div>
-                    <ChevronRight size={16} color="var(--text-muted)" />
-                  </div>
-                ))
-              )}
-            </div>
+          {onOpenCampusLife && (
+            <button
+              onClick={onOpenCampusLife}
+              className="ollama-btn-secondary"
+              style={{ height: '30px', padding: '0 12px', fontSize: '11px', borderRadius: '9999px' }}
+            >
+              🍔 Canteen & Library Meter
+            </button>
+          )}
+
+          {onOpenParking && (
+            <button
+              onClick={onOpenParking}
+              className="ollama-btn-secondary"
+              style={{ height: '30px', padding: '0 12px', fontSize: '11px', borderRadius: '9999px' }}
+            >
+              🅿️ Parking Availability
+            </button>
           )}
         </div>
+
+        {/* SUGGESTIONS DROPDOWN */}
+        {showSuggestions && (
+          <div style={{
+            position: 'absolute',
+            top: 'calc(100% + 8px)',
+            left: 0,
+            right: 0,
+            zIndex: 999,
+            background: 'var(--colors-surface-card)',
+            border: '1px solid var(--colors-hairline-strong)',
+            borderRadius: '12px',
+            boxShadow: 'var(--shadow-md)',
+            maxHeight: '260px',
+            overflowY: 'auto',
+            padding: '8px'
+          }}>
+            {suggestions.length === 0 ? (
+              <div style={{ padding: '14px', textAlign: 'center', color: 'var(--colors-body)', fontSize: '13px', fontFamily: 'var(--font-main)' }}>
+                No results found.
+              </div>
+            ) : (
+              suggestions.map((item) => (
+                <div
+                  key={item.id}
+                  onClick={() => {
+                    onSelectLocation(item);
+                    setSearchQuery(item.name);
+                    setShowSuggestions(false);
+                  }}
+                  style={{
+                    padding: '10px 14px',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    marginBottom: '4px',
+                    background: 'var(--colors-surface-soft)',
+                    transition: 'background-color 0.15s ease'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <MapPin size={14} color="var(--colors-ink)" />
+                    <div style={{ fontSize: '13px', fontWeight: 500, color: 'var(--colors-ink)', fontFamily: 'var(--font-main)' }}>{item.name}</div>
+                  </div>
+                  <ChevronRight size={16} color="var(--colors-mute)" />
+                </div>
+              ))
+            )}
+          </div>
+        )}
       </div>
+    </div>
   );
 }

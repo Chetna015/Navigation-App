@@ -15,6 +15,10 @@ import ManagePinsModal from './components/ManagePinsModal';
 import Building3DViewerModal from './components/Building3DViewerModal';
 import CampusStreetViewModal from './components/CampusStreetViewModal';
 import Admin360DashboardModal from './components/Admin360DashboardModal';
+import CampusShuttleModal from './components/CampusShuttleModal';
+import CampusLifeStatusModal from './components/CampusLifeStatusModal';
+import ParkingFinderModal from './components/ParkingFinderModal';
+import SBMBuildingIndoorModal from './components/SBMBuildingIndoorModal';
 import useLiveNavigationVoice from './hooks/useLiveNavigationVoice';
 import { MAP_LOCATIONS, STARTUP_STALLS } from './data/auditoriumData';
 
@@ -56,11 +60,18 @@ export default function App() {
     setVoiceEnabled
   } = useLiveNavigationVoice({ currentLocation, destination });
 
-  // Automatically update currentLocation with exact real-time phone GPS position when received
+  // Automatically update currentLocation with exact real-time phone GPS position when received (with 3.5m thresholding)
   useEffect(() => {
     if (userPos && userPos.lat && userPos.lng) {
       setCurrentLocation(prev => {
-        if (prev?.lat === userPos.lat && prev?.lng === userPos.lng) return prev;
+        if (prev?.lat && prev?.lng) {
+          const latDiff = Math.abs(prev.lat - userPos.lat);
+          const lngDiff = Math.abs(prev.lng - userPos.lng);
+          // Only update state if coordinates moved more than ~3.5 meters (0.00003 degrees)
+          if (latDiff < 0.00003 && lngDiff < 0.00003) {
+            return prev;
+          }
+        }
         return {
           ...prev,
           name: 'My Live GPS Location 📍',
@@ -85,6 +96,10 @@ export default function App() {
   const [showManagePinsModal, setShowManagePinsModal] = useState(false);
   const [showStreetViewModal, setShowStreetViewModal] = useState(false);
   const [showAdmin360Modal, setShowAdmin360Modal] = useState(false);
+  const [showShuttleModal, setShowShuttleModal] = useState(false);
+  const [showCampusLifeModal, setShowCampusLifeModal] = useState(false);
+  const [showParkingModal, setShowParkingModal] = useState(false);
+  const [showSBMIndoorModal, setShowSBMIndoorModal] = useState(false);
   const [editingLocation, setEditingLocation] = useState(null);
   const [selectedStall, setSelectedStall] = useState(null);
 
@@ -221,6 +236,7 @@ export default function App() {
         onOpenEditLocation={() => handleOpenEditLocation(null)}
         onOpenManagePins={() => setShowManagePinsModal(true)}
         onOpenAdmin360={() => setShowAdmin360Modal(true)}
+        onOpenSBMIndoor={() => setShowSBMIndoorModal(true)}
       />
 
       {/* 4. Search Bar & Smart Quick Action Cards (Automatically hidden once both locations/destination are entered) */}
@@ -234,6 +250,10 @@ export default function App() {
           onOpenStalls={() => setShowStallsModal(true)}
           onOpenSessions={() => setShowSessionsModal(true)}
           onOpenAIAssistant={() => setShowAIAssistant(true)}
+          onOpenShuttle={() => setShowShuttleModal(true)}
+          onOpenCampusLife={() => setShowCampusLifeModal(true)}
+          onOpenParking={() => setShowParkingModal(true)}
+          onOpenSBMIndoor={() => setShowSBMIndoorModal(true)}
           isListening={isListening}
           startVoiceSearch={startVoiceSearch}
           onOpenManagePins={() => setShowManagePinsModal(true)}
@@ -260,6 +280,7 @@ export default function App() {
           accessibilityOptions={accessibilityOptions}
           onOpenEditLocation={handleOpenEditLocation}
           onOpen3DView={(bld) => setBuilding3D(bld)}
+          onOpenSBMIndoor={() => setShowSBMIndoorModal(true)}
           navMode={navMode}
           isNavigatingLive={isNavigatingLive}
         />
@@ -267,33 +288,21 @@ export default function App() {
         {/* Floating AI Assistant Trigger Button (Bottom Right) */}
         <button
           onClick={() => setShowAIAssistant(!showAIAssistant)}
-          className="animate-float"
+          className="ollama-btn-primary"
           style={{
             position: 'absolute',
-            bottom: '28px',
+            bottom: '24px',
             right: '80px',
             zIndex: 500,
-            width: '56px',
-            height: '56px',
-            borderRadius: '50%',
-            background: 'linear-gradient(135deg, #0066FF 0%, #00F0FF 100%)',
-            border: '2px solid rgba(255, 255, 255, 0.4)',
-            boxShadow: '0 0 30px rgba(0, 240, 255, 0.6)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
+            height: '38px',
+            padding: '8px 18px',
+            whiteSpace: 'nowrap',
+            boxShadow: 'var(--shadow-md)',
             cursor: 'pointer'
           }}
           title="Open AI Event Assistant"
         >
-          <span style={{
-            fontFamily: 'var(--font-heading)',
-            fontSize: '14px',
-            fontWeight: 800,
-            color: '#FFF'
-          }}>
-            AI
-          </span>
+          🤖 <span style={{ fontFamily: 'var(--font-heading)', fontSize: '13px', fontWeight: 600 }}>AI Assistant</span>
         </button>
 
         {/* Modular Sidebar Navigation Component (Preview -> Active Live Tracking) */}
@@ -410,6 +419,38 @@ export default function App() {
         onOpenPreview360={(node) => {
           setShowAdmin360Modal(false);
           setShowStreetViewModal(true);
+        }}
+      />
+      {/* Smart Campus New Features Modals */}
+      <CampusShuttleModal
+        isOpen={showShuttleModal}
+        onClose={() => setShowShuttleModal(false)}
+        onSelectShuttleStop={(stop) => {
+          handleSelectLocation({ name: stop.name, lat: 26.5010, lng: 80.2675 });
+        }}
+      />
+
+      <CampusLifeStatusModal
+        isOpen={showCampusLifeModal}
+        onClose={() => setShowCampusLifeModal(false)}
+        onNavigateToFacility={(facName) => {
+          handleSelectLocation({ name: facName, lat: 26.5005, lng: 80.2680 });
+        }}
+      />
+
+      <ParkingFinderModal
+        isOpen={showParkingModal}
+        onClose={() => setShowParkingModal(false)}
+        onNavigateToParking={(parkName) => {
+          handleSelectLocation({ name: parkName, lat: 26.4980, lng: 80.2660 });
+        }}
+      />
+
+      <SBMBuildingIndoorModal
+        isOpen={showSBMIndoorModal}
+        onClose={() => setShowSBMIndoorModal(false)}
+        onNavigateToBuilding={(bld) => {
+          handleSelectLocation(bld);
         }}
       />
     </div>

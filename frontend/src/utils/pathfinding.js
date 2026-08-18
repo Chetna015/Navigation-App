@@ -60,6 +60,9 @@ export function deleteCustomPlottedBuilding(buildingId) {
   }
 }
 
+const routeCache = new Map();
+const inFlightRequests = new Map();
+
 /**
  * Fetch road-snapped walking route from Open Source Routing Machine (OSRM) Public API
  * Profile: foot
@@ -77,37 +80,57 @@ export async function getCampusRoute(startLat, startLng, destLat, destLng) {
       return null;
     }
 
-    const url = `https://router.project-osrm.org/route/v1/foot/${startLng},${startLat};${destLng},${destLat}?geometries=geojson&overview=full`;
-    const response = await fetch(url);
+    const cacheKey = `${Number(startLat).toFixed(5)},${Number(startLng).toFixed(5)};${Number(destLat).toFixed(5)},${Number(destLng).toFixed(5)}`;
 
-    if (!response.ok) {
-      throw new Error(`OSRM HTTP Error: ${response.status} ${response.statusText}`);
+    if (routeCache.has(cacheKey)) {
+      return routeCache.get(cacheKey);
     }
 
-    const data = await response.json();
-
-    if (!data.routes || data.routes.length === 0) {
-      return null;
+    if (inFlightRequests.has(cacheKey)) {
+      return inFlightRequests.get(cacheKey);
     }
 
-    const route = data.routes[0];
-    const coordinates = route.geometry?.coordinates || [];
+    const fetchPromise = (async () => {
+      const url = `https://router.project-osrm.org/route/v1/foot/${startLng},${startLat};${destLng},${destLat}?geometries=geojson&overview=full`;
+      const response = await fetch(url);
 
-    // OSRM returns [Longitude, Latitude]. Convert to Leaflet [Latitude, Longitude]
-    const path = coordinates.map(([lng, lat]) => [lat, lng]);
+      if (!response.ok) {
+        throw new Error(`OSRM HTTP Error: ${response.status} ${response.statusText}`);
+      }
 
-    const totalDistanceMeters = Math.round(route.distance || 0);
-    const walkingTimeMins = Math.max(1, Math.round(totalDistanceMeters / 75)); // 75 meters/min
-    const totalSteps = Math.round(totalDistanceMeters / 0.75); // 0.75m per step
+      const data = await response.json();
 
-    return {
-      path,
-      latLngList: path,
-      totalDistanceMeters,
-      walkingTimeMins,
-      totalSteps,
-      directions: route.legs?.[0]?.steps || []
-    };
+      if (!data.routes || data.routes.length === 0) {
+        return null;
+      }
+
+      const route = data.routes[0];
+      const coordinates = route.geometry?.coordinates || [];
+
+      // OSRM returns [Longitude, Latitude]. Convert to Leaflet [Latitude, Longitude]
+      const path = coordinates.map(([lng, lat]) => [lat, lng]);
+
+      const totalDistanceMeters = Math.round(route.distance || 0);
+      const walkingTimeMins = Math.max(1, Math.round(totalDistanceMeters / 75)); // 75 meters/min
+      const totalSteps = Math.round(totalDistanceMeters / 0.75); // 0.75m per step
+
+      const result = {
+        path,
+        latLngList: path,
+        totalDistanceMeters,
+        walkingTimeMins,
+        totalSteps,
+        directions: route.legs?.[0]?.steps || []
+      };
+
+      routeCache.set(cacheKey, result);
+      return result;
+    })().finally(() => {
+      inFlightRequests.delete(cacheKey);
+    });
+
+    inFlightRequests.set(cacheKey, fetchPromise);
+    return await fetchPromise;
   } catch (error) {
     console.error("Error fetching campus route from OSRM:", error);
     return null;
@@ -127,20 +150,6 @@ export async function calculateShortestPath(startId, endId, accessibilityWheelch
   const eLng = endNode.lng || 80.2688;
 
   const result = await getCampusRoute(sLat, sLng, eLat, eLng);
-
-  if (result) {
-    return result;
-  }
-
-  // Fallback straight-line if API request fails
-  const fallbackPath = [[sLat, sLng], [eLat, eLng]];
-  return {
-    path: fallbackPath,
-    latLngList: fallbackPath,
-    totalDistanceMeters: 100,
-    walkingTimeMins: 2,
-    totalSteps: 133,
-    directions: []
-  };
+  return result || null;
 }
 

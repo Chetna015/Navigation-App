@@ -1,10 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { 
-  ZoomIn, ZoomOut, Maximize2, Map, Activity
+  ZoomIn, ZoomOut, Maximize2
 } from 'lucide-react';
 import { getMergedMapLocations } from '../utils/locationStore';
-import { MAP_LOCATIONS, STARTUP_STALLS, DEPARTMENT_AREAS } from '../data/auditoriumData';
-import { calculateShortestPath } from '../utils/pathfinding';
+import { MAP_LOCATIONS, STARTUP_STALLS } from '../data/auditoriumData';
+import { getCampusRoute } from '../utils/pathfinding';
 import GoogleCampusMap from './GoogleCampusMap';
 
 export default function DigitalTwinMap({
@@ -14,14 +14,13 @@ export default function DigitalTwinMap({
   setDestination,
   activeFloor,
   setActiveFloor,
-  isNavigating,
-  navigationPath,
   selectedStall,
   setSelectedStall,
   highlightDomain,
   accessibilityOptions,
   onOpenEditLocation,
   onOpen3DView,
+  onOpenSBMIndoor,
   navMode = 'preview',
   isNavigatingLive = false
 }) {
@@ -29,7 +28,7 @@ export default function DigitalTwinMap({
   const containerRef = useRef(null);
 
   // View Mode: 'google' (Google Maps Satellite/Roadmap) or 'twin' (Canvas 2D/3D Digital Twin)
-  const [viewMode, setViewMode] = useState('google');
+  const [viewMode] = useState('google');
 
   // Pan and Zoom viewport state for canvas
   const [zoom, setZoom] = useState(1);
@@ -41,18 +40,32 @@ export default function DigitalTwinMap({
   // Dash line animation offset
   const animDashRef = useRef(0);
 
-  // Calculate Shortest Dijkstra Path whenever origin or destination changes
+  // Calculate Shortest Route whenever origin or destination changes
   const [shortestRoute, setShortestRoute] = useState(null);
 
   useEffect(() => {
+    let isCancelled = false;
+    setShortestRoute(null);
     if (destination) {
-      const originId = currentLocation ? currentLocation.id : 'loc_main_gate';
-      const destId = destination ? destination.id : 'loc_auditorium_building';
-      const route = calculateShortestPath(originId, destId, accessibilityOptions?.wheelchairRoute);
-      setShortestRoute(route);
+      const sLat = currentLocation?.lat || 26.4970;
+      const sLng = currentLocation?.lng || 80.2666;
+      const dLat = destination?.lat || 26.5015;
+      const dLng = destination?.lng || 80.2688;
+
+      getCampusRoute(sLat, sLng, dLat, dLng).then(route => {
+        if (!isCancelled && route) {
+          setShortestRoute(route);
+        }
+      }).catch(err => {
+        console.warn("DigitalTwinMap route calculation error:", err);
+      });
     } else {
       setShortestRoute(null);
     }
+
+    return () => {
+      isCancelled = true;
+    };
   }, [currentLocation, destination, accessibilityOptions]);
 
   // Reset zoom & pan when switching floors
@@ -453,6 +466,7 @@ export default function DigitalTwinMap({
           }}
           onOpenEditLocation={onOpenEditLocation}
           onOpen3DView={onOpen3DView}
+          onOpenSBMIndoor={onOpenSBMIndoor}
           navMode={navMode}
           isNavigatingLive={isNavigatingLive}
         />

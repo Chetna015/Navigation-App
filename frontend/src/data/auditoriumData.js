@@ -1,5 +1,330 @@
 // CSJMU Smart Auditorium & AI Summit 2026 Comprehensive Dataset
 
+export const SBM_INDOOR_DATA = {
+  buildingName: "School of Business Management (SBM)",
+  buildingCode: "SBM-MAIN",
+  lat: 26.503022,
+  lng: 80.266371,
+  totalFloors: 3,
+  description: "Primary venue for AI Summit 2026 Workshops, Startup Keynotes, Smart Classrooms & High-Performance Computing Labs.",
+  floors: [
+    {
+      id: "ground",
+      name: "Ground Floor (L0)",
+      level: 0,
+      corridorName: "Central Atrium & Main Entry Corridor",
+      corridorLengthMeters: 180,
+      image: "/assets/buildings/watercooler_ro.jpg",
+      rooms: [
+        {
+          id: "SBM-01",
+          name: "SBM-01: AI Keynote & Inauguration Hall",
+          type: "Hall / Auditorium",
+          capacity: "250 Seats",
+          equipment: "Dual 4K Laser Projectors, Surround Sound, AI Live Translation",
+          currentEvent: "Opening Ceremony & GenAI Keynote by Tech Leaders",
+          floor: "Ground Floor",
+          coordinates: { x: 120, y: 140 },
+          status: "Active Session",
+          tags: ["Keynote", "Hall", "Main Event"]
+        },
+        {
+          id: "SBM-02",
+          name: "SBM-02: Smart Classroom - Machine Learning Lab",
+          type: "Classroom / Lab",
+          capacity: "60 Seats",
+          equipment: "Interactive Smart Boards, 30 Workstations",
+          currentEvent: "Hands-on PyTorch & LLM Fine-Tuning Workshop",
+          floor: "Ground Floor",
+          coordinates: { x: 300, y: 140 },
+          status: "Workshop Live",
+          tags: ["Classroom", "Lab", "ML"]
+        },
+        {
+          id: "SBM-03",
+          name: "SBM-03: MBA Lecture Theatre 1",
+          type: "Lecture Theatre",
+          capacity: "120 Seats",
+          equipment: "Tiered Seating, Smart Podiums, Audio Capture",
+          currentEvent: "AI in Business Analytics Panel Discussion",
+          floor: "Ground Floor",
+          coordinates: { x: 480, y: 140 },
+          status: "Scheduled (02:00 PM)",
+          tags: ["Classroom", "MBA", "Lecture"]
+        },
+        {
+          id: "SBM-04",
+          name: "SBM-04: Digital Twin & Robotics Demo Room",
+          type: "Special Lab",
+          capacity: "45 Seats",
+          equipment: "Quadruped Robots, LiDAR Scanners, VR Headsets",
+          currentEvent: "Autonomous Navigation & Smart Campus Demos",
+          floor: "Ground Floor",
+          coordinates: { x: 640, y: 140 },
+          status: "Open Exhibition",
+          tags: ["Robotics", "Digital Twin", "Demo"]
+        },
+        {
+          id: "SBM-05",
+          name: "SBM-05: Faculty Research & Dean Secretariat",
+          type: "Admin & Offices",
+          capacity: "20 Seats",
+          equipment: "Meeting Tables, Administrative Workstations",
+          currentEvent: "VIP Delegate Reception & Lounge",
+          floor: "Ground Floor",
+          coordinates: { x: 800, y: 140 },
+          status: "Faculty Only",
+          tags: ["Office", "VIP", "Faculty"]
+        }
+      ],
+      waterCoolers: [
+        {
+          id: "SBM-WC-01",
+          name: "SBM Water Cooler #1 (Central Atrium RO Station)",
+          type: "Heavy-Duty 5-Stage RO + UV Purifier",
+          temperature: "6.0°C (Ice-Cold)",
+          purity: "99.9% Purified",
+          capacity: "80 Litres/Hr",
+          status: "Operational • Active",
+          image: "/assets/buildings/watercooler_ro.jpg",
+          locationDescription: "Ground Floor Central Atrium near SBM-02 ML Lab Entrance",
+          coordinates: { x: 390, y: 220 },
+          features: ["Touchless Hydration", "Digital Temperature Screen", "Chilled Cold Taps", "Bottles Saved: 3,420"]
+        },
+        {
+          id: "SBM-WC-02",
+          name: "SBM Water Cooler #2 (West Entrance Smart Hydration)",
+          type: "Smart Touchless Water Refill Station",
+          temperature: "5.8°C (Cold)",
+          purity: "99.8% Purified",
+          capacity: "60 Litres/Hr",
+          status: "Operational • Active",
+          image: "/assets/buildings/watercooler_touchless.jpg",
+          locationDescription: "Ground Floor West Gate Entrance Corridor next to Main Staircase A",
+          coordinates: { x: 180, y: 220 },
+          features: ["Touchless Sensor", "Filter Status Gauge", "Eco Bottle Counter (1,738 Saved)"]
+        }
+      ],
+      corridors: [
+        {
+          id: "CORR-G01",
+          name: "Main Ground Floor Central Marble Corridor",
+          widthMeters: 4.5,
+          pathPoints: [{ x: 80, y: 220 }, { x: 300, y: 220 }, { x: 500, y: 220 }, { x: 750, y: 220 }, { x: 880, y: 220 }],
+          description: "Main arterial walkway connecting SBM West Gate, Central Atrium, and East Fire Exit."
+        }
+      ],
+      amenities: [
+        { id: "STAIR-GA", name: "Staircase Alpha (West)", type: "Stairs", coordinates: { x: 90, y: 260 } },
+        { id: "STAIR-GB", name: "Staircase Beta (East)", type: "Stairs", coordinates: { x: 860, y: 260 } },
+        { id: "ELEV-G1", name: "Elevator Lobby (Central)", type: "Elevator", coordinates: { x: 490, y: 260 } },
+        { id: "WASH-G1", name: "Restrooms (Gents & Ladies)", type: "Washroom", coordinates: { x: 720, y: 260 } },
+        { id: "EXIT-G1", name: "Emergency Fire Exit Corridor Path", type: "Exit", coordinates: { x: 920, y: 220 } }
+      ]
+    },
+    {
+      id: "floor1",
+      name: "First Floor (L1)",
+      level: 1,
+      corridorName: "1st Floor Academic Gallery & GPU Lab Corridor",
+      corridorLengthMeters: 180,
+      image: "/assets/buildings/watercooler_touchless.jpg",
+      rooms: [
+        {
+          id: "SBM-101",
+          name: "SBM-101: Executive MBA Smart Classroom",
+          type: "Classroom",
+          capacity: "75 Seats",
+          equipment: "Dual Smart Displays, Hybrid Video Conferencing",
+          currentEvent: "Executive AI Leadership Track",
+          floor: "First Floor",
+          coordinates: { x: 120, y: 140 },
+          status: "In Use",
+          tags: ["Executive", "Classroom"]
+        },
+        {
+          id: "SBM-102",
+          name: "SBM-102: Deep Learning & Data Science Computer Lab",
+          type: "High-Performance GPU Lab",
+          capacity: "60 High-End Workstations",
+          equipment: "NVIDIA RTX 4090 GPUs, High-Speed Fiber Mesh",
+          currentEvent: "AI Hackathon Model Training & Evaluation",
+          floor: "First Floor",
+          coordinates: { x: 300, y: 140 },
+          status: "Hackathon Active",
+          tags: ["GPU", "Lab", "Hackathon", "AI"]
+        },
+        {
+          id: "SBM-103",
+          name: "SBM-103: AI Summit Startup Pitch Arena",
+          type: "Pitch Auditorium",
+          capacity: "150 Seats",
+          equipment: "Stage Lighting, Investor Panel Mic System",
+          currentEvent: "Venture Capital Pitch Presentations",
+          floor: "First Floor",
+          coordinates: { x: 480, y: 140 },
+          status: "Live Pitches",
+          tags: ["Startup", "Pitch", "Arena"]
+        },
+        {
+          id: "SBM-104",
+          name: "SBM-104: Seminar Hall & Industry Workshop",
+          type: "Seminar Room",
+          capacity: "90 Seats",
+          equipment: "Acoustic Wall Panels, Projection Array",
+          currentEvent: "Cloud AI Infrastructure Workshop",
+          floor: "First Floor",
+          coordinates: { x: 640, y: 140 },
+          status: "Scheduled",
+          tags: ["Seminar", "Workshop"]
+        },
+        {
+          id: "SBM-105",
+          name: "SBM-105: HOD & Academic Affairs Office",
+          type: "Admin Office",
+          capacity: "15 Seats",
+          equipment: "Conference Desk, Secretariat Computers",
+          currentEvent: "Academic Coordination",
+          floor: "First Floor",
+          coordinates: { x: 800, y: 140 },
+          status: "Open",
+          tags: ["Office", "Admin"]
+        }
+      ],
+      waterCoolers: [
+        {
+          id: "SBM-WC-03",
+          name: "SBM Water Cooler #3 (1st Floor North Gallery)",
+          type: "Cold RO Drinking Water Station",
+          temperature: "6.2°C (Cold)",
+          purity: "99.7% Purified",
+          capacity: "60 Litres/Hr",
+          status: "Operational • Active",
+          image: "/assets/buildings/watercooler_ro.jpg",
+          locationDescription: "First Floor Gallery Corridor near SBM-102 GPU Lab",
+          coordinates: { x: 350, y: 220 },
+          features: ["Dual Taps", "Stainless Steel Basin", "RO Purified Water"]
+        },
+        {
+          id: "SBM-WC-04",
+          name: "SBM Water Cooler #4 (East Faculty Lounge Hydration)",
+          type: "Smart Touchless Water Dispenser",
+          temperature: "5.5°C (Ice-Cold)",
+          purity: "100.0% Purified",
+          capacity: "50 Litres/Hr",
+          status: "Operational • Active",
+          image: "/assets/buildings/watercooler_touchless.jpg",
+          locationDescription: "First Floor East Wing Faculty Lounge Passage",
+          coordinates: { x: 750, y: 220 },
+          features: ["Touchless Sensor", "UV Sterilizer", "Filter OK Indicator"]
+        }
+      ],
+      corridors: [
+        {
+          id: "CORR-F01",
+          name: "1st Floor Glass-Rail Gallery Corridor Path",
+          widthMeters: 3.8,
+          pathPoints: [{ x: 80, y: 220 }, { x: 300, y: 220 }, { x: 500, y: 220 }, { x: 750, y: 220 }, { x: 880, y: 220 }],
+          description: "Upper level balcony corridor path with glass railings overlooking Ground Floor Atrium."
+        }
+      ],
+      amenities: [
+        { id: "STAIR-F1A", name: "Staircase Alpha (West)", type: "Stairs", coordinates: { x: 90, y: 260 } },
+        { id: "STAIR-F1B", name: "Staircase Beta (East)", type: "Stairs", coordinates: { x: 860, y: 260 } },
+        { id: "ELEV-F1", name: "Elevator Lobby (Level 1)", type: "Elevator", coordinates: { x: 490, y: 260 } },
+        { id: "WASH-F1", name: "1st Floor Restrooms", type: "Washroom", coordinates: { x: 720, y: 260 } }
+      ]
+    },
+    {
+      id: "floor2",
+      name: "Second Floor (L2)",
+      level: 2,
+      corridorName: "2nd Floor GenAI Incubator & Executive Suite Walkway",
+      corridorLengthMeters: 180,
+      image: "/assets/buildings/watercooler_touchless.jpg",
+      rooms: [
+        {
+          id: "SBM-201",
+          name: "SBM-201: Generative AI & NLP Incubator Lab",
+          type: "Incubator Lab",
+          capacity: "40 Innovators",
+          equipment: "High-density compute nodes, private cloud cluster access",
+          currentEvent: "Incubator Startup Speed Mentoring",
+          floor: "Second Floor",
+          coordinates: { x: 160, y: 140 },
+          status: "Incubation Live",
+          tags: ["GenAI", "Incubator", "Lab"]
+        },
+        {
+          id: "SBM-202",
+          name: "SBM-202: Student Innovation Hub & AI Hackathon Base",
+          type: "Innovation Hub",
+          capacity: "80 Seats",
+          equipment: "Modular Whiteboards, 3D Printers, High-speed Wifi",
+          currentEvent: "24-Hour AI Summit Student Hackathon",
+          floor: "Second Floor",
+          coordinates: { x: 400, y: 140 },
+          status: "Hackathon Active",
+          tags: ["Hackathon", "Student", "Hub"]
+        },
+        {
+          id: "SBM-203",
+          name: "SBM-203: Conference Room Alpha (Board Room)",
+          type: "Board Room",
+          capacity: "30 Seats",
+          equipment: "Executive Leather Seating, Video Wall, VC Suite",
+          currentEvent: "Industry Advisory Board Meeting",
+          floor: "Second Floor",
+          coordinates: { x: 640, y: 140 },
+          status: "Board Meeting",
+          tags: ["Conference", "Boardroom"]
+        },
+        {
+          id: "SBM-204",
+          name: "SBM-204: Ph.D. Scholar Research Workstations",
+          type: "Research Room",
+          capacity: "25 Cubicles",
+          equipment: "Dedicated Workstations, Academic Journals DB",
+          currentEvent: "Paper Presentation Sessions",
+          floor: "Second Floor",
+          coordinates: { x: 820, y: 140 },
+          status: "Research Active",
+          tags: ["Research", "Ph.D."]
+        }
+      ],
+      waterCoolers: [
+        {
+          id: "SBM-WC-05",
+          name: "SBM Water Cooler #5 (2nd Floor Smart Touchless Dispenser)",
+          type: "Smart Touchless Water Station",
+          temperature: "5.8°C (Ice-Cold)",
+          purity: "99.9% Purified",
+          capacity: "50 Litres/Hr",
+          status: "Operational • Active",
+          image: "/assets/buildings/watercooler_touchless.jpg",
+          locationDescription: "Second Floor Corridor between Incubator SBM-201 and Hackathon Hub SBM-202",
+          coordinates: { x: 280, y: 220 },
+          features: ["Touchless Hydration", "Digital Temp Display", "Eco Sensor"]
+        }
+      ],
+      corridors: [
+        {
+          id: "CORR-S01",
+          name: "2nd Floor Executive Corridor Path",
+          widthMeters: 3.5,
+          pathPoints: [{ x: 80, y: 220 }, { x: 300, y: 220 }, { x: 500, y: 220 }, { x: 750, y: 220 }, { x: 880, y: 220 }],
+          description: "High-level corridor connecting Innovation Hub and Board Rooms."
+        }
+      ],
+      amenities: [
+        { id: "STAIR-F2A", name: "Staircase Alpha (West)", type: "Stairs", coordinates: { x: 90, y: 260 } },
+        { id: "STAIR-F2B", name: "Staircase Beta (East)", type: "Stairs", coordinates: { x: 860, y: 260 } },
+        { id: "ELEV-F2", name: "Elevator Lobby (Level 2)", type: "Elevator", coordinates: { x: 490, y: 260 } }
+      ]
+    }
+  ]
+};
+
 export const STARTUP_STALLS = [
   {
     id: "S01",

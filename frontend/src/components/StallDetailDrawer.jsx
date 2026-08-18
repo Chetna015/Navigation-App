@@ -47,8 +47,8 @@ export default function StallDetailDrawer({
           </span>
         </div>
 
-        <button onClick={onClose} className="btn-glass" style={{ padding: '4px', borderRadius: '50%' }}>
-          <X size={16} color="var(--text-muted)" />
+        <button onClick={onClose} className="modal-close-btn" title="Close Drawer">
+          <X size={16} color="var(--colors-ink)" />
         </button>
       </div>
 

@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { 
   Navigation, Clock, Footprints, 
-  Volume2, VolumeX, X, Play, Pause, Compass, MapPin, 
-  ArrowUpRight, ArrowLeft, ArrowRight, CornerUpRight, Maximize2, Minimize2
+  Volume2, VolumeX, X, Compass, MapPin, 
+  ArrowUpRight, ArrowRight, Maximize2, Minimize2
 } from 'lucide-react';
 import { getCampusRoute } from '../utils/pathfinding';
 
@@ -18,6 +18,7 @@ export default function NavigationBanner({
   const [voiceEnabled, setVoiceEnabled] = useState(true);
   const [isExpanded, setIsExpanded] = useState(false);
   const [currentStepIdx, setCurrentStepIdx] = useState(0);
+  const [simulatedMetersLeft, setSimulatedMetersLeft] = useState(null);
 
   // Fetch route info whenever origin or destination changes
   useEffect(() => {
@@ -37,6 +38,7 @@ export default function NavigationBanner({
       const info = await getCampusRoute(sLat, sLng, eLat, eLng);
       if (!isCancelled && info) {
         setRouteInfo(info);
+        setSimulatedMetersLeft(info.totalDistanceMeters || 350);
       }
     }
 
@@ -47,15 +49,38 @@ export default function NavigationBanner({
     };
   }, [currentLocation, destination]);
 
-  const distance = routeInfo ? routeInfo.totalDistanceMeters : 350;
-  const walkTime = routeInfo ? routeInfo.walkingTimeMins : 4;
-  const estimatedSteps = routeInfo ? routeInfo.totalSteps : 460;
+  // Simulate progress step countdown when live navigation is active
+  useEffect(() => {
+    if (!isNavigatingLive) return;
+
+    const timer = setInterval(() => {
+      setSimulatedMetersLeft((prev) => {
+        if (prev === null || prev <= 10) {
+          return 0;
+        }
+        const nextVal = prev - 15;
+        if (nextVal < 200 && currentStepIdx === 0) {
+          setCurrentStepIdx(1);
+        } else if (nextVal < 50 && currentStepIdx === 1) {
+          setCurrentStepIdx(2);
+        }
+        return nextVal;
+      });
+    }, 2500);
+
+    return () => clearInterval(timer);
+  }, [isNavigatingLive, currentStepIdx]);
+
+  const totalDistance = routeInfo ? routeInfo.totalDistanceMeters : 350;
+  const distance = simulatedMetersLeft !== null ? simulatedMetersLeft : totalDistance;
+  const walkTime = Math.max(1, Math.ceil(distance / 80));
+  const estimatedSteps = Math.ceil(distance * 1.3);
 
   // Turn directions
   const steps = [
     { text: `Walk straight along Central Campus Avenue`, dist: "80m", icon: ArrowUpRight },
     { text: `Turn right towards ${destination?.name || 'Destination'}`, dist: "140m", icon: ArrowRight },
-    { text: `Arrive at ${destination?.name || 'Destination'}`, dist: "30m", icon: MapPin }
+    { text: `Arriving at ${destination?.name || 'Destination'}`, dist: "20m", icon: MapPin }
   ];
 
   const currentStep = steps[currentStepIdx] || steps[0];
@@ -76,54 +101,53 @@ export default function NavigationBanner({
     if (setIsNavigatingLive) {
       setIsNavigatingLive(true);
     }
-    speakInstruction(`Starting live turn-by-turn navigation to ${destination?.name}. Head straight.`);
+    speakInstruction(`Starting live turn-by-turn navigation to ${destination?.name}. Walk straight.`);
   };
 
   // -------------------------------------------------------------
-  // MODE 1: ROUTE PREVIEW BOX (Side Box before user hits Navigate)
+  // MODE 1: ROUTE PREVIEW CARD
   // -------------------------------------------------------------
   if (!isNavigatingLive) {
     return (
       <div 
-        className="glass-panel animate-slide-up"
+        className="animate-slide-up"
         style={{
           position: 'absolute',
           bottom: '24px',
           left: '24px',
           width: '380px',
           maxWidth: 'calc(100vw - 48px)',
-          borderRadius: '24px',
-          padding: '22px',
+          borderRadius: '16px',
+          padding: '20px',
           zIndex: 600,
-          border: '1px solid var(--border-glass-light)',
-          boxShadow: '0 0 40px rgba(0, 240, 255, 0.3)',
-          background: 'rgba(14, 23, 38, 0.95)',
-          backdropFilter: 'blur(20px)'
+          border: '1px solid var(--colors-hairline-strong)',
+          boxShadow: 'var(--shadow-md)',
+          background: 'var(--colors-surface-card)'
         }}
       >
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <div style={{
-              width: '40px',
-              height: '40px',
-              borderRadius: '12px',
-              background: 'linear-gradient(135deg, #0284C7 0%, #00F0FF 100%)',
+              width: '36px',
+              height: '36px',
+              borderRadius: '10px',
+              background: 'var(--colors-surface-dark)',
+              color: 'var(--colors-on-dark)',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 0 16px rgba(0, 240, 255, 0.4)'
+              justifyContent: 'center'
             }}>
-              <Navigation size={22} color="#FFF" />
+              <Navigation size={18} />
             </div>
             <div>
-              <div style={{ fontSize: '11px', fontWeight: 800, color: '#00F0FF', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                Route Preview (Road-Snapped OSRM)
+              <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--colors-ink)', fontFamily: 'var(--font-heading)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                Route Preview (OSRM Campus Path)
               </div>
-              <div style={{ fontSize: '15px', fontWeight: 800, color: '#FFF', marginTop: '2px' }}>
+              <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--colors-ink)', marginTop: '2px', fontFamily: 'var(--font-heading)' }}>
                 {currentLocation?.name || 'Current GPS Location'}
               </div>
-              <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 600 }}>
+              <div style={{ fontSize: '12px', color: 'var(--colors-body)', fontFamily: 'var(--font-main)' }}>
                 ➔ {destination?.name || 'Destination'}
               </div>
             </div>
@@ -131,11 +155,23 @@ export default function NavigationBanner({
 
           <button
             onClick={onCancelNavigation}
-            className="btn-glass"
-            style={{ width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             title="Cancel Route"
+            style={{
+              width: '32px',
+              height: '32px',
+              borderRadius: '50%',
+              background: '#000000',
+              color: '#ffffff',
+              border: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              fontWeight: 700,
+              fontSize: '15px'
+            }}
           >
-            <X size={16} color="var(--text-muted)" />
+            ✕
           </button>
         </div>
 
@@ -144,49 +180,49 @@ export default function NavigationBanner({
           display: 'grid',
           gridTemplateColumns: 'repeat(3, 1fr)',
           gap: '8px',
-          marginBottom: '18px'
+          marginBottom: '16px'
         }}>
           <div style={{
-            background: 'rgba(255, 255, 255, 0.04)',
-            border: '1px solid var(--border-glass)',
-            borderRadius: '14px',
+            background: 'var(--colors-surface-soft)',
+            border: '1px solid var(--colors-hairline)',
+            borderRadius: '12px',
             padding: '10px 8px',
             textAlign: 'center'
           }}>
-            <div style={{ fontSize: '10px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '3px' }}>
-              <Compass size={12} color="#00F0FF" /> Distance
+            <div style={{ fontSize: '10px', color: 'var(--colors-body)', fontFamily: 'var(--font-main)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '3px' }}>
+              <Compass size={12} color="var(--colors-ink)" /> Distance
             </div>
-            <div style={{ fontSize: '16px', fontWeight: 800, color: '#FFF', marginTop: '2px' }}>
+            <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--colors-ink)', fontFamily: 'var(--font-code)', marginTop: '2px' }}>
               {distance} m
             </div>
           </div>
 
           <div style={{
-            background: 'rgba(255, 255, 255, 0.04)',
-            border: '1px solid var(--border-glass)',
-            borderRadius: '14px',
+            background: 'var(--colors-surface-soft)',
+            border: '1px solid var(--colors-hairline)',
+            borderRadius: '12px',
             padding: '10px 8px',
             textAlign: 'center'
           }}>
-            <div style={{ fontSize: '10px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '3px' }}>
-              <Clock size={12} color="#F59E0B" /> Time
+            <div style={{ fontSize: '10px', color: 'var(--colors-body)', fontFamily: 'var(--font-main)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '3px' }}>
+              <Clock size={12} color="var(--colors-ink)" /> Time
             </div>
-            <div style={{ fontSize: '16px', fontWeight: 800, color: '#FFF', marginTop: '2px' }}>
+            <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--colors-ink)', fontFamily: 'var(--font-code)', marginTop: '2px' }}>
               {walkTime} min
             </div>
           </div>
 
           <div style={{
-            background: 'rgba(255, 255, 255, 0.04)',
-            border: '1px solid var(--border-glass)',
-            borderRadius: '14px',
+            background: 'var(--colors-surface-soft)',
+            border: '1px solid var(--colors-hairline)',
+            borderRadius: '12px',
             padding: '10px 8px',
             textAlign: 'center'
           }}>
-            <div style={{ fontSize: '10px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '3px' }}>
-              <Footprints size={12} color="#10B981" /> Steps
+            <div style={{ fontSize: '10px', color: 'var(--colors-body)', fontFamily: 'var(--font-main)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '3px' }}>
+              <Footprints size={12} color="var(--colors-ink)" /> Steps
             </div>
-            <div style={{ fontSize: '16px', fontWeight: 800, color: '#FFF', marginTop: '2px' }}>
+            <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--colors-ink)', fontFamily: 'var(--font-code)', marginTop: '2px' }}>
               {estimatedSteps}
             </div>
           </div>
@@ -195,89 +231,84 @@ export default function NavigationBanner({
         {/* Start Live Navigation Action Button */}
         <button
           onClick={handleStartLiveNavigation}
+          className="ollama-btn-primary"
           style={{
             width: '100%',
-            padding: '16px',
-            borderRadius: '16px',
-            background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
-            color: '#FFF',
-            border: 'none',
-            fontSize: '15px',
-            fontWeight: 900,
-            cursor: 'pointer',
-            boxShadow: '0 0 25px rgba(16, 185, 129, 0.5)',
+            height: '42px',
+            borderRadius: '9999px',
+            fontSize: '14px',
+            fontWeight: 700,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: '10px',
-            letterSpacing: '0.3px'
+            gap: '8px'
           }}
         >
-          <Navigation size={20} className="animate-pulse" /> START LIVE NAVIGATION
+          <Navigation size={18} /> START LIVE NAVIGATION
         </button>
       </div>
     );
   }
 
   // -------------------------------------------------------------
-  // MODE 2: LIVE SIDE TRACKER CARD (Replaces Preview in SAME SIDE BOX SIZE)
+  // MODE 2: LIVE SIDE TRACKER CARD
   // -------------------------------------------------------------
   if (!isExpanded) {
+    const progressPct = Math.max(0, Math.min(100, Math.round(((totalDistance - distance) / totalDistance) * 100)));
+
     return (
       <div 
-        className="glass-panel animate-scale-up"
+        className="animate-scale-up"
         style={{
           position: 'absolute',
           bottom: '24px',
           left: '24px',
           width: '380px',
           maxWidth: 'calc(100vw - 48px)',
-          borderRadius: '24px',
+          borderRadius: '16px',
           padding: '20px',
           zIndex: 700,
-          border: '1px solid rgba(16, 185, 129, 0.4)',
-          boxShadow: '0 0 40px rgba(16, 185, 129, 0.4)',
-          background: 'rgba(10, 20, 32, 0.96)',
-          backdropFilter: 'blur(20px)'
+          border: '1px solid var(--colors-hairline-strong)',
+          boxShadow: 'var(--shadow-md)',
+          background: 'var(--colors-surface-card)'
         }}
       >
         {/* Live Tracking Header Badge */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <div style={{
-              width: '10px',
-              height: '10px',
+              width: '8px',
+              height: '8px',
               borderRadius: '50%',
-              background: '#10B981',
-              boxShadow: '0 0 12px #10B981'
-            }} className="animate-ping" />
-            <span style={{ fontSize: '11px', fontWeight: 900, color: '#10B981', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-              📍 LIVE GPS AUTO-TRACKING ACTIVE
+              background: '#10B981'
+            }} className="animate-pulse" />
+            <span style={{ fontSize: '11px', fontWeight: 700, color: '#10B981', fontFamily: 'var(--font-heading)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              LIVE GPS NAVIGATION ACTIVE
             </span>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <button
               onClick={() => setVoiceEnabled(!voiceEnabled)}
-              className="btn-glass"
-              style={{ width: '30px', height: '30px', padding: 0, justifyContent: 'center', borderRadius: '50%' }}
+              className="ollama-btn-secondary"
+              style={{ width: '30px', height: '30px', padding: 0, borderRadius: '50%' }}
               title={voiceEnabled ? 'Mute Voice' : 'Unmute Voice'}
             >
-              {voiceEnabled ? <Volume2 size={15} color="#10B981" /> : <VolumeX size={15} color="var(--text-muted)" />}
+              {voiceEnabled ? <Volume2 size={14} /> : <VolumeX size={14} />}
             </button>
             <button
               onClick={() => setIsExpanded(true)}
-              className="btn-glass"
-              style={{ width: '30px', height: '30px', padding: 0, justifyContent: 'center', borderRadius: '50%' }}
-              title="Expand Fullscreen Google Maps View"
+              className="ollama-btn-secondary"
+              style={{ width: '30px', height: '30px', padding: 0, borderRadius: '50%' }}
+              title="Expand Fullscreen View"
             >
-              <Maximize2 size={15} color="#00F0FF" />
+              <Maximize2 size={14} />
             </button>
           </div>
         </div>
 
         {/* Destination Target */}
-        <div style={{ fontSize: '16px', fontWeight: 900, color: '#FFF', marginBottom: '12px' }}>
+        <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--colors-ink)', fontFamily: 'var(--font-heading)', marginBottom: '12px' }}>
           Navigating to {destination?.name}
         </div>
 
@@ -288,63 +319,51 @@ export default function NavigationBanner({
           gap: '8px',
           marginBottom: '14px'
         }}>
-          <div style={{ background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.3)', borderRadius: '12px', padding: '8px', textAlign: 'center' }}>
-            <div style={{ fontSize: '10px', color: '#10B981', fontWeight: 700 }}>REMAINING</div>
-            <div style={{ fontSize: '16px', fontWeight: 900, color: '#FFF', marginTop: '2px' }}>{distance}m</div>
+          <div style={{ background: 'var(--colors-surface-soft)', border: '1px solid var(--colors-hairline)', borderRadius: '10px', padding: '8px', textAlign: 'center' }}>
+            <div style={{ fontSize: '10px', color: 'var(--colors-body)', fontWeight: 600 }}>REMAINING</div>
+            <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--colors-ink)', fontFamily: 'var(--font-code)', marginTop: '2px' }}>{distance}m</div>
           </div>
-          <div style={{ background: 'rgba(0, 240, 255, 0.1)', border: '1px solid rgba(0, 240, 255, 0.3)', borderRadius: '12px', padding: '8px', textAlign: 'center' }}>
-            <div style={{ fontSize: '10px', color: '#00F0FF', fontWeight: 700 }}>ETA WALK</div>
-            <div style={{ fontSize: '16px', fontWeight: 900, color: '#FFF', marginTop: '2px' }}>{walkTime} min</div>
+          <div style={{ background: 'var(--colors-surface-soft)', border: '1px solid var(--colors-hairline)', borderRadius: '10px', padding: '8px', textAlign: 'center' }}>
+            <div style={{ fontSize: '10px', color: 'var(--colors-body)', fontWeight: 600 }}>ETA WALK</div>
+            <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--colors-ink)', fontFamily: 'var(--font-code)', marginTop: '2px' }}>{walkTime} min</div>
           </div>
-          <div style={{ background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.3)', borderRadius: '12px', padding: '8px', textAlign: 'center' }}>
-            <div style={{ fontSize: '10px', color: '#F59E0B', fontWeight: 700 }}>STEPS</div>
-            <div style={{ fontSize: '16px', fontWeight: 900, color: '#FFF', marginTop: '2px' }}>{estimatedSteps}</div>
+          <div style={{ background: 'var(--colors-surface-soft)', border: '1px solid var(--colors-hairline)', borderRadius: '10px', padding: '8px', textAlign: 'center' }}>
+            <div style={{ fontSize: '10px', color: 'var(--colors-body)', fontWeight: 600 }}>STEPS</div>
+            <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--colors-ink)', fontFamily: 'var(--font-code)', marginTop: '2px' }}>{estimatedSteps}</div>
           </div>
         </div>
 
         {/* Next Step Turn Instruction */}
         <div style={{
-          background: 'rgba(0, 240, 255, 0.08)',
-          border: '1px dashed #00F0FF',
-          borderRadius: '14px',
+          background: 'var(--colors-surface-soft)',
+          border: '1px solid var(--colors-hairline-strong)',
+          borderRadius: '12px',
           padding: '10px 14px',
           display: 'flex',
           alignItems: 'center',
           gap: '10px',
-          marginBottom: '14px'
+          marginBottom: '12px'
         }}>
-          <StepIcon size={22} color="#00F0FF" />
+          <StepIcon size={20} color="var(--colors-ink)" />
           <div>
-            <div style={{ fontSize: '10px', color: '#00F0FF', fontWeight: 800 }}>NEXT TURN DIRECTION</div>
-            <div style={{ fontSize: '13px', fontWeight: 700, color: '#FFF' }}>{currentStep.text}</div>
+            <div style={{ fontSize: '10px', color: 'var(--colors-body)', fontWeight: 700 }}>NEXT MANEUVER</div>
+            <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--colors-ink)', fontFamily: 'var(--font-main)' }}>{currentStep.text}</div>
           </div>
         </div>
 
         {/* Progress Bar */}
-        <div style={{ height: '5px', width: '100%', background: 'rgba(255,255,255,0.1)', borderRadius: '3px', overflow: 'hidden', marginBottom: '14px' }}>
-          <div style={{ height: '100%', width: '40%', background: 'linear-gradient(90deg, #10B981, #00F0FF)' }} />
+        <div style={{ height: '6px', width: '100%', background: 'var(--colors-hairline)', borderRadius: '9999px', overflow: 'hidden', marginBottom: '14px' }}>
+          <div style={{ height: '100%', width: `${progressPct}%`, background: 'var(--colors-primary)', transition: 'width 0.3s ease' }} />
         </div>
 
         {/* Action Controls */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
           <button
             onClick={() => setIsExpanded(true)}
-            style={{
-              padding: '10px',
-              borderRadius: '12px',
-              background: 'rgba(0, 240, 255, 0.15)',
-              border: '1px solid rgba(0, 240, 255, 0.4)',
-              color: '#00F0FF',
-              fontSize: '12px',
-              fontWeight: 800,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '6px'
-            }}
+            className="ollama-btn-secondary"
+            style={{ width: '100%', height: '36px', borderRadius: '9999px', fontSize: '12px' }}
           >
-            <Maximize2 size={14} /> Expand View
+            <Maximize2 size={14} /> Fullscreen
           </button>
 
           <button
@@ -352,20 +371,8 @@ export default function NavigationBanner({
               if (setIsNavigatingLive) setIsNavigatingLive(false);
               onCancelNavigation();
             }}
-            style={{
-              padding: '10px',
-              borderRadius: '12px',
-              background: 'rgba(239, 68, 68, 0.2)',
-              border: '1px solid rgba(239, 68, 68, 0.4)',
-              color: '#EF4444',
-              fontSize: '12px',
-              fontWeight: 800,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '6px'
-            }}
+            className="ollama-btn-secondary"
+            style={{ width: '100%', height: '36px', borderRadius: '9999px', fontSize: '12px', color: '#EF4444', borderColor: 'rgba(239, 68, 68, 0.4)' }}
           >
             <X size={14} /> Exit Route
           </button>
@@ -377,9 +384,11 @@ export default function NavigationBanner({
   // -------------------------------------------------------------
   // MODE 3: FULLSCREEN GOOGLE MAPS LIVE NAVIGATION OVERLAY
   // -------------------------------------------------------------
+  const progressPct = Math.max(0, Math.min(100, Math.round(((totalDistance - distance) / totalDistance) * 100)));
+
   return (
     <>
-      {/* TOP FLOATING GREEN DIRECTION BANNER */}
+      {/* TOP FLOATING DIRECTION BANNER */}
       <div 
         className="animate-slide-down"
         style={{
@@ -387,40 +396,37 @@ export default function NavigationBanner({
           top: '20px',
           left: '50%',
           transform: 'translateX(-50%)',
-          width: '560px',
+          width: '540px',
           maxWidth: 'calc(100vw - 40px)',
           zIndex: 850,
-          background: 'linear-gradient(135deg, #059669 0%, #10B981 100%)',
-          color: '#FFF',
-          borderRadius: '24px',
-          padding: '16px 22px',
-          boxShadow: '0 10px 40px rgba(16, 185, 129, 0.6), 0 0 20px rgba(0, 0, 0, 0.4)',
+          background: 'var(--colors-surface-dark)',
+          color: 'var(--colors-on-dark)',
+          borderRadius: '16px',
+          padding: '16px 20px',
+          boxShadow: 'var(--shadow-md)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between'
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          {/* Large Direction Icon */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
           <div style={{
-            width: '54px',
-            height: '54px',
-            borderRadius: '16px',
-            background: 'rgba(255, 255, 255, 0.2)',
-            backdropFilter: 'blur(8px)',
+            width: '44px',
+            height: '44px',
+            borderRadius: '12px',
+            background: 'rgba(255, 255, 255, 0.1)',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
-            border: '1px solid rgba(255, 255, 255, 0.3)'
+            justifyContent: 'center'
           }}>
-            <StepIcon size={32} color="#FFF" />
+            <StepIcon size={24} color="#FFF" />
           </div>
 
           <div>
-            <div style={{ fontSize: '20px', fontWeight: 900, lineHeight: '1.2' }}>
+            <div style={{ fontSize: '18px', fontWeight: 700, fontFamily: 'var(--font-heading)', lineHeight: '1.2' }}>
               In {currentStep.dist || '40m'}
             </div>
-            <div style={{ fontSize: '14px', fontWeight: 700, opacity: 0.95, marginTop: '2px' }}>
+            <div style={{ fontSize: '13px', fontWeight: 500, opacity: 0.9, marginTop: '2px', fontFamily: 'var(--font-main)' }}>
               {currentStep.text}
             </div>
           </div>
@@ -431,11 +437,11 @@ export default function NavigationBanner({
           <button
             onClick={() => setVoiceEnabled(!voiceEnabled)}
             style={{
-              background: 'rgba(255, 255, 255, 0.2)',
+              background: 'rgba(255, 255, 255, 0.15)',
               border: 'none',
               borderRadius: '50%',
-              width: '36px',
-              height: '36px',
+              width: '32px',
+              height: '32px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -444,16 +450,16 @@ export default function NavigationBanner({
             }}
             title={voiceEnabled ? 'Mute Voice' : 'Unmute Voice'}
           >
-            {voiceEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
+            {voiceEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
           </button>
           <button
             onClick={() => setIsExpanded(false)}
             style={{
-              background: 'rgba(255, 255, 255, 0.2)',
+              background: 'rgba(255, 255, 255, 0.15)',
               border: 'none',
               borderRadius: '50%',
-              width: '36px',
-              height: '36px',
+              width: '32px',
+              height: '32px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -462,7 +468,7 @@ export default function NavigationBanner({
             }}
             title="Minimize to Side Card"
           >
-            <Minimize2 size={18} />
+            <Minimize2 size={16} />
           </button>
         </div>
       </div>
@@ -475,23 +481,22 @@ export default function NavigationBanner({
           bottom: '20px',
           left: '50%',
           transform: 'translateX(-50%)',
-          width: '560px',
+          width: '540px',
           maxWidth: 'calc(100vw - 40px)',
           zIndex: 850,
-          background: 'rgba(14, 23, 38, 0.96)',
-          backdropFilter: 'blur(20px)',
-          border: '1px solid var(--border-glass-light)',
-          borderRadius: '24px',
-          padding: '16px 22px',
-          boxShadow: '0 0 50px rgba(0, 0, 0, 0.8)'
+          background: 'var(--colors-surface-card)',
+          border: '1px solid var(--colors-hairline-strong)',
+          borderRadius: '16px',
+          padding: '16px 20px',
+          boxShadow: 'var(--shadow-md)'
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
           <div>
-            <div style={{ fontSize: '22px', fontWeight: 900, color: '#10B981', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              {walkTime} <span style={{ fontSize: '14px', color: 'var(--text-muted)' }}>min walk</span>
+            <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--colors-ink)', fontFamily: 'var(--font-heading)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              {walkTime} <span style={{ fontSize: '13px', color: 'var(--colors-body)', fontFamily: 'var(--font-main)' }}>min walk</span>
             </div>
-            <div style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: 700 }}>
+            <div style={{ fontSize: '12px', color: 'var(--colors-body)', fontWeight: 600, fontFamily: 'var(--font-main)' }}>
               {distance} meters • {estimatedSteps} steps remaining
             </div>
           </div>
@@ -499,21 +504,10 @@ export default function NavigationBanner({
           <div style={{ display: 'flex', gap: '8px' }}>
             <button
               onClick={() => setIsExpanded(false)}
-              style={{
-                background: 'rgba(0, 240, 255, 0.15)',
-                border: '1px solid rgba(0, 240, 255, 0.4)',
-                color: '#00F0FF',
-                borderRadius: '16px',
-                padding: '12px 16px',
-                fontSize: '13px',
-                fontWeight: 800,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px'
-              }}
+              className="ollama-btn-secondary"
+              style={{ borderRadius: '9999px', height: '36px', fontSize: '12px' }}
             >
-              <Minimize2 size={16} /> Side Box
+              <Minimize2 size={14} /> Side Card
             </button>
 
             <button
@@ -521,33 +515,22 @@ export default function NavigationBanner({
                 if (setIsNavigatingLive) setIsNavigatingLive(false);
                 onCancelNavigation();
               }}
-              style={{
-                background: 'linear-gradient(135deg, #EF4444 0%, #F43F5E 100%)',
-                color: '#FFF',
-                border: 'none',
-                borderRadius: '16px',
-                padding: '12px 20px',
-                fontSize: '13px',
-                fontWeight: 800,
-                cursor: 'pointer',
-                boxShadow: '0 0 20px rgba(239, 68, 68, 0.5)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px'
-              }}
+              className="ollama-btn-primary"
+              style={{ borderRadius: '9999px', height: '36px', fontSize: '12px', background: '#EF4444' }}
             >
-              <X size={16} /> Exit Navigation
+              <X size={14} /> Exit Route
             </button>
           </div>
         </div>
 
         {/* Live Progress Bar */}
-        <div style={{ height: '6px', width: '100%', background: 'rgba(255,255,255,0.1)', borderRadius: '3px', overflow: 'hidden' }}>
+        <div style={{ height: '6px', width: '100%', background: 'var(--colors-hairline)', borderRadius: '9999px', overflow: 'hidden' }}>
           <div style={{
             height: '100%',
-            width: '40%',
-            background: 'linear-gradient(90deg, #10B981, #00F0FF)',
-            borderRadius: '3px'
+            width: `${progressPct}%`,
+            background: 'var(--colors-primary)',
+            borderRadius: '9999px',
+            transition: 'width 0.3s ease'
           }} />
         </div>
       </div>

@@ -11,8 +11,6 @@ export default function ManagePinsModal({
   onStartPinningMode,
   onSelectLocationOnMap
 }) {
-  if (!isOpen) return null;
-
   const [searchQuery, setSearchQuery] = useState('');
   const [tick, setTick] = useState(0);
 
@@ -21,6 +19,8 @@ export default function ManagePinsModal({
     window.addEventListener('csjmu_locations_updated', handleUpdate);
     return () => window.removeEventListener('csjmu_locations_updated', handleUpdate);
   }, []);
+
+  if (!isOpen) return null;
 
   const allBuildings = { ...getMergedCampusBuildings(), ...getStoredPlottedBuildings() };
   const deletedIds = getDeletedLocationIds();
@@ -64,8 +64,8 @@ export default function ManagePinsModal({
       right: 0,
       bottom: 0,
       zIndex: 1100,
-      background: 'rgba(15, 23, 42, 0.65)',
-      backdropFilter: 'blur(16px)',
+      background: 'rgba(0, 0, 0, 0.65)',
+      backdropFilter: 'blur(8px)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -75,60 +75,51 @@ export default function ManagePinsModal({
         width: '100%',
         maxWidth: '620px',
         maxHeight: '85vh',
-        borderRadius: '24px',
-        background: '#F1F5F9',
-        border: '2px solid #B91C1C',
-        boxShadow: '0 20px 40px rgba(0, 0, 0, 0.2)',
+        borderRadius: '12px',
+        background: 'var(--colors-surface-card)',
+        border: '1px solid var(--colors-hairline-strong)',
+        boxShadow: 'var(--shadow-md)',
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden'
       }}>
         {/* Modal Header */}
         <div style={{
-          background: 'linear-gradient(135deg, #B91C1C 0%, #991B1B 100%)',
-          padding: '20px 24px',
+          background: 'var(--colors-surface-soft)',
+          borderBottom: '1px solid var(--colors-hairline)',
+          padding: '16px 24px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div style={{
-              width: '42px',
-              height: '42px',
-              borderRadius: '12px',
-              background: '#1E3A8A',
+              width: '36px',
+              height: '36px',
+              borderRadius: '9999px',
+              background: 'var(--colors-primary)',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.25)'
+              justifyContent: 'center'
             }}>
-              <MapPin size={22} color="#FFF" />
+              <MapPin size={18} color="var(--colors-on-primary)" />
             </div>
             <div>
-              <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#FFF' }}>
-                Manage Location Pins & Custom Plotting
-              </h3>
-              <p style={{ fontSize: '12px', color: '#FEE2E2', fontWeight: 600 }}>
-                Drop new custom pins on the map — saved permanently in LocalStorage
+              <h2 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--colors-ink)', fontFamily: 'var(--font-heading)' }}>
+                Campus Location Pins Manager
+              </h2>
+              <p style={{ fontSize: '12px', color: 'var(--colors-body)', fontFamily: 'var(--font-main)' }}>
+                View, search, drop new pins, or restore deleted pins
               </p>
             </div>
           </div>
 
           <button
             onClick={onClose}
-            style={{
-              width: '36px',
-              height: '36px',
-              borderRadius: '50%',
-              background: 'rgba(255, 255, 255, 0.2)',
-              border: 'none',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}
+            className="modal-close-btn"
+            title="Close Modal"
           >
-            <X size={18} color="#FFF" />
+            <X size={16} color="var(--colors-ink)" />
           </button>
         </div>
 

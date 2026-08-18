@@ -7,10 +7,10 @@ export default function SenateHallVerticalPanel({
   onClose,
   onSelectStall
 }) {
-  if (!isOpen) return null;
-
   const [activeTab, setActiveTab] = useState('all');
   const [filterQuery, setFilterQuery] = useState('');
+
+  if (!isOpen) return null;
 
   // Filter items
   const filteredStalls = STARTUP_STALLS.filter(s => {

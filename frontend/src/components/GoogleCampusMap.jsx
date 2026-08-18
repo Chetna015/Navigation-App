@@ -64,6 +64,7 @@ export default function GoogleCampusMap({
   onSelectLocation,
   onOpenEditLocation,
   onOpen3DView,
+  onOpenSBMIndoor,
   navMode = 'preview',
   isNavigatingLive = false
 }) {
@@ -101,6 +102,8 @@ export default function GoogleCampusMap({
     return () => window.removeEventListener('csjmu_locations_updated', handleUpdate);
   }, []);
 
+  const lastRouteParamsRef = useRef(null);
+
   // Fetch OSRM Road-Snapped Campus Route whenever currentLocation or destination changes
   useEffect(() => {
     let isCancelled = false;
@@ -108,6 +111,7 @@ export default function GoogleCampusMap({
     async function fetchRoute() {
       if (!currentLocation || !destination || !currentLocation.lat || !destination.lat) {
         setRouteCoordinates([]);
+        lastRouteParamsRef.current = null;
         return;
       }
 
@@ -116,17 +120,27 @@ export default function GoogleCampusMap({
       const destLat = destination.lat;
       const destLng = destination.lng;
 
+      // Prevent redundant fetches if movement is under 5 meters and destination is identical
+      if (lastRouteParamsRef.current) {
+        const p = lastRouteParamsRef.current;
+        const isSameDest = Math.abs(p.destLat - destLat) < 0.00001 && Math.abs(p.destLng - destLng) < 0.00001;
+        const dStart = Math.abs(p.startLat - startLat) + Math.abs(p.startLng - startLng);
+        if (dStart < 0.00005 && isSameDest) {
+          return;
+        }
+        if (!isSameDest) {
+          setRouteCoordinates([]);
+        }
+      }
+
+      lastRouteParamsRef.current = { startLat, startLng, destLat, destLng };
       const routeData = await getCampusRoute(startLat, startLng, destLat, destLng);
 
       if (!isCancelled) {
         if (routeData && routeData.path && routeData.path.length > 0) {
           setRouteCoordinates(routeData.path);
         } else {
-          // Fallback to straight line if fetch fails
-          setRouteCoordinates([
-            [startLat, startLng],
-            [destLat, destLng]
-          ]);
+          setRouteCoordinates([]);
         }
       }
     }
@@ -254,9 +268,46 @@ export default function GoogleCampusMap({
       activePins = getMergedCampusBuildings();
     }
 
+// Category Style Resolver for POI Circular Markers
+const getPoiCategoryStyle = (node) => {
+  const name = (node.name || '').toLowerCase();
+  const cat = (node.category || '').toLowerCase();
+
+  if (cat.includes('library') || name.includes('library')) {
+    return { bg: '#D97706', icon: '📚' }; // Gold/Amber
+  }
+  if (cat.includes('academic') || name.includes('uiet') || name.includes('lecture') || name.includes('department') || name.includes('academics') || name.includes('diet')) {
+    return { bg: '#2563EB', icon: '🎓' }; // Royal Blue
+  }
+  if (cat.includes('food') || name.includes('cafeteria') || name.includes('canteen')) {
+    return { bg: '#F97316', icon: '☕' }; // Orange
+  }
+  if (cat.includes('hospital') || name.includes('hospital') || name.includes('medical')) {
+    return { bg: '#E11D48', icon: '🏥' }; // Rose Red
+  }
+  if (cat.includes('hostel') || name.includes('hostel')) {
+    return { bg: '#0284C7', icon: '🏠' }; // Light Blue
+  }
+  if (cat.includes('gym') || name.includes('sports') || name.includes('gym')) {
+    return { bg: '#059669', icon: '🏋️' }; // Emerald Green
+  }
+  if (cat.includes('theatre') || name.includes('theatre') || name.includes('nataraj') || name.includes('auditorium') || name.includes('hall')) {
+    return { bg: '#7C3AED', icon: '🎭' }; // Purple
+  }
+  if (name.includes('store') || name.includes('shop') || name.includes('market')) {
+    return { bg: '#0D9488', icon: '🛍️' }; // Teal
+  }
+  if (name.includes('admin') || name.includes('office') || name.includes('gate') || name.includes('metro')) {
+    return { bg: '#475569', icon: '🏢' }; // Slate
+  }
+
+  return { bg: '#DC2626', icon: '📍' }; // Red Default POI
+};
+
     // Render active Red Pins (Only origin & destination when navigating)
     Object.values(activePins).forEach(node => {
       if (!node || !node.lat || !node.lng) return;
+      const catStyle = getPoiCategoryStyle(node);
 
       const customIcon = L.divIcon({
         className: 'custom-leaflet-building-marker',
@@ -264,32 +315,37 @@ export default function GoogleCampusMap({
           <div style="
             display: flex;
             align-items: center;
-            gap: 8px;
-            transform: translate(-50%, -100%) scale(1.2);
+            gap: 6px;
+            transform: translate(-50%, -100%);
             cursor: pointer;
           ">
             <div style="
-              width: 34px;
-              height: 38px;
+              width: 28px;
+              height: 28px;
+              border-radius: 50%;
+              background: ${catStyle.bg};
+              border: 2px solid #FFFFFF;
+              box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
               display: flex;
               align-items: center;
               justify-content: center;
-              filter: drop-shadow(0 0 12px rgba(153, 27, 27, 0.95));
+              font-size: 13px;
+              flex-shrink: 0;
             ">
-              <svg width="30" height="36" viewBox="0 0 24 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 0C5.37 0 0 5.37 0 12c0 9 12 16 12 16s12-7 12-16c0-6.63-5.37-12-12-12zm0 16c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z" fill="#991B1B" stroke="#FF4D4D" stroke-width="1.8"/>
-              </svg>
+              ${catStyle.icon}
             </div>
             <span style="
+              background: rgba(15, 23, 42, 0.88);
               color: #FFFFFF;
-              font-size: 14px;
-              font-weight: 900;
-              white-space: nowrap;
-              text-shadow: 0 0 10px rgba(0, 0, 0, 0.95), 0 2px 5px rgba(0, 0, 0, 0.9);
-              background: rgba(11, 20, 38, 0.85);
-              padding: 4px 10px;
-              border-radius: 12px;
+              font-size: 12px;
+              font-weight: 600;
+              font-family: var(--font-main);
+              padding: 3px 8px;
+              border-radius: 6px;
               border: 1px solid rgba(255, 255, 255, 0.2);
+              backdrop-filter: blur(4px);
+              white-space: nowrap;
+              box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
             ">
               ${node.name}
             </span>
@@ -308,7 +364,7 @@ export default function GoogleCampusMap({
       markersGroupRef.current.addLayer(marker);
     });
 
-    // Render "You Are Here 📍" Live Marker or Google Maps Blue Heading Arrow
+    // Render "My Live GPS Location 📍" Live Marker or Heading Arrow
     const fromNode = currentLocation || { lat: 26.4970, lng: 80.2666 };
     if (fromNode && fromNode.lat && fromNode.lng) {
       const heading = fromNode.heading || 45;
@@ -318,8 +374,8 @@ export default function GoogleCampusMap({
         html: `
           <div style="
             position: relative;
-            width: 44px;
-            height: 44px;
+            width: 40px;
+            height: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -327,26 +383,25 @@ export default function GoogleCampusMap({
           ">
             <div style="
               position: absolute;
-              width: 38px;
-              height: 38px;
+              width: 36px;
+              height: 36px;
               border-radius: 50%;
-              background: rgba(0, 102, 255, 0.25);
-              border: 1.5px solid rgba(0, 240, 255, 0.6);
-              box-shadow: 0 0 25px rgba(0, 240, 255, 0.8);
+              background: rgba(16, 185, 129, 0.25);
+              border: 2px solid #10B981;
+              box-shadow: 0 0 20px rgba(16, 185, 129, 0.8);
             "></div>
 
             <div style="
               transform: rotate(${heading}deg);
-              width: 30px;
-              height: 30px;
+              width: 26px;
+              height: 26px;
               display: flex;
               align-items: center;
               justify-content: center;
-              filter: drop-shadow(0 4px 12px rgba(0, 102, 255, 0.9));
-              transition: transform 0.3s ease-out;
+              filter: drop-shadow(0 2px 6px rgba(0,0,0,0.4));
             ">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 2L19 21L12 17L5 21L12 2Z" fill="#0066FF" stroke="#FFFFFF" stroke-width="2.2" stroke-linejoin="round"/>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2L19 21L12 17L5 21L12 2Z" fill="#10B981" stroke="#FFFFFF" stroke-width="2.2" stroke-linejoin="round"/>
               </svg>
             </div>
           </div>
@@ -360,36 +415,37 @@ export default function GoogleCampusMap({
             display: flex;
             align-items: center;
             gap: 6px;
-            transform: translate(-50%, -100%) scale(1.15);
+            transform: translate(-50%, -100%);
             cursor: pointer;
           ">
             <div style="
-              width: 26px;
-              height: 26px;
+              width: 30px;
+              height: 30px;
               border-radius: 50%;
               background: #10B981;
-              border: 3px solid #FFFFFF;
-              box-shadow: 0 0 20px #10B981, 0 0 40px rgba(16, 185, 129, 0.8);
+              border: 2.5px solid #FFFFFF;
+              box-shadow: 0 0 16px #10B981, 0 0 30px rgba(16, 185, 129, 0.6);
               display: flex;
               align-items: center;
               justify-content: center;
               color: #FFF;
-              font-size: 11px;
+              font-size: 13px;
             ">
               📍
             </div>
             <span style="
-              background: rgba(16, 185, 129, 0.95);
+              background: #047857;
               color: #FFFFFF;
               font-size: 12px;
-              font-weight: 900;
-              padding: 3px 8px;
-              border-radius: 10px;
-              border: 1px solid #FFFFFF;
+              font-weight: 700;
+              font-family: var(--font-heading);
+              padding: 4px 10px;
+              border-radius: 8px;
+              border: 1.5px solid #FFFFFF;
               white-space: nowrap;
-              box-shadow: 0 0 15px rgba(16, 185, 129, 0.6);
+              box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
             ">
-              ${fromNode.name || 'You Are Here 📍'}
+              ${fromNode.name || 'My Live GPS Location'}
             </span>
           </div>
         `,
@@ -397,7 +453,7 @@ export default function GoogleCampusMap({
         iconAnchor: [0, 0]
       });
 
-      const userMarker = L.marker([fromNode.lat, fromNode.lng], { icon: liveUserIcon });
+      const userMarker = L.marker([fromNode.lat, fromNode.lng], { icon: liveUserIcon, zIndexOffset: 2000 });
       markersGroupRef.current.addLayer(userMarker);
     }
 
@@ -408,31 +464,33 @@ export default function GoogleCampusMap({
         ? routeCoordinates
         : (shortestRoute && shortestRoute.latLngList && shortestRoute.latLngList.length >= 2)
         ? shortestRoute.latLngList
-        : [[fromNode.lat, fromNode.lng], [toNode.lat, toNode.lng]];
+        : null;
 
       const isLiveActive = (navMode === 'active' || isNavigatingLive);
 
-      // Glow background line
-      const glowPolyline = L.polyline(routePoints, {
-        color: isLiveActive ? '#60A5FA' : '#00F0FF',
-        weight: isLiveActive ? 13 : 11,
-        opacity: isLiveActive ? 0.6 : 0.35,
-        lineCap: 'round',
-        lineJoin: 'round'
-      }).addTo(map);
+      if (routePoints && routePoints.length >= 2) {
+        // Glow background line
+        const glowPolyline = L.polyline(routePoints, {
+          color: isLiveActive ? '#60A5FA' : '#00F0FF',
+          weight: isLiveActive ? 13 : 11,
+          opacity: isLiveActive ? 0.6 : 0.35,
+          lineCap: 'round',
+          lineJoin: 'round'
+        }).addTo(map);
 
-      // Main Polyline: Solid Royal Blue when live navigation active (matching Google Maps screenshot)
-      const mainPolyline = L.polyline(routePoints, {
-        color: isLiveActive ? '#1D4ED8' : '#0284C7',
-        weight: isLiveActive ? 8 : 6,
-        opacity: 0.98,
-        dashArray: isLiveActive ? null : '10, 10',
-        lineCap: 'round',
-        lineJoin: 'round'
-      }).addTo(map);
+        // Main Polyline: Solid Royal Blue when live navigation active (matching Google Maps screenshot)
+        const mainPolyline = L.polyline(routePoints, {
+          color: isLiveActive ? '#1D4ED8' : '#0284C7',
+          weight: isLiveActive ? 8 : 6,
+          opacity: 0.98,
+          dashArray: isLiveActive ? null : '10, 10',
+          lineCap: 'round',
+          lineJoin: 'round'
+        }).addTo(map);
 
-      polylineRef.current = mainPolyline;
-      animPolylineRef.current = glowPolyline;
+        polylineRef.current = mainPolyline;
+        animPolylineRef.current = glowPolyline;
+      }
 
       // Render Destination callout badge (Google Maps style pill) when in live navigation mode
       if (isLiveActive && toNode && toNode.lat && toNode.lng) {
@@ -546,7 +604,7 @@ export default function GoogleCampusMap({
         </div>
       )}
 
-      {/* Top Left Controls: Mask Toggle */}
+      {/* Top Left Controls: Satellite View Toggle */}
       <div style={{
         position: 'absolute',
         top: '16px',
@@ -555,23 +613,22 @@ export default function GoogleCampusMap({
       }}>
         <button
           onClick={() => setShowOuterMask(!showOuterMask)}
-          title="Toggle Dark Outer Perimeter Mask"
+          title="Toggle Satellite View Perimeter Mask"
+          className="ollama-btn-secondary"
           style={{
-            background: showOuterMask ? 'rgba(0, 240, 255, 0.2)' : 'rgba(255, 255, 255, 0.08)',
-            border: '1px solid var(--border-glass)',
-            color: showOuterMask ? '#00F0FF' : 'var(--text-muted)',
-            borderRadius: '14px',
-            padding: '10px 14px',
+            height: '36px',
+            borderRadius: '9999px',
+            padding: '8px 16px',
             fontSize: '12px',
-            fontWeight: 700,
+            fontWeight: 600,
             display: 'flex',
             alignItems: 'center',
-            gap: '6px',
-            cursor: 'pointer'
+            gap: '8px',
+            boxShadow: 'var(--shadow-sm)'
           }}
         >
-          {showOuterMask ? <Eye size={15} /> : <EyeOff size={15} />}
-          <span>{showOuterMask ? 'Perimeter Mask ON' : 'Clear Satellite OFF'}</span>
+          {showOuterMask ? <Eye size={15} color="var(--colors-ink)" /> : <EyeOff size={15} color="var(--colors-ink)" />}
+          <span>{showOuterMask ? 'Satellite View ON' : 'Satellite View OFF'}</span>
         </button>
       </div>
 
@@ -583,43 +640,42 @@ export default function GoogleCampusMap({
         zIndex: 400,
         display: 'flex',
         flexDirection: 'column',
-        gap: '8px'
+        gap: '6px'
       }}>
         <button
           onClick={() => leafletMapRef.current?.zoomIn()}
-          className="btn-glass"
-          style={{ width: '38px', height: '38px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          className="map-control-btn"
           title="Zoom In"
         >
-          <ZoomIn size={18} color="#FFF" />
+          <ZoomIn size={18} />
         </button>
+
         <button
           onClick={() => leafletMapRef.current?.zoomOut()}
-          className="btn-glass"
-          style={{ width: '38px', height: '38px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          className="map-control-btn"
           title="Zoom Out"
         >
-          <ZoomOut size={18} color="#FFF" />
+          <ZoomOut size={18} />
         </button>
+
         <button
           onClick={handleFitAllMarkers}
-          className="btn-glass"
-          style={{ width: '38px', height: '38px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-          title="Auto-Fit All Markers on Satellite Map"
+          className="map-control-btn"
+          title="Auto-Fit All Markers on Map"
         >
-          <Maximize size={18} color="#00F0FF" />
+          <Maximize size={18} />
         </button>
+
         <button
           onClick={() => {
             if (leafletMapRef.current) {
               leafletMapRef.current.setView([26.4983, 80.2658], 17);
             }
           }}
-          className="btn-glass"
-          style={{ width: '38px', height: '38px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          className="map-control-btn"
           title="Recenter University Campus"
         >
-          <Compass size={18} color="var(--color-cyan)" />
+          <Compass size={18} />
         </button>
       </div>
 
@@ -639,6 +695,7 @@ export default function GoogleCampusMap({
             setCustomBuildings(getStoredPlottedBuildings());
           }}
           onOpen3DView={onOpen3DView}
+          onOpenSBMIndoor={onOpenSBMIndoor}
         />
       )}
 

@@ -96,17 +96,30 @@ export default function useLiveNavigationVoice({ currentLocation, destination })
       setDistanceMeters(meters);
       setStepsCount(Math.round(meters / 0.75)); // Average 0.75m per step
 
-      // Speak initial navigation instruction
+      // Speak initial navigation instruction in polite Hindi lady voice
       if (voiceEnabled && typeof window !== 'undefined' && 'speechSynthesis' in window) {
         const now = Date.now();
         if (now - lastSpokenRef.current > 12000) {
           lastSpokenRef.current = now;
           try {
             window.speechSynthesis.cancel();
-            const msg = new SpeechSynthesisUtterance(
-              `Navigating to ${destination.name || 'destination'}. Distance is ${meters} meters, approximately ${Math.round(meters / 0.75)} steps.`
-            );
-            msg.rate = 0.95;
+            const hindiSpeech = `जी, ${destination.name || 'गंतव्य'} की ओर आगे बढ़ें। दूरी लगभग ${meters} मीटर है।`;
+            const msg = new SpeechSynthesisUtterance(hindiSpeech);
+            msg.lang = 'hi-IN';
+            msg.pitch = 1.12;
+            msg.rate = 0.92;
+
+            const voices = window.speechSynthesis.getVoices();
+            const hindiFemale = voices.find(v => 
+              (v.lang.includes('hi') || v.lang.includes('HI') || v.name.toLowerCase().includes('hindi')) &&
+              (v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('swara') || v.name.toLowerCase().includes('heera') || v.name.toLowerCase().includes('kalpana') || v.name.toLowerCase().includes('google') || v.name.includes('हिन्दी'))
+            ) || voices.find(v => v.lang.includes('hi') || v.name.toLowerCase().includes('hindi'))
+              || voices.find(v => v.lang.includes('en-IN') && v.name.toLowerCase().includes('female'));
+
+            if (hindiFemale) {
+              msg.voice = hindiFemale;
+            }
+
             window.speechSynthesis.speak(msg);
           } catch (e) {
             console.warn("SpeechSynthesis error:", e);

@@ -340,9 +340,27 @@ export default function App() {
       <AIAssistantModal
         isOpen={showAIAssistant}
         onClose={() => setShowAIAssistant(false)}
+        currentLocation={currentLocation}
+        destination={destination}
         onSelectLocation={handleSelectLocation}
+        onStartNavigation={(mode = 'preview') => {
+          setNavMode(mode);
+          if (mode === 'active') setIsNavigatingLive(true);
+        }}
+        onCancelNavigation={() => {
+          setDestination(null);
+          setIsNavigatingLive(false);
+          setNavMode('hidden');
+        }}
         onOpenStalls={() => setShowStallsModal(true)}
         onOpenSessions={() => setShowSessionsModal(true)}
+        onOpen3DView={(bld) => setBuilding3D(bld)}
+        onOpenStreetView={() => setShowStreetViewModal(true)}
+        onOpenSBMIndoor={() => setShowSBMIndoorModal(true)}
+        onOpenParking={() => setShowParkingModal(true)}
+        onOpenShuttle={() => setShowShuttleModal(true)}
+        onOpenCampusLife={() => setShowCampusLifeModal(true)}
+        onOpenEmergency={handleTriggerSOS}
       />
 
       <StartupExhibitionModal

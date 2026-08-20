@@ -54,31 +54,26 @@ export default function App() {
     stepsCount,
     isOffTrack,
     voiceEnabled,
-    setVoiceEnabled
+    setVoiceEnabled,
+    gpsPermissionState,
+    gpsErrorMsg,
+    requestLiveGps
   } = useLiveNavigationVoice({ currentLocation, destination });
 
-  // Automatically update currentLocation with exact real-time phone GPS position when received (with 3.5m thresholding)
+  // Automatically update currentLocation with exact real-time phone GPS position when received
   useEffect(() => {
     if (userPos && userPos.lat && userPos.lng) {
-      setCurrentLocation(prev => {
-        if (prev?.lat && prev?.lng) {
-          const latDiff = Math.abs(prev.lat - userPos.lat);
-          const lngDiff = Math.abs(prev.lng - userPos.lng);
-          // Only update state if coordinates moved more than ~3.5 meters (0.00003 degrees)
-          if (latDiff < 0.00003 && lngDiff < 0.00003) {
-            return prev;
-          }
-        }
-        return {
-          ...prev,
-          name: 'My Live GPS Location 📍',
-          lat: userPos.lat,
-          lng: userPos.lng,
-          isLiveUser: true
-        };
-      });
+      setCurrentLocation(prev => ({
+        ...prev,
+        id: 'live_user_location',
+        name: 'My Live GPS Location 📍',
+        lat: userPos.lat,
+        lng: userPos.lng,
+        heading: userPos.heading || 45,
+        isLiveUser: true
+      }));
     }
-  }, [userPos]);
+  }, [userPos, setCurrentLocation]);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [highlightDomain, setHighlightDomain] = useState(null);
@@ -237,6 +232,73 @@ export default function App() {
 
       {/* 5. Main Content Area: Interactive Vector Digital Twin Map (65%+ Viewport) */}
       <main className="main-content">
+        {/* Mobile GPS & HTTPS Notice Banner */}
+        {gpsPermissionState === 'insecure' && (
+          <div style={{
+            background: 'linear-gradient(90deg, #1E293B, #0F172A)',
+            color: '#F8FAFC',
+            borderBottom: '1px solid #334155',
+            padding: '8px 16px',
+            fontSize: '12px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '8px',
+            zIndex: 450
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span>🔒</span>
+              <span><strong>मोबाइल GPS सूचना:</strong> मोबाइल पर सटीक GPS और वॉयस के लिए कृपया HTTPS लिंक खोलें:</span>
+            </div>
+            <a
+              href={`https://${typeof window !== 'undefined' ? window.location.hostname : 'localhost'}:5173`}
+              style={{
+                background: '#10B981',
+                color: '#FFF',
+                padding: '4px 10px',
+                borderRadius: '6px',
+                fontWeight: 700,
+                textDecoration: 'none',
+                fontSize: '11px',
+                whiteSpace: 'nowrap'
+              }}
+            >
+              HTTPS पर खोलें 🚀
+            </a>
+          </div>
+        )}
+
+        {gpsPermissionState === 'prompt' && !userPos && (
+          <div style={{
+            background: 'rgba(16, 185, 129, 0.12)',
+            borderBottom: '1px solid rgba(16, 185, 129, 0.3)',
+            color: '#065F46',
+            padding: '6px 16px',
+            fontSize: '12px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            zIndex: 450
+          }}>
+            <span>📍 अपने फ़ोन की लाइव GPS लोकेशन चालू करें</span>
+            <button
+              onClick={requestLiveGps}
+              style={{
+                background: '#10B981',
+                color: '#FFF',
+                border: 'none',
+                padding: '3px 10px',
+                borderRadius: '9999px',
+                fontSize: '11px',
+                fontWeight: 600,
+                cursor: 'pointer'
+              }}
+            >
+              GPS अनुमति दें 📍
+            </button>
+          </div>
+        )}
+
         {/* 4. Search Bar & Smart Quick Action Cards (Automatically hidden once both locations/destination are entered) */}
         {!destination && navMode !== 'active' && (
           <SearchBarAndActions
@@ -278,7 +340,6 @@ export default function App() {
           accessibilityOptions={accessibilityOptions}
           onOpenEditLocation={handleOpenEditLocation}
           onOpen3DView={(bld) => setBuilding3D(bld)}
-          onOpenStreetView={() => setShowStreetViewModal(true)}
           onOpenSBMIndoor={() => setShowSBMIndoorModal(true)}
           navMode={navMode}
           isNavigatingLive={isNavigatingLive}

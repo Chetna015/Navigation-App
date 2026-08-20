@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { 
-  ZoomIn, ZoomOut, Compass, Sparkles, Lock, Plus, MousePointerClick, Layers, Eye, EyeOff, Maximize
+  ZoomIn, ZoomOut, Compass, Sparkles, Lock, Plus, MousePointerClick, Layers, Eye, EyeOff, Maximize, Navigation
 } from 'lucide-react';
 import { DEFAULT_CAMPUS_BUILDINGS, getStoredPlottedBuildings, getCampusRoute } from '../utils/pathfinding';
 import { getMergedCampusBuildings } from '../utils/locationStore';
@@ -66,7 +66,6 @@ export default function GoogleCampusMap({
   onSelectLocation,
   onOpenEditLocation,
   onOpen3DView,
-  onOpenStreetView,
   onOpenSBMIndoor,
   navMode = 'preview',
   isNavigatingLive = false
@@ -675,6 +674,39 @@ const getPoiCategoryStyle = (node) => {
 
         <button
           onClick={() => {
+            if (typeof window !== 'undefined' && 'geolocation' in navigator) {
+              navigator.geolocation.getCurrentPosition((pos) => {
+                const liveObj = {
+                  id: 'live_user_location',
+                  name: 'My Live GPS Location 📍',
+                  lat: pos.coords.latitude,
+                  lng: pos.coords.longitude,
+                  heading: pos.coords.heading || 45,
+                  isLiveUser: true
+                };
+                if (setCurrentLocation) setCurrentLocation(liveObj);
+                if (leafletMapRef.current) {
+                  leafletMapRef.current.flyTo([pos.coords.latitude, pos.coords.longitude], 19, { animate: true, duration: 1.0 });
+                }
+              }, (err) => {
+                console.warn("GPS error:", err);
+                if (currentLocation && currentLocation.lat && currentLocation.lng && leafletMapRef.current) {
+                  leafletMapRef.current.flyTo([currentLocation.lat, currentLocation.lng], 19, { animate: true, duration: 1.0 });
+                }
+              }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
+            } else if (currentLocation && currentLocation.lat && currentLocation.lng && leafletMapRef.current) {
+              leafletMapRef.current.flyTo([currentLocation.lat, currentLocation.lng], 19, { animate: true, duration: 1.0 });
+            }
+          }}
+          className="map-control-btn"
+          title="Locate My Live GPS Position (मेरा स्थान)"
+          style={{ color: '#10B981', border: '1.5px solid #10B981' }}
+        >
+          <Navigation size={18} />
+        </button>
+
+        <button
+          onClick={() => {
             if (leafletMapRef.current) {
               leafletMapRef.current.setView([26.4983, 80.2658], 17);
             }
@@ -695,9 +727,25 @@ const getPoiCategoryStyle = (node) => {
             if (onSelectLocation) onSelectLocation(bld);
             setInspectedBuilding(null);
           }}
+          onEditCoordinates={(bld) => {
+            if (onOpenEditLocation) onOpenEditLocation(bld);
+          }}
+          onBuildingDeleted={() => {
+            setCustomBuildings(getStoredPlottedBuildings());
+          }}
           onOpen3DView={onOpen3DView}
-          onOpenStreetView={onOpenStreetView}
           onOpenSBMIndoor={onOpenSBMIndoor}
+          onSetAsStartLocation={(bld) => {
+            if (setCurrentLocation) {
+              setCurrentLocation({
+                id: bld.id,
+                name: `${bld.name} 📍`,
+                lat: bld.lat,
+                lng: bld.lng,
+                category: 'Simulated Start'
+              });
+            }
+          }}
         />
       )}
 

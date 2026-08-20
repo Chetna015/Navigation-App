@@ -59,6 +59,7 @@ const TILE_PROVIDERS = {
 
 export default function GoogleCampusMap({
   currentLocation,
+  setCurrentLocation,
   destination,
   shortestRoute,
   onSelectLocation,
@@ -696,6 +697,17 @@ const getPoiCategoryStyle = (node) => {
           }}
           onOpen3DView={onOpen3DView}
           onOpenSBMIndoor={onOpenSBMIndoor}
+          onSetAsStartLocation={(bld) => {
+            if (setCurrentLocation) {
+              setCurrentLocation({
+                id: bld.id,
+                name: `${bld.name} 📍`,
+                lat: bld.lat,
+                lng: bld.lng,
+                category: 'Simulated Start'
+              });
+            }
+          }}
         />
       )}
 

@@ -458,6 +458,7 @@ export default function DigitalTwinMap({
       {viewMode === 'google' ? (
         <GoogleCampusMap
           currentLocation={currentLocation}
+          setCurrentLocation={setCurrentLocation}
           destination={destination}
           setDestination={setDestination}
           shortestRoute={shortestRoute}

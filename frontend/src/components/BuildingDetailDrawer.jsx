@@ -12,7 +12,8 @@ export default function BuildingDetailDrawer({
   onBuildingDeleted,
   onEditCoordinates,
   onOpen3DView,
-  onOpenSBMIndoor
+  onOpenSBMIndoor,
+  onSetAsStartLocation
 }) {
   const [selectedFloorLevel, setSelectedFloorLevel] = React.useState('Ground');
 
@@ -286,6 +287,32 @@ export default function BuildingDetailDrawer({
         >
           <Navigation size={16} /> Show Shortest Path to {building.name}
         </button>
+
+        {onSetAsStartLocation && (
+          <button
+            onClick={() => {
+              onSetAsStartLocation(building);
+              onClose();
+            }}
+            className="ollama-btn-secondary"
+            style={{
+              width: '100%',
+              height: '42px',
+              borderRadius: '9999px',
+              fontSize: '13px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              border: '1px solid var(--colors-hairline-strong)',
+              background: 'var(--colors-surface-soft)'
+            }}
+          >
+            📍 Set as Starting Location
+          </button>
+        )}
 
         {onOpenSBMIndoor && (
           <button

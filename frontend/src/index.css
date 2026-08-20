@@ -387,6 +387,27 @@ code, pre {
   align-items: end;
 }
 
+.search-bar-floating-container {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  width: 420px;
+  z-index: 500;
+  pointer-events: none;
+}
+
+.search-bar-floating-container * {
+  pointer-events: auto;
+}
+
+.search-bar-inner-card {
+  backdrop-filter: blur(12px);
+  background: var(--bg-glass) !important;
+  border: 1px solid var(--colors-hairline-strong) !important;
+  box-shadow: var(--shadow-md) !important;
+  border-radius: 16px !important;
+}
+
 @media (max-width: 768px) {
   html, body {
     overflow-x: hidden;
@@ -402,12 +423,37 @@ code, pre {
     flex-direction: column-reverse;
   }
 
-  .navigation-sidebar-card {
+  .search-bar-floating-container {
+    top: 12px !important;
     left: 12px !important;
     right: 12px !important;
-    bottom: 12px !important;
     width: auto !important;
-    max-width: calc(100vw - 24px) !important;
+  }
+
+  .navigation-sidebar-card {
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    border-radius: 20px 20px 0 0 !important;
+    border-bottom: none !important;
+    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.15) !important;
+    padding: 16px 20px 24px 20px !important;
+  }
+
+  .navigation-active-card {
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    top: auto !important;
+    height: 50vh !important;
+    max-height: 50vh !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    border-radius: 20px 20px 0 0 !important;
+    border-bottom: none !important;
+    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.15) !important;
   }
 
   .navbar-title-desktop {

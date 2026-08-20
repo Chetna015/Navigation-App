@@ -48,13 +48,13 @@ export default function SearchBarAndActions({
   const suggestions = getSuggestions();
 
   return (
-    <div style={{
+    <div className="search-bar-floating-container" style={{
       padding: '12px 20px',
       display: 'flex',
       flexDirection: 'column',
       gap: '10px',
-      background: 'var(--colors-canvas)',
-      borderBottom: '1px solid var(--colors-hairline)'
+      background: 'transparent',
+      borderBottom: 'none'
     }}>
       {/* OFF-TRACK DISTRACTION WARNING TOAST */}
       {isOffTrack && (
@@ -77,7 +77,7 @@ export default function SearchBarAndActions({
       )}
 
       {/* RECTANGLE FORM NAVIGATION SEARCH CARD */}
-      <div style={{
+      <div className="search-bar-inner-card" style={{
         background: 'var(--colors-surface-card)',
         border: '1px solid var(--colors-hairline)',
         borderRadius: '12px',

@@ -239,34 +239,34 @@ export default function App() {
         onOpenSBMIndoor={() => setShowSBMIndoorModal(true)}
       />
 
-      {/* 4. Search Bar & Smart Quick Action Cards (Automatically hidden once both locations/destination are entered) */}
-      {!destination && navMode !== 'active' && (
-        <SearchBarAndActions
-          currentLocation={currentLocation}
-          destination={destination}
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          onSelectLocation={handleSelectLocation}
-          onOpenStalls={() => setShowStallsModal(true)}
-          onOpenSessions={() => setShowSessionsModal(true)}
-          onOpenAIAssistant={() => setShowAIAssistant(true)}
-          onOpenShuttle={() => setShowShuttleModal(true)}
-          onOpenCampusLife={() => setShowCampusLifeModal(true)}
-          onOpenParking={() => setShowParkingModal(true)}
-          onOpenSBMIndoor={() => setShowSBMIndoorModal(true)}
-          isListening={isListening}
-          startVoiceSearch={startVoiceSearch}
-          onOpenManagePins={() => setShowManagePinsModal(true)}
-          distanceMeters={distanceMeters}
-          stepsCount={stepsCount}
-          isOffTrack={isOffTrack}
-          voiceEnabled={voiceEnabled}
-          setVoiceEnabled={setVoiceEnabled}
-        />
-      )}
-
       {/* 5. Main Content Area: Interactive Vector Digital Twin Map (65%+ Viewport) */}
       <main className="main-content">
+        {/* 4. Search Bar & Smart Quick Action Cards (Automatically hidden once both locations/destination are entered) */}
+        {!destination && navMode !== 'active' && (
+          <SearchBarAndActions
+            currentLocation={currentLocation}
+            destination={destination}
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            onSelectLocation={handleSelectLocation}
+            onOpenStalls={() => setShowStallsModal(true)}
+            onOpenSessions={() => setShowSessionsModal(true)}
+            onOpenAIAssistant={() => setShowAIAssistant(true)}
+            onOpenShuttle={() => setShowShuttleModal(true)}
+            onOpenCampusLife={() => setShowCampusLifeModal(true)}
+            onOpenParking={() => setShowParkingModal(true)}
+            onOpenSBMIndoor={() => setShowSBMIndoorModal(true)}
+            isListening={isListening}
+            startVoiceSearch={startVoiceSearch}
+            onOpenManagePins={() => setShowManagePinsModal(true)}
+            distanceMeters={distanceMeters}
+            stepsCount={stepsCount}
+            isOffTrack={isOffTrack}
+            voiceEnabled={voiceEnabled}
+            setVoiceEnabled={setVoiceEnabled}
+          />
+        )}
+
         <DigitalTwinMap
           currentLocation={currentLocation}
           setCurrentLocation={setCurrentLocation}

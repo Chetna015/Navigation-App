@@ -610,33 +610,7 @@ const getPoiCategoryStyle = (node) => {
         </div>
       )}
 
-      {/* Top Left Controls: Satellite View Toggle */}
-      <div style={{
-        position: 'absolute',
-        top: '16px',
-        left: '16px',
-        zIndex: 400
-      }}>
-        <button
-          onClick={() => setShowOuterMask(!showOuterMask)}
-          title="Toggle Satellite View Perimeter Mask"
-          className="ollama-btn-secondary"
-          style={{
-            height: '36px',
-            borderRadius: '9999px',
-            padding: '8px 16px',
-            fontSize: '12px',
-            fontWeight: 600,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            boxShadow: 'var(--shadow-sm)'
-          }}
-        >
-          {showOuterMask ? <Eye size={15} color="var(--colors-ink)" /> : <EyeOff size={15} color="var(--colors-ink)" />}
-          <span>{showOuterMask ? 'Satellite View ON' : 'Satellite View OFF'}</span>
-        </button>
-      </div>
+
 
       {/* Right Map Zoom & Framing Controls */}
       <div style={{

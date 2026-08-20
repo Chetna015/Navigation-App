@@ -5,6 +5,7 @@ import {
 import { getMergedMapLocations } from '../utils/locationStore';
 
 export default function SearchBarAndActions({
+  isAdminMode,
   currentLocation,
   destination,
   searchQuery,
@@ -181,8 +182,8 @@ export default function SearchBarAndActions({
           </button>
         </div>
 
-        {/* ROW 2.5: CUSTOM PINS ACTIONS (LOCAL DEV / LOCALHOST ONLY) */}
-        {(import.meta.env.DEV || (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'))) && (
+        {/* ROW 2.5: CUSTOM PINS ACTIONS (ADMIN MODE ONLY) */}
+        {isAdminMode && (
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '2px' }}>
             {onStartPinningMode && (
               <button

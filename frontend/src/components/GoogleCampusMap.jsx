@@ -58,6 +58,7 @@ const TILE_PROVIDERS = {
 };
 
 export default function GoogleCampusMap({
+  isAdminMode,
   currentLocation,
   setCurrentLocation,
   destination,
@@ -182,9 +183,13 @@ export default function GoogleCampusMap({
 
       // Attach Map Click listener directly on map creation
       map.on('click', (e) => {
-        setClickedLatLng(e.latlng);
-        setShowPlotModal(true);
-        setIsPlottingMode(false);
+        if (isAdminMode) {
+          setClickedLatLng(e.latlng);
+          setShowPlotModal(true);
+          setIsPlottingMode(false);
+        } else {
+          setInspectedBuilding(null);
+        }
       });
 
       // Initialize layers without dotted lines or text overlays

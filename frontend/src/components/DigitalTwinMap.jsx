@@ -8,6 +8,7 @@ import { getCampusRoute } from '../utils/pathfinding';
 import GoogleCampusMap from './GoogleCampusMap';
 
 export default function DigitalTwinMap({
+  isAdminMode,
   currentLocation,
   setCurrentLocation,
   destination,
@@ -457,6 +458,7 @@ export default function DigitalTwinMap({
       {/* 2. RENDER GOOGLE MAPS VIEW OR DIGITAL TWIN CANVAS VIEW */}
       {viewMode === 'google' ? (
         <GoogleCampusMap
+          isAdminMode={isAdminMode}
           currentLocation={currentLocation}
           setCurrentLocation={setCurrentLocation}
           destination={destination}

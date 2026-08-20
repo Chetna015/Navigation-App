@@ -24,6 +24,14 @@ import { MAP_LOCATIONS, STARTUP_STALLS } from './data/auditoriumData';
 
 export default function App() {
   const [showSplash, setShowSplash] = useState(false);
+  const [isAdminMode, setIsAdminMode] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('admin') === 'true') {
+      setIsAdminMode(true);
+    }
+  }, []);
 
   // Core navigation state locked to exact user location (Lat: 26.4970° N, Lng: 80.2666° E)
   const defaultLiveLocation = {
@@ -233,9 +241,9 @@ export default function App() {
         setTheme={setTheme}
         onOpenAccessibility={() => setShowAccessibilityModal(true)}
         onOpenEmergency={handleTriggerSOS}
-        onOpenEditLocation={() => handleOpenEditLocation(null)}
-        onOpenManagePins={() => setShowManagePinsModal(true)}
-        onOpenAdmin360={() => setShowAdmin360Modal(true)}
+        onOpenEditLocation={isAdminMode ? () => handleOpenEditLocation(null) : null}
+        onOpenManagePins={isAdminMode ? () => setShowManagePinsModal(true) : null}
+        onOpenAdmin360={isAdminMode ? () => setShowAdmin360Modal(true) : null}
         onOpenSBMIndoor={() => setShowSBMIndoorModal(true)}
       />
 
@@ -244,6 +252,7 @@ export default function App() {
         {/* 4. Search Bar & Smart Quick Action Cards (Automatically hidden once both locations/destination are entered) */}
         {!destination && navMode !== 'active' && (
           <SearchBarAndActions
+            isAdminMode={isAdminMode}
             currentLocation={currentLocation}
             destination={destination}
             searchQuery={searchQuery}
@@ -258,7 +267,7 @@ export default function App() {
             onOpenSBMIndoor={() => setShowSBMIndoorModal(true)}
             isListening={isListening}
             startVoiceSearch={startVoiceSearch}
-            onOpenManagePins={() => setShowManagePinsModal(true)}
+            onOpenManagePins={isAdminMode ? () => setShowManagePinsModal(true) : null}
             distanceMeters={distanceMeters}
             stepsCount={stepsCount}
             isOffTrack={isOffTrack}
@@ -268,6 +277,7 @@ export default function App() {
         )}
 
         <DigitalTwinMap
+          isAdminMode={isAdminMode}
           currentLocation={currentLocation}
           setCurrentLocation={setCurrentLocation}
           destination={destination}

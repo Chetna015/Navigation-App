@@ -1,575 +1,872 @@
 import React, { useState, useEffect } from 'react';
 import { 
   X, Upload, Image as ImageIcon, MapPin, Compass, Plus, Trash2, 
-  Edit3, Save, CheckCircle, AlertCircle, RefreshCw, Key, Layers, ArrowRight, Eye
+  Edit3, Save, CheckCircle, AlertCircle, RefreshCw, Key, Layers, ArrowRight, Eye, Play
 } from 'lucide-react';
-import { 
-  upload360ImageFile, save360CampusNode, delete360CampusNode, getStored360Nodes 
-} from '../utils/firebaseLocationStore';
+import { getMergedMapLocations, saveLocationOverride, hideOrDeleteLocation } from '../utils/locationStore';
 
 export default function Admin360DashboardModal({
   isOpen,
-  onClose,
-  onOpenPreview360
+  onClose
 }) {
-  const [activeTab, setActiveTab] = useState('add_node'); // 'add_node' | 'manage' | 'config'
-  const [allNodes, setAllNodes] = useState(() => getStored360Nodes());
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [loginError, setLoginError] = useState('');
   
-  // Form State for New/Edit Node
-  const [nodeId, setNodeId] = useState('');
-  const [nodeName, setNodeName] = useState('');
-  const [category, setCategory] = useState('Academic Block');
-  const [lat, setLat] = useState('26.4970');
-  const [lng, setLng] = useState('80.2666');
-  const [description, setDescription] = useState('');
-  
-  // Image Upload State
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState('');
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [isUploading, setIsUploading] = useState(false);
-
-  // Hotspots Editor State
-  const [hotspots, setHotspots] = useState([]);
-  const [newHsTarget, setNewHsTarget] = useState('');
-  const [newHsText, setNewHsText] = useState('');
-  const [newHsYaw, setNewHsYaw] = useState(0);
-  const [newHsPitch, setNewHsPitch] = useState(0);
-
-  // Status Message
+  // Dashboard navigation tab: 'locations' | 'rooms' | 'watercoolers' | 'upload_360'
+  const [activeTab, setActiveTab] = useState('locations');
   const [statusMsg, setStatusMsg] = useState(null);
+
+  // Locations State
+  const [locations, setLocations] = useState([]);
+  const [selectedLocation, setSelectedLocation] = useState(null);
+  
+  // Locations Form State
+  const [locId, setLocId] = useState('');
+  const [locName, setLocName] = useState('');
+  const [locCode, setLocCode] = useState('');
+  const [locCategory, setLocCategory] = useState('Academic Block');
+  const [locLat, setLocLat] = useState('26.4970');
+  const [locLng, setLocLng] = useState('80.2666');
+  const [locFloors, setLocFloors] = useState(2);
+  const [locDescription, setLocDescription] = useState('');
+  const [locCoverImage, setLocCoverImage] = useState('');
+  const [locVideoUrl, setLocVideoUrl] = useState('');
+
+  // SBM Indoor Rooms State & Form
+  const [rooms, setRooms] = useState([]);
+  const [selectedRoom, setSelectedRoom] = useState(null);
+  const [roomId, setRoomId] = useState('');
+  const [roomName, setRoomName] = useState('');
+  const [roomType, setRoomType] = useState('Classroom');
+  const [roomCapacity, setRoomCapacity] = useState('60 Seats');
+  const [roomEquipment, setRoomEquipment] = useState('');
+  const [roomEvent, setRoomEvent] = useState('');
+  const [roomStatus, setRoomStatus] = useState('Active');
+  const [roomX, setRoomX] = useState(100);
+  const [roomY, setRoomY] = useState(100);
+
+  // SBM Watercoolers State & Form
+  const [watercoolers, setWatercoolers] = useState([]);
+  const [selectedWc, setSelectedWc] = useState(null);
+  const [wcId, setWcId] = useState('');
+  const [wcName, setWcName] = useState('');
+  const [wcType, setWcType] = useState('Heavy-Duty RO + UV Purifier');
+  const [wcTemp, setWcTemp] = useState('6.0°C');
+  const [wcPurity, setWcPurity] = useState('99.9%');
+  const [wcCapacity, setWcCapacity] = useState('80 Litres/Hr');
+  const [wcStatus, setWcStatus] = useState('Operational • Active');
+  const [wcDesc, setWcDesc] = useState('');
+  const [wcImage, setWcImage] = useState('');
+  const [wcX, setWcX] = useState(150);
+  const [wcY, setWcY] = useState(150);
+
+  // File Upload File selection
+  const [uploadFile, setUploadFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadedUrl, setUploadedUrl] = useState('');
 
   useEffect(() => {
     if (isOpen) {
-      setAllNodes(getStored360Nodes());
+      loadData();
     }
   }, [isOpen]);
 
+  const loadData = async () => {
+    try {
+      // 1. Fetch Locations
+      const locRes = await fetch('http://localhost:5000/api/locations');
+      const locData = await locRes.json();
+      if (locData.success) {
+        setLocations(locData.locations);
+      } else {
+        setLocations(getMergedMapLocations()); // Fallback to local
+      }
+
+      // 2. Fetch Rooms
+      const roomsRes = await fetch('http://localhost:5000/api/rooms');
+      const roomsData = await roomsRes.json();
+      if (roomsData.success) {
+        setRooms(roomsData.rooms);
+      }
+
+      // 3. Fetch Watercoolers
+      const wcRes = await fetch('http://localhost:5000/api/watercoolers');
+      const wcData = await wcRes.json();
+      if (wcData.success) {
+        setWatercoolers(wcData.watercoolers);
+      }
+    } catch (e) {
+      console.warn("Failed to connect to backend server. Operating in offline fallback mode.");
+      setLocations(getMergedMapLocations());
+    }
+  };
+
   if (!isOpen) return null;
 
-  // Handle Image File Selection
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setSelectedFile(file);
-      const tempUrl = URL.createObjectURL(file);
-      setPreviewUrl(tempUrl);
-      if (!nodeId) {
-        const cleanName = file.name.toLowerCase().replace(/[^a-z0-9]/g, '_');
-        setNodeId(`node_${cleanName.slice(0, 20)}`);
+  // Handle Login Check
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setLoginError('');
+    try {
+      const res = await fetch('http://localhost:5000/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setIsLoggedIn(true);
+      } else {
+        setLoginError(data.message || 'Invalid credentials');
+      }
+    } catch (err) {
+      // Fallback credentials check if backend is offline
+      if (username === 'admin' && password === 'admin2026') {
+        setIsLoggedIn(true);
+      } else {
+        setLoginError('Incorrect credentials (offline check failed)');
       }
     }
   };
 
-  // Add Hotspot to list
-  const handleAddHotspot = () => {
-    if (!newHsTarget) {
-      alert("Please select a target destination node for the walking arrow.");
-      return;
-    }
-    const newHs = {
-      targetNodeId: newHsTarget,
-      text: newHsText || `Walk to ${allNodes[newHsTarget]?.name || newHsTarget}`,
-      yaw: parseInt(newHsYaw, 10) || 0,
-      pitch: parseInt(newHsPitch, 10) || 0
-    };
-    setHotspots(prev => [...prev, newHs]);
-    setNewHsTarget('');
-    setNewHsText('');
-    setNewHsYaw(0);
-    setNewHsPitch(0);
-  };
+  // Handle File Upload to local Server Uploads Directory
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
 
-  const handleRemoveHotspot = (index) => {
-    setHotspots(prev => prev.filter((_, i) => i !== index));
-  };
+    setUploading(true);
+    setStatusMsg({ type: 'info', text: 'Uploading file to server...' });
 
-  // Use Current GPS Location
-  const handleUseCurrentLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          setLat(pos.coords.latitude.toFixed(6));
-          setLng(pos.coords.longitude.toFixed(6));
-          setStatusMsg({ type: 'success', text: "📍 Acquired active GPS coordinates!" });
-        },
-        () => {
-          alert("Could not fetch current GPS location. Please enter latitude/longitude manually.");
-        }
-      );
-    }
-  };
-
-  // Form Submission (Upload & Save Node to Firebase/Store)
-  const handleSubmitNode = async (e) => {
-    e.preventDefault();
-    if (!nodeName || (!previewUrl && !selectedFile)) {
-      alert("Please provide a Location Name and select a 360 photo.");
-      return;
-    }
-
-    const finalNodeId = nodeId.trim() || `node_${Date.now()}`;
-    setIsUploading(true);
-    setStatusMsg({ type: 'info', text: "Uploading 360 panoramic photo to storage..." });
+    const formData = new FormData();
+    formData.append('file', file);
 
     try {
-      let finalPanoramaUrl = previewUrl;
-      if (selectedFile) {
-        finalPanoramaUrl = await upload360ImageFile(selectedFile, (progress) => {
-          setUploadProgress(progress);
-        });
+      const res = await fetch('http://localhost:5000/api/upload', {
+        method: 'POST',
+        body: formData
+      });
+      const data = await res.json();
+      if (data.success) {
+        setUploadedUrl(data.url);
+        setStatusMsg({ type: 'success', text: `✅ Uploaded successfully: ${file.name}` });
+        
+        // Auto apply to active fields
+        if (activeTab === 'locations') setLocCoverImage(data.url);
+        if (activeTab === 'watercoolers') setWcImage(data.url);
+      } else {
+        setStatusMsg({ type: 'error', text: 'Upload failed: ' + data.error });
       }
-
-      const nodeData = {
-        id: finalNodeId,
-        name: nodeName,
-        category: category,
-        lat: parseFloat(lat),
-        lng: parseFloat(lng),
-        panoramaUrl: finalPanoramaUrl,
-        description: description,
-        hotspots: hotspots
-      };
-
-      await save360CampusNode(nodeData);
-
-      setAllNodes(getStored360Nodes());
-      setStatusMsg({ type: 'success', text: `✅ Successfully saved "${nodeName}" to 360 Campus Store!` });
-
-      // Reset form
-      setNodeId('');
-      setNodeName('');
-      setSelectedFile(null);
-      setPreviewUrl('');
-      setDescription('');
-      setHotspots([]);
-      setUploadProgress(0);
-
     } catch (err) {
-      console.error("Save node error:", err);
-      setStatusMsg({ type: 'error', text: `Failed to save node: ${err.message}` });
+      setStatusMsg({ type: 'error', text: 'Upload failed (Backend Server offline)' });
     } finally {
-      setIsUploading(false);
+      setUploading(false);
     }
   };
 
-  // Delete node
-  const handleDeleteNode = async (id) => {
-    if (window.confirm(`Are you sure you want to delete node "${allNodes[id]?.name || id}"?`)) {
-      await delete360CampusNode(id);
-      setAllNodes(getStored360Nodes());
+  // Locations Operations
+  const handleSaveLocation = async (e) => {
+    e.preventDefault();
+    if (!locId || !locName) {
+      alert("Location ID and Name are required!");
+      return;
     }
+
+    const payload = {
+      id: locId,
+      name: locName,
+      code: locCode,
+      category: locCategory,
+      lat: parseFloat(locLat),
+      lng: parseFloat(locLng),
+      x: parseInt(locLat) ? 450 : 0, // Mock layout X/Y
+      y: parseInt(locLng) ? 400 : 0,
+      floors: parseInt(locFloors),
+      description: locDescription,
+      cover_image: locCoverImage,
+      video_url: locVideoUrl
+    };
+
+    try {
+      const res = await fetch('http://localhost:5000/api/locations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (data.success) {
+        setStatusMsg({ type: 'success', text: `✅ Saved Location "${locName}" successfully!` });
+        
+        // Synchronize browser local storage as well for immediate map reload
+        saveLocationOverride(locId, payload);
+        
+        loadData();
+        resetLocationForm();
+      }
+    } catch (err) {
+      // Local fallback saving
+      saveLocationOverride(locId, payload);
+      setStatusMsg({ type: 'success', text: `✅ Saved to local storage (Offline Mode)` });
+      loadData();
+    }
+  };
+
+  const handleEditLocation = (loc) => {
+    setSelectedLocation(loc);
+    setLocId(loc.id);
+    setLocName(loc.name);
+    setLocCode(loc.code || '');
+    setLocCategory(loc.category || 'Academic Block');
+    setLocLat(loc.lat.toString());
+    setLocLng(loc.lng.toString());
+    setLocFloors(loc.floors || 2);
+    setLocDescription(loc.description || '');
+    setLocCoverImage(loc.cover_image || '');
+    setLocVideoUrl(loc.video_url || '');
+  };
+
+  const handleDeleteLocation = async (id) => {
+    if (!confirm("Are you sure you want to delete this map location?")) return;
+    try {
+      await fetch(`http://localhost:5000/api/locations/${id}`, { method: 'DELETE' });
+      hideOrDeleteLocation(id);
+      loadData();
+      setStatusMsg({ type: 'success', text: '✅ Deleted location successfully!' });
+    } catch (e) {
+      hideOrDeleteLocation(id);
+      loadData();
+    }
+  };
+
+  const resetLocationForm = () => {
+    setSelectedLocation(null);
+    setLocId('');
+    setLocName('');
+    setLocCode('');
+    setLocCategory('Academic Block');
+    setLocLat('26.4970');
+    setLocLng('80.2666');
+    setLocFloors(2);
+    setLocDescription('');
+    setLocCoverImage('');
+    setLocVideoUrl('');
+  };
+
+  // Rooms Operations
+  const handleSaveRoom = async (e) => {
+    e.preventDefault();
+    if (!roomId || !roomName) return;
+
+    const payload = {
+      id: roomId,
+      location_id: 'loc_auditorium', // Lock to SBM Auditorium
+      floor_level: 'ground',
+      name: roomName,
+      type: roomType,
+      capacity: roomCapacity,
+      equipment: roomEquipment,
+      current_event: roomEvent,
+      status: roomStatus,
+      coord_x: parseInt(roomX),
+      coord_y: parseInt(roomY)
+    };
+
+    try {
+      const res = await fetch('http://localhost:5000/api/rooms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (data.success) {
+        setStatusMsg({ type: 'success', text: `✅ Saved Room "${roomName}" successfully!` });
+        loadData();
+        resetRoomForm();
+      }
+    } catch (err) {
+      alert("Error: Server Offline. Can only manage rooms via local database connection.");
+    }
+  };
+
+  const handleDeleteRoom = async (id) => {
+    if (!confirm("Are you sure you want to delete this SBM classroom?")) return;
+    try {
+      await fetch(`http://localhost:5000/api/rooms/${id}`, { method: 'DELETE' });
+      loadData();
+      setStatusMsg({ type: 'success', text: '✅ Deleted room successfully!' });
+    } catch (e) {
+      alert("Error: Server Offline.");
+    }
+  };
+
+  const resetRoomForm = () => {
+    setSelectedRoom(null);
+    setRoomId('');
+    setRoomName('');
+    setRoomType('Classroom');
+    setRoomCapacity('60 Seats');
+    setRoomEquipment('');
+    setRoomEvent('');
+    setRoomStatus('Active');
+    setRoomX(100);
+    setRoomY(100);
   };
 
   return (
     <div style={{
       position: 'fixed',
       inset: 0,
-      zIndex: 9999,
-      background: 'rgba(9, 14, 26, 0.85)',
-      backdropFilter: 'blur(16px)',
+      zIndex: 2000,
+      background: 'rgba(0, 0, 0, 0.7)',
+      backdropFilter: 'blur(10px)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      padding: '20px',
-      fontFamily: 'var(--font-main)',
-      color: '#FFFFFF'
+      padding: '20px'
     }}>
-      <div style={{
+      <div className="animate-scale-up" style={{
         width: '100%',
-        maxWidth: '850px',
-        maxHeight: '90vh',
-        background: '#0F172A',
-        border: '1.5px solid rgba(0, 240, 255, 0.3)',
-        borderRadius: '24px',
-        boxShadow: '0 20px 60px rgba(0, 0, 0, 0.7), 0 0 30px rgba(0, 240, 255, 0.2)',
+        maxWidth: '1000px',
+        maxHeight: '92vh',
+        background: 'var(--colors-surface-card)',
+        borderRadius: '16px',
+        border: '1px solid var(--colors-hairline-strong)',
+        boxShadow: 'var(--shadow-md)',
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden'
       }}>
-        {/* Modal Header */}
+        {/* Header */}
         <div style={{
-          padding: '20px 24px',
-          background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+          padding: '18px 24px',
+          background: 'var(--colors-surface-soft)',
+          borderBottom: '1px solid var(--colors-hairline)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-            <div style={{
-              width: '44px',
-              height: '44px',
-              borderRadius: '14px',
-              background: 'linear-gradient(135deg, #0066FF 0%, #00F0FF 100%)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 0 15px rgba(0, 240, 255, 0.4)'
-            }}>
-              <Upload size={22} color="#FFF" />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'var(--colors-primary)', color: 'var(--colors-on-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
+              ⚙️
             </div>
-
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <h2 style={{ fontSize: '18px', fontWeight: 900, color: '#FFF' }}>
-                  CSJMU 360° Campus Admin Dashboard
-                </h2>
-                <span style={{
-                  background: 'rgba(16, 185, 129, 0.2)',
-                  color: '#34D399',
-                  fontSize: '10px',
-                  fontWeight: 800,
-                  padding: '2px 8px',
-                  borderRadius: '10px',
-                  border: '1px solid rgba(16, 185, 129, 0.4)'
-                }}>
-                  DATABASE CONNECTED
-                </span>
-              </div>
-              <p style={{ fontSize: '12px', color: '#94A3B8', marginTop: '2px' }}>
-                Upload custom 360° panoramas & define interactive walking arrow hotspots.
+              <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--colors-ink)', fontFamily: 'var(--font-heading)' }}>
+                CSJMU Campus Admin Console & GIS Manager
+              </h3>
+              <p style={{ fontSize: '11px', color: 'var(--colors-body)', margin: 0 }}>
+                Manage campus map coordinates, room details, water purifiers telemetry & media assets
               </p>
             </div>
           </div>
-
           <button
             onClick={onClose}
-            style={{
-              background: 'rgba(255, 255, 255, 0.1)',
-              border: 'none',
-              borderRadius: '50%',
-              width: '36px',
-              height: '36px',
-              color: '#FFF',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer'
-            }}
+            style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'transparent', border: 'none', color: 'var(--colors-ink)', fontSize: '18px', cursor: 'pointer' }}
           >
-            <X size={18} />
+            ✕
           </button>
         </div>
 
-        {/* Tab Navigation */}
-        <div style={{
-          display: 'flex',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-          background: '#090E1A',
-          padding: '0 24px'
-        }}>
-          <button
-            onClick={() => setActiveTab('add_node')}
-            style={{
-              padding: '14px 20px',
-              border: 'none',
-              background: 'transparent',
-              color: activeTab === 'add_node' ? '#00F0FF' : '#94A3B8',
-              fontWeight: activeTab === 'add_node' ? 800 : 600,
-              fontSize: '13px',
-              borderBottom: activeTab === 'add_node' ? '2.5px solid #00F0FF' : '2.5px solid transparent',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px'
-            }}
-          >
-            <Plus size={16} />
-            <span>Upload New 360 Location</span>
-          </button>
+        {/* LOGIN SCREEN OVERLAY */}
+        {!isLoggedIn ? (
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px', background: 'var(--colors-canvas)' }}>
+            <form onSubmit={handleLogin} style={{ width: '100%', maxWidth: '360px', padding: '24px', borderRadius: '16px', border: '1px solid var(--colors-hairline)', background: 'var(--colors-surface-card)', boxShadow: 'var(--shadow-sm)' }}>
+              <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+                <Key size={32} style={{ color: 'var(--colors-ink)', marginBottom: '8px' }} />
+                <h4 style={{ fontSize: '16px', fontWeight: 700, margin: '0 0 4px' }}>Admin Authorization</h4>
+                <p style={{ fontSize: '12px', color: 'var(--colors-body)', margin: 0 }}>Log in with credentials to modify campus databases</p>
+              </div>
 
-          <button
-            onClick={() => setActiveTab('manage')}
-            style={{
-              padding: '14px 20px',
-              border: 'none',
-              background: 'transparent',
-              color: activeTab === 'manage' ? '#00F0FF' : '#94A3B8',
-              fontWeight: activeTab === 'manage' ? 800 : 600,
-              fontSize: '13px',
-              borderBottom: activeTab === 'manage' ? '2.5px solid #00F0FF' : '2.5px solid transparent',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px'
-            }}
-          >
-            <Layers size={16} />
-            <span>Manage 360 Nodes ({Object.keys(allNodes).length})</span>
-          </button>
-        </div>
+              {loginError && (
+                <div style={{ padding: '10px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid #EF4444', color: '#EF4444', fontSize: '12px', borderRadius: '8px', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <AlertCircle size={14} /> {loginError}
+                </div>
+              )}
 
-        {/* Status Notification Toast */}
-        {statusMsg && (
-          <div style={{
-            padding: '10px 24px',
-            background: statusMsg.type === 'error' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(16, 185, 129, 0.2)',
-            color: statusMsg.type === 'error' ? '#F87171' : '#34D399',
-            fontSize: '12px',
-            fontWeight: 700,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
-          }}>
-            <span>{statusMsg.text}</span>
-            <button onClick={() => setStatusMsg(null)} style={{ background: 'transparent', border: 'none', color: '#FFF', cursor: 'pointer' }}>×</button>
+              <div style={{ marginBottom: '14px' }}>
+                <label style={{ fontSize: '11px', fontWeight: 600, display: 'block', marginBottom: '4px' }}>USERNAME</label>
+                <input 
+                  type="text" 
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="admin"
+                  required 
+                  style={{ width: '100%', padding: '10px', background: 'var(--colors-surface-soft)', border: '1px solid var(--colors-hairline-strong)', color: 'var(--colors-ink)', borderRadius: '8px', fontSize: '13px', outline: 'none' }}
+                />
+              </div>
+
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{ fontSize: '11px', fontWeight: 600, display: 'block', marginBottom: '4px' }}>PASSWORD</label>
+                <input 
+                  type="password" 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  required 
+                  style={{ width: '100%', padding: '10px', background: 'var(--colors-surface-soft)', border: '1px solid var(--colors-hairline-strong)', color: 'var(--colors-ink)', borderRadius: '8px', fontSize: '13px', outline: 'none' }}
+                />
+              </div>
+
+              <button type="submit" className="ollama-btn-primary" style={{ width: '100%', height: '38px', borderRadius: '8px', fontSize: '13px', fontWeight: 600 }}>
+                Authorize Access <ArrowRight size={14} />
+              </button>
+            </form>
           </div>
-        )}
-
-        {/* Tab 1: Upload New Node Form */}
-        {activeTab === 'add_node' && (
-          <form onSubmit={handleSubmitNode} style={{ padding: '24px', overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            {/* 1. File Upload Box */}
-            <div style={{
-              border: '2px dashed rgba(0, 240, 255, 0.4)',
-              borderRadius: '16px',
-              padding: '24px',
-              textAlign: 'center',
-              background: 'rgba(0, 240, 255, 0.03)',
-              cursor: 'pointer',
-              position: 'relative'
-            }}>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleFileChange}
-                style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer', width: '100%', height: '100%' }}
-              />
-              <ImageIcon size={36} color="#00F0FF" style={{ marginBottom: '10px' }} />
-              <div style={{ fontSize: '14px', fontWeight: 800, color: '#FFF' }}>
-                {selectedFile ? `Selected: ${selectedFile.name}` : "Click or Drag & Drop 360° Equirectangular Image File"}
-              </div>
-              <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '4px' }}>
-                Supports JPG, PNG (Recommended resolution: 4096×2048 or higher)
-              </div>
-
-              {previewUrl && (
-                <div style={{ marginTop: '16px', borderRadius: '12px', overflow: 'hidden', height: '120px', position: 'relative' }}>
-                  <img src={previewUrl} alt="360 Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  <div style={{ position: 'absolute', bottom: '6px', right: '10px', background: 'rgba(0,0,0,0.7)', padding: '2px 8px', borderRadius: '6px', fontSize: '11px', color: '#00F0FF' }}>
-                    360° Photo Loaded
-                  </div>
-                </div>
-              )}
-
-              {isUploading && (
-                <div style={{ marginTop: '14px', background: 'rgba(255, 255, 255, 0.1)', borderRadius: '10px', overflow: 'hidden', height: '8px' }}>
-                  <div style={{ width: `${uploadProgress}%`, height: '100%', background: 'linear-gradient(90deg, #0066FF, #00F0FF)', transition: 'width 0.3s' }} />
-                </div>
-              )}
-            </div>
-
-            {/* 2. Metadata Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-              <div>
-                <label style={{ fontSize: '12px', fontWeight: 700, color: '#94A3B8', display: 'block', marginBottom: '6px' }}>
-                  Location Name *
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. UIET Robotics Lab Entrance"
-                  value={nodeName}
-                  onChange={(e) => setNodeName(e.target.value)}
-                  style={{ width: '100%', background: '#1E293B', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '10px', padding: '10px 14px', color: '#FFF', fontSize: '13px' }}
-                />
-              </div>
-
-              <div>
-                <label style={{ fontSize: '12px', fontWeight: 700, color: '#94A3B8', display: 'block', marginBottom: '6px' }}>
-                  Category
-                </label>
-                <select
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  style={{ width: '100%', background: '#1E293B', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '10px', padding: '10px 14px', color: '#FFF', fontSize: '13px' }}
-                >
-                  <option value="Academic Block">Academic Block</option>
-                  <option value="Auditorium & Summit Venue">Auditorium & Summit Venue</option>
-                  <option value="Administrative Block">Administrative Block</option>
-                  <option value="Library Block">Library Block</option>
-                  <option value="Hostels & Canteen">Hostels & Canteen</option>
-                  <option value="Campus Gateway">Campus Gateway</option>
-                  <option value="Grounds & Lawns">Grounds & Lawns</option>
-                </select>
-              </div>
-
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                  <label style={{ fontSize: '12px', fontWeight: 700, color: '#94A3B8' }}>Latitude & Longitude</label>
-                  <button type="button" onClick={handleUseCurrentLocation} style={{ background: 'transparent', border: 'none', color: '#00F0FF', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}>
-                    📍 Auto GPS
-                  </button>
-                </div>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <input type="number" step="any" value={lat} onChange={(e) => setLat(e.target.value)} placeholder="Latitude" style={{ flex: 1, background: '#1E293B', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '10px', padding: '10px', color: '#FFF', fontSize: '13px' }} />
-                  <input type="number" step="any" value={lng} onChange={(e) => setLng(e.target.value)} placeholder="Longitude" style={{ flex: 1, background: '#1E293B', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '10px', padding: '10px', color: '#FFF', fontSize: '13px' }} />
-                </div>
-              </div>
-
-              <div>
-                <label style={{ fontSize: '12px', fontWeight: 700, color: '#94A3B8', display: 'block', marginBottom: '6px' }}>
-                  Node Unique ID (Optional)
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. uiet_robotics_360"
-                  value={nodeId}
-                  onChange={(e) => setNodeId(e.target.value)}
-                  style={{ width: '100%', background: '#1E293B', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '10px', padding: '10px 14px', color: '#FFF', fontSize: '13px' }}
-                />
-              </div>
-            </div>
-
-            {/* 3. Hotspot Walking Arrow Linker */}
-            <div style={{ background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '16px', padding: '16px' }}>
-              <div style={{ fontSize: '13px', fontWeight: 800, color: '#00F0FF', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <Compass size={16} />
-                <span>Add Walking Arrow Hotspots to Adjacent Nodes</span>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '2fr 2fr 1fr 1fr auto', gap: '10px', alignItems: 'center' }}>
-                <select
-                  value={newHsTarget}
-                  onChange={(e) => setNewHsTarget(e.target.value)}
-                  style={{ background: '#1E293B', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '8px', padding: '8px', color: '#FFF', fontSize: '12px' }}
-                >
-                  <option value="">Select Destination Node...</option>
-                  {Object.values(allNodes).map(node => (
-                    <option key={node.id} value={node.id}>{node.name}</option>
-                  ))}
-                </select>
-
-                <input
-                  type="text"
-                  placeholder="Arrow Tooltip (e.g. Walk to Library)"
-                  value={newHsText}
-                  onChange={(e) => setNewHsText(e.target.value)}
-                  style={{ background: '#1E293B', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '8px', padding: '8px', color: '#FFF', fontSize: '12px' }}
-                />
-
-                <input
-                  type="number"
-                  placeholder="Yaw (0-360°)"
-                  value={newHsYaw}
-                  onChange={(e) => setNewHsYaw(e.target.value)}
-                  style={{ background: '#1E293B', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '8px', padding: '8px', color: '#FFF', fontSize: '12px' }}
-                  title="Horizontal angle in 360 space (0 = North, 90 = East, etc.)"
-                />
-
-                <input
-                  type="number"
-                  placeholder="Pitch (-45 to 45°)"
-                  value={newHsPitch}
-                  onChange={(e) => setNewHsPitch(e.target.value)}
-                  style={{ background: '#1E293B', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '8px', padding: '8px', color: '#FFF', fontSize: '12px' }}
-                  title="Vertical height angle (-10 for ground arrow)"
-                />
-
+        ) : (
+          /* DASHBOARD VIEW */
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+            
+            {/* Navigation Tabs bar */}
+            <div style={{ display: 'flex', borderBottom: '1px solid var(--colors-hairline)', background: 'var(--colors-surface-soft)', padding: '0 24px' }}>
+              {[
+                { id: 'locations', label: '📍 Pins & GIS Info' },
+                { id: 'rooms', label: '🏫 SBM Rooms list' },
+                { id: 'watercoolers', label: '🚰 SBM Watercoolers' }
+              ].map(tab => (
                 <button
-                  type="button"
-                  onClick={handleAddHotspot}
-                  style={{ background: '#0066FF', color: '#FFF', border: 'none', borderRadius: '8px', padding: '8px 14px', fontWeight: 800, cursor: 'pointer', fontSize: '12px' }}
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  style={{
+                    padding: '14px 20px',
+                    background: 'transparent',
+                    border: 'none',
+                    borderBottom: activeTab === tab.id ? '2px solid var(--colors-primary)' : '2px solid transparent',
+                    color: activeTab === tab.id ? 'var(--colors-ink)' : 'var(--colors-body)',
+                    fontWeight: activeTab === tab.id ? 700 : 500,
+                    fontSize: '13px',
+                    cursor: 'pointer',
+                    outline: 'none'
+                  }}
                 >
-                  + Add Link
+                  {tab.label}
                 </button>
-              </div>
-
-              {/* Added Hotspots Table */}
-              {hotspots.length > 0 && (
-                <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  {hotspots.map((hs, idx) => (
-                    <div key={idx} style={{ background: 'rgba(0, 0, 0, 0.3)', padding: '6px 12px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '12px' }}>
-                      <div>
-                        <strong>➡️ {hs.text}</strong> → Destination: <span style={{ color: '#00F0FF' }}>{allNodes[hs.targetNodeId]?.name || hs.targetNodeId}</span> (Yaw: {hs.yaw}°, Pitch: {hs.pitch}°)
-                      </div>
-                      <button type="button" onClick={() => handleRemoveHotspot(idx)} style={{ background: 'transparent', border: 'none', color: '#EF4444', cursor: 'pointer' }}>
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
+              ))}
             </div>
 
-            {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={isUploading}
-              style={{
-                padding: '16px',
-                borderRadius: '16px',
-                background: 'linear-gradient(135deg, #0066FF 0%, #00F0FF 100%)',
-                color: '#FFF',
-                border: 'none',
-                fontSize: '15px',
-                fontWeight: 900,
-                cursor: 'pointer',
-                boxShadow: '0 0 25px rgba(0, 240, 255, 0.4)',
+            {/* Status alerts */}
+            {statusMsg && (
+              <div style={{
+                padding: '10px 24px',
+                background: statusMsg.type === 'error' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)',
+                borderBottom: '1px solid var(--colors-hairline)',
+                fontSize: '12px',
+                color: statusMsg.type === 'error' ? '#EF4444' : '#10B981',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center',
-                gap: '10px'
-              }}
-            >
-              <Save size={20} />
-              <span>{isUploading ? "Uploading & Saving 360 Location..." : "Publish 360 Location to Platform"}</span>
-            </button>
-          </form>
-        )}
+                justifyContent: 'space-between'
+              }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  {statusMsg.type === 'error' ? <AlertCircle size={14} /> : <CheckCircle size={14} />}
+                  {statusMsg.text}
+                </span>
+                <button onClick={() => setStatusMsg(null)} style={{ background: 'transparent', border: 'none', color: 'inherit', cursor: 'pointer' }}>✕</button>
+              </div>
+            )}
 
-        {/* Tab 2: Manage Existing Nodes */}
-        {activeTab === 'manage' && (
-          <div style={{ padding: '24px', overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {Object.values(allNodes).map((node) => (
-              <div
-                key={node.id}
-                style={{
-                  background: 'rgba(255, 255, 255, 0.04)',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
-                  borderRadius: '16px',
-                  padding: '14px 18px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: '14px'
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                  <img
-                    src={node.panoramaUrl}
-                    alt={node.name}
-                    style={{ width: '60px', height: '60px', borderRadius: '12px', objectFit: 'cover' }}
-                  />
-                  <div>
-                    <span style={{ fontSize: '10px', color: '#00F0FF', fontWeight: 800, textTransform: 'uppercase' }}>{node.category}</span>
-                    <h4 style={{ fontSize: '15px', fontWeight: 800, color: '#FFF' }}>{node.name}</h4>
-                    <p style={{ fontSize: '12px', color: '#94A3B8' }}>
-                      GPS: {node.lat}, {node.lng} • Hotspots: {node.hotspots?.length || 0}
-                    </p>
+            {/* TAB BODIES */}
+            <div style={{ flex: 1, overflowY: 'auto', display: 'flex', background: 'var(--colors-canvas)' }}>
+              
+              {/* TAB 1: LOCATIONS */}
+              {activeTab === 'locations' && (
+                <div style={{ flex: 1, display: 'flex', height: '100%' }}>
+                  {/* Left Form */}
+                  <form onSubmit={handleSaveLocation} style={{ width: '400px', borderRight: '1px solid var(--colors-hairline)', padding: '24px', display: 'flex', flexDirection: 'column', gap: '14px', overflowY: 'auto' }}>
+                    <h4 style={{ fontSize: '14px', fontWeight: 700, margin: 0 }}>
+                      {selectedLocation ? '✏️ Edit Selected Pin' : '➕ Add Custom Pin'}
+                    </h4>
+
+                    <div>
+                      <label style={{ fontSize: '10px', fontWeight: 700, display: 'block', marginBottom: '4px' }}>LOCATION ID</label>
+                      <input 
+                        type="text" 
+                        value={locId} 
+                        onChange={(e) => setLocId(e.target.value)} 
+                        placeholder="e.g. loc_senate" 
+                        disabled={!!selectedLocation}
+                        required
+                        style={{ width: '100%', padding: '8px', background: 'var(--colors-surface-soft)', border: '1px solid var(--colors-hairline-strong)', color: 'var(--colors-ink)', borderRadius: '8px', fontSize: '12px' }}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{ fontSize: '10px', fontWeight: 700, display: 'block', marginBottom: '4px' }}>LOCATION NAME</label>
+                      <input 
+                        type="text" 
+                        value={locName} 
+                        onChange={(e) => setLocName(e.target.value)} 
+                        placeholder="e.g. Senate Block Hall" 
+                        required
+                        style={{ width: '100%', padding: '8px', background: 'var(--colors-surface-soft)', border: '1px solid var(--colors-hairline-strong)', color: 'var(--colors-ink)', borderRadius: '8px', fontSize: '12px' }}
+                      />
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                      <div>
+                        <label style={{ fontSize: '10px', fontWeight: 700, display: 'block', marginBottom: '4px' }}>LATITUDE</label>
+                        <input 
+                          type="text" 
+                          value={locLat} 
+                          onChange={(e) => setLocLat(e.target.value)} 
+                          placeholder="26.4970" 
+                          required
+                          style={{ width: '100%', padding: '8px', background: 'var(--colors-surface-soft)', border: '1px solid var(--colors-hairline-strong)', color: 'var(--colors-ink)', borderRadius: '8px', fontSize: '12px' }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ fontSize: '10px', fontWeight: 700, display: 'block', marginBottom: '4px' }}>LONGITUDE</label>
+                        <input 
+                          type="text" 
+                          value={locLng} 
+                          onChange={(e) => setLocLng(e.target.value)} 
+                          placeholder="80.2666" 
+                          required
+                          style={{ width: '100%', padding: '8px', background: 'var(--colors-surface-soft)', border: '1px solid var(--colors-hairline-strong)', color: 'var(--colors-ink)', borderRadius: '8px', fontSize: '12px' }}
+                        />
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                      <div>
+                        <label style={{ fontSize: '10px', fontWeight: 700, display: 'block', marginBottom: '4px' }}>CATEGORY</label>
+                        <select 
+                          value={locCategory} 
+                          onChange={(e) => setLocCategory(e.target.value)}
+                          style={{ width: '100%', padding: '8px', background: 'var(--colors-surface-soft)', border: '1px solid var(--colors-hairline-strong)', color: 'var(--colors-ink)', borderRadius: '8px', fontSize: '12px' }}
+                        >
+                          <option value="Academic Block">Academic Block</option>
+                          <option value="Summit Venue">Summit Venue</option>
+                          <option value="Library Block">Library Block</option>
+                          <option value="Facility">Facility</option>
+                          <option value="Entrance">Entrance</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label style={{ fontSize: '10px', fontWeight: 700, display: 'block', marginBottom: '4px' }}>FLOORS</label>
+                        <input 
+                          type="number" 
+                          value={locFloors} 
+                          onChange={(e) => setLocFloors(e.target.value)} 
+                          min="1"
+                          style={{ width: '100%', padding: '8px', background: 'var(--colors-surface-soft)', border: '1px solid var(--colors-hairline-strong)', color: 'var(--colors-ink)', borderRadius: '8px', fontSize: '12px' }}
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label style={{ fontSize: '10px', fontWeight: 700, display: 'block', marginBottom: '4px' }}>DESCRIPTION</label>
+                      <textarea 
+                        value={locDescription} 
+                        onChange={(e) => setLocDescription(e.target.value)} 
+                        rows="2"
+                        placeholder="Details about building..."
+                        style={{ width: '100%', padding: '8px', background: 'var(--colors-surface-soft)', border: '1px solid var(--colors-hairline-strong)', color: 'var(--colors-ink)', borderRadius: '8px', fontSize: '12px', resize: 'vertical' }}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{ fontSize: '10px', fontWeight: 700, display: 'block', marginBottom: '4px' }}>COVER PHOTO / 360 PANORAMA URL</label>
+                      <div style={{ display: 'flex', gap: '6px' }}>
+                        <input 
+                          type="text" 
+                          value={locCoverImage} 
+                          onChange={(e) => setLocCoverImage(e.target.value)} 
+                          placeholder="http://localhost:5000/uploads/..." 
+                          style={{ flex: 1, padding: '8px', background: 'var(--colors-surface-soft)', border: '1px solid var(--colors-hairline-strong)', color: 'var(--colors-ink)', borderRadius: '8px', fontSize: '12px' }}
+                        />
+                        <label style={{ width: '36px', height: '36px', background: 'var(--colors-surface-dark)', color: '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px', cursor: 'pointer' }}>
+                          <Upload size={16} />
+                          <input type="file" onChange={handleFileUpload} accept="image/*" style={{ display: 'none' }} />
+                        </label>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label style={{ fontSize: '10px', fontWeight: 700, display: 'block', marginBottom: '4px' }}>INTRO VIDEO URL (YouTube/Direct)</label>
+                      <input 
+                        type="text" 
+                        value={locVideoUrl} 
+                        onChange={(e) => setLocVideoUrl(e.target.value)} 
+                        placeholder="https://www.youtube.com/watch?v=..." 
+                        style={{ width: '100%', padding: '8px', background: 'var(--colors-surface-soft)', border: '1px solid var(--colors-hairline-strong)', color: 'var(--colors-ink)', borderRadius: '8px', fontSize: '12px' }}
+                      />
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '8px', marginTop: '6px' }}>
+                      <button type="submit" className="ollama-btn-primary" style={{ flex: 1, height: '34px', borderRadius: '8px', fontSize: '12px' }}>
+                        <Save size={14} /> Save Pin
+                      </button>
+                      <button type="button" onClick={resetLocationForm} className="ollama-btn-secondary" style={{ height: '34px', borderRadius: '8px', fontSize: '12px' }}>
+                        Reset
+                      </button>
+                    </div>
+                  </form>
+
+                  {/* Right List */}
+                  <div style={{ flex: 1, padding: '24px', overflowY: 'auto' }}>
+                    <h4 style={{ fontSize: '14px', fontWeight: 700, marginBottom: '16px' }}>Mapped Pins Database</h4>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                      {locations.map(loc => (
+                        <div key={loc.id} style={{ padding: '14px', borderRadius: '12px', border: '1px solid var(--colors-hairline)', background: 'var(--colors-surface-card)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                            {loc.cover_image ? (
+                              <img src={loc.cover_image} alt={loc.name} style={{ width: '48px', height: '48px', borderRadius: '8px', objectFit: 'cover' }} />
+                            ) : (
+                              <div style={{ width: '48px', height: '48px', borderRadius: '8px', background: 'var(--colors-surface-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <MapPin size={20} color="var(--colors-mute)" />
+                              </div>
+                            )}
+                            <div>
+                              <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--colors-ink)' }}>{loc.name} ({loc.code || 'BLD'})</div>
+                              <div style={{ fontSize: '11px', color: 'var(--colors-body)', marginTop: '2px' }}>
+                                category: {loc.category} | coords: {loc.lat.toFixed(4)}, {loc.lng.toFixed(4)}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div style={{ display: 'flex', gap: '6px' }}>
+                            <button onClick={() => handleEditLocation(loc)} className="ollama-btn-secondary" style={{ height: '30px', padding: '0 10px', fontSize: '11px', borderRadius: '8px' }}>
+                              <Edit3 size={12} /> Edit
+                            </button>
+                            <button onClick={() => handleDeleteLocation(loc.id)} className="ollama-btn-secondary" style={{ height: '30px', padding: '0 10px', fontSize: '11px', borderRadius: '8px', borderColor: '#EF4444', color: '#EF4444' }}>
+                              <Trash2 size={12} /> Remove
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
+              )}
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  {onOpenPreview360 && (
-                    <button
-                      onClick={() => onOpenPreview360(node)}
-                      style={{ background: 'rgba(0, 240, 255, 0.15)', border: '1px solid #00F0FF', color: '#00F0FF', padding: '8px 12px', borderRadius: '10px', fontSize: '12px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
-                    >
-                      <Eye size={14} /> Preview 360
-                    </button>
-                  )}
-                  <button
-                    onClick={() => handleDeleteNode(node.id)}
-                    style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid #EF4444', color: '#EF4444', padding: '8px 12px', borderRadius: '10px', fontSize: '12px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
-                  >
-                    <Trash2 size={14} /> Delete
-                  </button>
+              {/* TAB 2: SBM ROOMS */}
+              {activeTab === 'rooms' && (
+                <div style={{ flex: 1, display: 'flex', height: '100%' }}>
+                  {/* Left Form */}
+                  <form onSubmit={handleSaveRoom} style={{ width: '400px', borderRight: '1px solid var(--colors-hairline)', padding: '24px', display: 'flex', flexDirection: 'column', gap: '14px', overflowY: 'auto' }}>
+                    <h4 style={{ fontSize: '14px', fontWeight: 700, margin: 0 }}>
+                      {selectedRoom ? '✏️ Edit Classroom Info' : '➕ Add New Room (SBM)'}
+                    </h4>
+
+                    <div>
+                      <label style={{ fontSize: '10px', fontWeight: 700, display: 'block', marginBottom: '4px' }}>ROOM ID (e.g. SBM-102)</label>
+                      <input 
+                        type="text" 
+                        value={roomId} 
+                        onChange={(e) => setRoomId(e.target.value)} 
+                        placeholder="SBM-02" 
+                        required
+                        style={{ width: '100%', padding: '8px', background: 'var(--colors-surface-soft)', border: '1px solid var(--colors-hairline-strong)', color: 'var(--colors-ink)', borderRadius: '8px', fontSize: '12px' }}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{ fontSize: '10px', fontWeight: 700, display: 'block', marginBottom: '4px' }}>ROOM NAME & TITLE</label>
+                      <input 
+                        type="text" 
+                        value={roomName} 
+                        onChange={(e) => setRoomName(e.target.value)} 
+                        placeholder="SBM-02: Smart ML Classroom" 
+                        required
+                        style={{ width: '100%', padding: '8px', background: 'var(--colors-surface-soft)', border: '1px solid var(--colors-hairline-strong)', color: 'var(--colors-ink)', borderRadius: '8px', fontSize: '12px' }}
+                      />
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                      <div>
+                        <label style={{ fontSize: '10px', fontWeight: 700, display: 'block', marginBottom: '4px' }}>TYPE</label>
+                        <input 
+                          type="text" 
+                          value={roomType} 
+                          onChange={(e) => setRoomType(e.target.value)} 
+                          placeholder="GPU Lab" 
+                          style={{ width: '100%', padding: '8px', background: 'var(--colors-surface-soft)', border: '1px solid var(--colors-hairline-strong)', color: 'var(--colors-ink)', borderRadius: '8px', fontSize: '12px' }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ fontSize: '10px', fontWeight: 700, display: 'block', marginBottom: '4px' }}>CAPACITY</label>
+                        <input 
+                          type="text" 
+                          value={roomCapacity} 
+                          onChange={(e) => setRoomCapacity(e.target.value)} 
+                          placeholder="60 Seats" 
+                          style={{ width: '100%', padding: '8px', background: 'var(--colors-surface-soft)', border: '1px solid var(--colors-hairline-strong)', color: 'var(--colors-ink)', borderRadius: '8px', fontSize: '12px' }}
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label style={{ fontSize: '10px', fontWeight: 700, display: 'block', marginBottom: '4px' }}>EQUIPMENT SPECS</label>
+                      <input 
+                        type="text" 
+                        value={roomEquipment} 
+                        onChange={(e) => setRoomEquipment(e.target.value)} 
+                        placeholder="NVIDIA RTX GPUs, Dual Projector..." 
+                        style={{ width: '100%', padding: '8px', background: 'var(--colors-surface-soft)', border: '1px solid var(--colors-hairline-strong)', color: 'var(--colors-ink)', borderRadius: '8px', fontSize: '12px' }}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{ fontSize: '10px', fontWeight: 700, display: 'block', marginBottom: '4px' }}>CURRENT EVENT / SESSION TITLE</label>
+                      <input 
+                        type="text" 
+                        value={roomEvent} 
+                        onChange={(e) => setRoomEvent(e.target.value)} 
+                        placeholder="Keynote Speech / NLP Workshop" 
+                        style={{ width: '100%', padding: '8px', background: 'var(--colors-surface-soft)', border: '1px solid var(--colors-hairline-strong)', color: 'var(--colors-ink)', borderRadius: '8px', fontSize: '12px' }}
+                      />
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                      <div>
+                        <label style={{ fontSize: '10px', fontWeight: 700, display: 'block', marginBottom: '4px' }}>COORDINATE X</label>
+                        <input 
+                          type="number" 
+                          value={roomX} 
+                          onChange={(e) => setRoomX(e.target.value)} 
+                          style={{ width: '100%', padding: '8px', background: 'var(--colors-surface-soft)', border: '1px solid var(--colors-hairline-strong)', color: 'var(--colors-ink)', borderRadius: '8px', fontSize: '12px' }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ fontSize: '10px', fontWeight: 700, display: 'block', marginBottom: '4px' }}>COORDINATE Y</label>
+                        <input 
+                          type="number" 
+                          value={roomY} 
+                          onChange={(e) => setRoomY(e.target.value)} 
+                          style={{ width: '100%', padding: '8px', background: 'var(--colors-surface-soft)', border: '1px solid var(--colors-hairline-strong)', color: 'var(--colors-ink)', borderRadius: '8px', fontSize: '12px' }}
+                        />
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '8px', marginTop: '6px' }}>
+                      <button type="submit" className="ollama-btn-primary" style={{ flex: 1, height: '34px', borderRadius: '8px', fontSize: '12px' }}>
+                        <Save size={14} /> Save Room
+                      </button>
+                      <button type="button" onClick={resetRoomForm} className="ollama-btn-secondary" style={{ height: '34px', borderRadius: '8px', fontSize: '12px' }}>
+                        Reset
+                      </button>
+                    </div>
+                  </form>
+
+                  {/* Right List */}
+                  <div style={{ flex: 1, padding: '24px', overflowY: 'auto' }}>
+                    <h4 style={{ fontSize: '14px', fontWeight: 700, marginBottom: '16px' }}>Classrooms Database (SBM Ground Floor)</h4>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                      {rooms.map(room => (
+                        <div key={room.id} style={{ padding: '14px', borderRadius: '12px', border: '1px solid var(--colors-hairline)', background: 'var(--colors-surface-card)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <span style={{ background: 'var(--colors-surface-dark)', color: '#FFF', fontSize: '10px', fontWeight: 700, padding: '2px 8px', borderRadius: '6px' }}>
+                                {room.id}
+                              </span>
+                              <strong style={{ fontSize: '13px', color: 'var(--colors-ink)' }}>{room.name.split(':')[1] || room.name}</strong>
+                            </div>
+                            <div style={{ fontSize: '11px', color: 'var(--colors-body)', marginTop: '4px' }}>
+                              Event: {room.current_event || 'No Active Session'} | Capacity: {room.capacity}
+                            </div>
+                          </div>
+
+                          <div style={{ display: 'flex', gap: '6px' }}>
+                            <button onClick={() => {
+                              setSelectedRoom(room);
+                              setRoomId(room.id);
+                              setRoomName(room.name);
+                              setRoomType(room.type || 'Classroom');
+                              setRoomCapacity(room.capacity || '');
+                              setRoomEquipment(room.equipment || '');
+                              setRoomEvent(room.current_event || '');
+                              setRoomStatus(room.status || 'Active');
+                              setRoomX(room.coord_x || 100);
+                              setRoomY(room.coord_y || 100);
+                            }} className="ollama-btn-secondary" style={{ height: '30px', padding: '0 10px', fontSize: '11px', borderRadius: '8px' }}>
+                              <Edit3 size={12} /> Edit
+                            </button>
+                            <button onClick={() => handleDeleteRoom(room.id)} className="ollama-btn-secondary" style={{ height: '30px', padding: '0 10px', fontSize: '11px', borderRadius: '8px', borderColor: '#EF4444', color: '#EF4444' }}>
+                              <Trash2 size={12} /> Remove
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            ))}
+              )}
+
+              {/* TAB 3: WATERCOOLERS */}
+              {activeTab === 'watercoolers' && (
+                <div style={{ flex: 1, padding: '24px', overflowY: 'auto' }}>
+                  <h4 style={{ fontSize: '14px', fontWeight: 700, marginBottom: '16px' }}>🚰 Purifier Stations & Watercooler Network</h4>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '14px' }}>
+                    {watercoolers.map(wc => (
+                      <div key={wc.id} style={{ background: 'var(--colors-surface-soft)', border: '1px solid var(--colors-hairline-strong)', borderRadius: '12px', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                        <div style={{ height: '140px', background: 'var(--colors-surface-dark)', position: 'relative' }}>
+                          {wc.image ? (
+                            <img src={wc.image} alt={wc.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          ) : (
+                            <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFF' }}>
+                              🚰 HD Purifier Preview Image
+                            </div>
+                          )}
+                          <div style={{ position: 'absolute', top: '8px', left: '8px', background: 'rgba(0, 0, 0, 0.7)', color: '#FFF', fontSize: '10px', fontWeight: 700, padding: '3px 8px', borderRadius: '9999px' }}>
+                            {wc.id}
+                          </div>
+                        </div>
+
+                        <div style={{ padding: '14px', flex: 1, display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                          <h5 style={{ fontSize: '13px', fontWeight: 700, margin: 0 }}>{wc.name}</h5>
+                          
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', fontSize: '11px' }}>
+                            <div style={{ background: 'var(--colors-canvas)', padding: '6px', borderRadius: '6px', border: '1px solid var(--colors-hairline)' }}>
+                              <span style={{ color: 'var(--colors-body)', display: 'block', fontSize: '9px' }}>Temp</span>
+                              <strong>{wc.temperature}</strong>
+                            </div>
+                            <div style={{ background: 'var(--colors-canvas)', padding: '6px', borderRadius: '6px', border: '1px solid var(--colors-hairline)' }}>
+                              <span style={{ color: 'var(--colors-body)', display: 'block', fontSize: '9px' }}>Purity</span>
+                              <strong style={{ color: '#10B981' }}>{wc.purity}</strong>
+                            </div>
+                          </div>
+
+                          <div style={{ fontSize: '11px', color: 'var(--colors-body)' }}>
+                            📍 {wc.location_description}
+                          </div>
+
+                          <button 
+                            type="button" 
+                            onClick={async () => {
+                              const newTemp = prompt("Enter Water Temperature (°C):", wc.temperature);
+                              const newPurity = prompt("Enter Water Purity (%):", wc.purity);
+                              const newStatus = prompt("Enter Purifier Status:", wc.status);
+                              if (newTemp !== null && newPurity !== null && newStatus !== null) {
+                                try {
+                                  await fetch('http://localhost:5000/api/watercoolers', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                      ...wc,
+                                      temperature: newTemp,
+                                      purity: newPurity,
+                                      status: newStatus
+                                    })
+                                  });
+                                  loadData();
+                                  setStatusMsg({ type: 'success', text: `✅ Updated watercooler telemetry for "${wc.id}" successfully!` });
+                                } catch (e) {
+                                  alert("Error: Server Offline.");
+                                }
+                              }
+                            }}
+                            className="ollama-btn-primary" 
+                            style={{ height: '32px', width: '100%', borderRadius: '8px', fontSize: '11px', marginTop: '6px' }}
+                          >
+                            ✏️ Edit Telemetry Specs
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+            </div>
           </div>
         )}
       </div>

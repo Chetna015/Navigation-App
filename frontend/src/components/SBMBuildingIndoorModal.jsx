@@ -21,13 +21,56 @@ export default function SBMBuildingIndoorModal({
   const [pathEndId, setPathEndId] = useState('SBM-WC-01');
   const [activePath, setActivePath] = useState(null);
 
+  const [dbRooms, setDbRooms] = useState([]);
+  const [dbWcs, setDbWcs] = useState([]);
+
+  useEffect(() => {
+    if (isOpen) {
+      // Fetch rooms from SQLite
+      fetch('http://localhost:5000/api/rooms')
+        .then(res => res.json())
+        .then(data => {
+          if (data.success && data.rooms.length > 0) {
+            setDbRooms(data.rooms.map(r => ({
+              ...r,
+              floorName: r.floor_level === 'ground' ? 'Ground Floor (L0)' : r.floor_level === 'floor1' ? 'First Floor (L1)' : 'Second Floor (L2)',
+              coordinates: { x: r.coord_x, y: r.coord_y }
+            })));
+          }
+        }).catch(err => console.warn("Backend offline, using static room data"));
+
+      // Fetch watercoolers from SQLite
+      fetch('http://localhost:5000/api/watercoolers')
+        .then(res => res.json())
+        .then(data => {
+          if (data.success && data.watercoolers.length > 0) {
+            setDbWcs(data.watercoolers.map(w => ({
+              ...w,
+              floorName: w.floor_level === 'ground' ? 'Ground Floor (L0)' : w.floor_level === 'floor1' ? 'First Floor (L1)' : 'Second Floor (L2)',
+              coordinates: { x: w.coord_x, y: w.coord_y }
+            })));
+          }
+        }).catch(err => console.warn("Backend offline, using static watercooler data"));
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const currentFloor = SBM_INDOOR_DATA.floors.find(f => f.id === activeFloorId) || SBM_INDOOR_DATA.floors[0];
 
   // Helpers
-  const allWaterCoolers = SBM_INDOOR_DATA.floors.flatMap(f => f.waterCoolers.map(wc => ({ ...wc, floorName: f.name })));
-  const allRooms = SBM_INDOOR_DATA.floors.flatMap(f => f.rooms.map(r => ({ ...r, floorName: f.name })));
+  const allWaterCoolers = dbWcs.length > 0 ? dbWcs : SBM_INDOOR_DATA.floors.flatMap(f => f.waterCoolers.map(wc => ({ ...wc, floorName: f.name })));
+  const allRooms = dbRooms.length > 0 ? dbRooms : SBM_INDOOR_DATA.floors.flatMap(f => f.rooms.map(r => ({ ...r, floorName: f.name })));
+
+  const displayedRooms = allRooms.filter(r => {
+    const fl = activeFloorId === 'ground' ? 'ground' : activeFloorId === 'first' ? 'floor1' : 'floor2';
+    return r.floor_level === fl || r.floorName?.toLowerCase().includes(activeFloorId);
+  });
+
+  const displayedWaterCoolers = allWaterCoolers.filter(w => {
+    const fl = activeFloorId === 'ground' ? 'ground' : activeFloorId === 'first' ? 'floor1' : 'floor2';
+    return w.floor_level === fl || w.floorName?.toLowerCase().includes(activeFloorId);
+  });
 
   const handleCalculateIndoorPath = () => {
     const targetRoom = allRooms.find(r => r.id === pathEndId);
@@ -219,7 +262,7 @@ export default function SBMBuildingIndoorModal({
                   {currentFloor.name} • {currentFloor.corridorName}
                 </span>
                 <span style={{ fontSize: '12px', color: 'var(--colors-body)' }}>
-                  🚪 {currentFloor.rooms.length} Rooms | 🚰 {currentFloor.waterCoolers.length} Watercoolers | 🛤️ Walkway: {currentFloor.corridorLengthMeters}m
+                  🚪 {displayedRooms.length} Rooms | 🚰 {displayedWaterCoolers.length} Watercoolers | 🛤️ Walkway: {currentFloor.corridorLengthMeters}m
                 </span>
               </div>
 
@@ -244,7 +287,7 @@ export default function SBMBuildingIndoorModal({
                   <path d="M 80 220 L 880 220" stroke="#3B82F6" strokeWidth="3" strokeDasharray="8 6" className="animate-pulse" />
 
                   {/* ROOM BOXES */}
-                  {currentFloor.rooms.map(room => (
+                  {displayedRooms.map(room => (
                     <g 
                       key={room.id} 
                       onClick={() => setSelectedItem(room)}
@@ -284,7 +327,7 @@ export default function SBMBuildingIndoorModal({
                   ))}
 
                   {/* WATERCOOLER MARKERS */}
-                  {currentFloor.waterCoolers.map(wc => (
+                  {displayedWaterCoolers.map(wc => (
                     <g 
                       key={wc.id}
                       onClick={() => setSelectedItem(wc)}

@@ -21,32 +21,21 @@ import ParkingFinderModal from './components/ParkingFinderModal';
 import SBMBuildingIndoorModal from './components/SBMBuildingIndoorModal';
 import useLiveNavigationVoice from './hooks/useLiveNavigationVoice';
 import { MAP_LOCATIONS, STARTUP_STALLS } from './data/auditoriumData';
+import { useNavigation } from './context/NavigationContext';
 
 export default function App() {
+  const {
+    currentLocation, setCurrentLocation,
+    destination, setDestination,
+    shortestRoute, setShortestRoute,
+    navMode, setNavMode,
+    isNavigatingLive, setIsNavigatingLive,
+    isAdminMode,
+    activeFloor, setActiveFloor,
+    defaultLiveLocation
+  } = useNavigation();
+
   const [showSplash, setShowSplash] = useState(false);
-  const [isAdminMode, setIsAdminMode] = useState(false);
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('admin') === 'true') {
-      setIsAdminMode(true);
-    }
-  }, []);
-
-  // Core navigation state locked to exact user location (Lat: 26.4970° N, Lng: 80.2666° E)
-  const defaultLiveLocation = {
-    id: 'live_user_location',
-    name: 'You Are Here 📍',
-    lat: 26.4970,
-    lng: 80.2666,
-    category: 'Live GPS',
-    isLiveUser: true
-  };
-
-  const [currentLocation, setCurrentLocation] = useState(defaultLiveLocation);
-  const [destination, setDestination] = useState(null);
-  const [isNavigatingLive, setIsNavigatingLive] = useState(false);
-  const [navMode, setNavMode] = useState('hidden');
   const [building3D, setBuilding3D] = useState(null);
 
   // Sync navMode when destination is selected or cleared
@@ -91,7 +80,6 @@ export default function App() {
     }
   }, [userPos]);
 
-  const [activeFloor, setActiveFloor] = useState('outdoor');
   const [searchQuery, setSearchQuery] = useState('');
   const [highlightDomain, setHighlightDomain] = useState(null);
 

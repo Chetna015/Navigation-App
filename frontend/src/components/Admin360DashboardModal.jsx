@@ -4,13 +4,12 @@ import {
   Edit3, Save, CheckCircle, AlertCircle, RefreshCw, Key, Layers, ArrowRight, Eye, Play
 } from 'lucide-react';
 import { getMergedMapLocations, saveLocationOverride, hideOrDeleteLocation } from '../utils/locationStore';
-import { getApiBaseUrl } from '../utils/apiConfig';
+import { apiService } from '../services/api';
 
 export default function Admin360DashboardModal({
   isOpen,
   onClose
 }) {
-  const apiBase = getApiBaseUrl();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -78,8 +77,7 @@ export default function Admin360DashboardModal({
   const loadData = async () => {
     try {
       // 1. Fetch Locations
-      const locRes = await fetch(`${apiBase}/api/locations`);
-      const locData = await locRes.json();
+      const locData = await apiService.getLocations();
       if (locData.success) {
         setLocations(locData.locations);
       } else {
@@ -87,15 +85,13 @@ export default function Admin360DashboardModal({
       }
 
       // 2. Fetch Rooms
-      const roomsRes = await fetch(`${apiBase}/api/rooms`);
-      const roomsData = await roomsRes.json();
+      const roomsData = await apiService.getRooms();
       if (roomsData.success) {
         setRooms(roomsData.rooms);
       }
 
       // 3. Fetch Watercoolers
-      const wcRes = await fetch(`${apiBase}/api/watercoolers`);
-      const wcData = await wcRes.json();
+      const wcData = await apiService.getWatercoolers();
       if (wcData.success) {
         setWatercoolers(wcData.watercoolers);
       }
@@ -112,12 +108,7 @@ export default function Admin360DashboardModal({
     e.preventDefault();
     setLoginError('');
     try {
-      const res = await fetch(`${apiBase}/api/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-      });
-      const data = await res.json();
+      const data = await apiService.login(username, password);
       if (data.success) {
         setIsLoggedIn(true);
       } else {
@@ -141,15 +132,8 @@ export default function Admin360DashboardModal({
     setUploading(true);
     setStatusMsg({ type: 'info', text: 'Uploading file to server...' });
 
-    const formData = new FormData();
-    formData.append('file', file);
-
     try {
-      const res = await fetch(`${apiBase}/api/upload`, {
-        method: 'POST',
-        body: formData
-      });
-      const data = await res.json();
+      const data = await apiService.uploadFile(file);
       if (data.success) {
         setUploadedUrl(data.url);
         setStatusMsg({ type: 'success', text: `✅ Uploaded successfully: ${file.name}` });
@@ -191,12 +175,7 @@ export default function Admin360DashboardModal({
     };
 
     try {
-      const res = await fetch(`${apiBase}/api/locations`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      const data = await res.json();
+      const data = await apiService.saveLocation(payload);
       if (data.success) {
         setStatusMsg({ type: 'success', text: `✅ Saved Location "${locName}" successfully!` });
         
@@ -231,7 +210,7 @@ export default function Admin360DashboardModal({
   const handleDeleteLocation = async (id) => {
     if (!confirm("Are you sure you want to delete this map location?")) return;
     try {
-      await fetch(`${apiBase}/api/locations/${id}`, { method: 'DELETE' });
+      await apiService.deleteLocation(id);
       hideOrDeleteLocation(id);
       loadData();
       setStatusMsg({ type: 'success', text: '✅ Deleted location successfully!' });
@@ -275,12 +254,7 @@ export default function Admin360DashboardModal({
     };
 
     try {
-      const res = await fetch(`${apiBase}/api/rooms`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      const data = await res.json();
+      const data = await apiService.saveRoom(payload);
       if (data.success) {
         setStatusMsg({ type: 'success', text: `✅ Saved Room "${roomName}" successfully!` });
         loadData();
@@ -294,7 +268,7 @@ export default function Admin360DashboardModal({
   const handleDeleteRoom = async (id) => {
     if (!confirm("Are you sure you want to delete this SBM classroom?")) return;
     try {
-      await fetch(`${apiBase}/api/rooms/${id}`, { method: 'DELETE' });
+      await apiService.deleteRoom(id);
       loadData();
       setStatusMsg({ type: 'success', text: '✅ Deleted room successfully!' });
     } catch (e) {

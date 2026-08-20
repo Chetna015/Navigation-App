@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 
 /**
  * Custom Hook for Live HTML5 Geolocation Tracking, Distance & Step calculation,
@@ -10,6 +10,9 @@ export default function useLiveNavigationVoice({ currentLocation, destination })
   const [distanceMeters, setDistanceMeters] = useState(0);
   const [stepsCount, setStepsCount] = useState(0);
   const [voiceEnabled, setVoiceEnabled] = useState(true);
+  const [gpsPermissionState, setGpsPermissionState] = useState('prompt'); // 'prompt' | 'granted' | 'denied' | 'insecure' | 'unavailable'
+  const [gpsErrorMsg, setGpsErrorMsg] = useState(null);
+
   const lastPosRef = useRef(null);
   const lastTimeRef = useRef(0);
   const lastSpokenRef = useRef(0);
@@ -25,58 +28,103 @@ export default function useLiveNavigationVoice({ currentLocation, destination })
     return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   };
 
-  // 1. Fetch & Watch Live Geolocation with Jitter Filtering
+  const handlePositionSuccess = useCallback((pos) => {
+    const { latitude, longitude, accuracy, heading } = pos.coords;
+    const now = Date.now();
+    setGpsPermissionState('granted');
+    setGpsErrorMsg(null);
+
+    const newPos = { lat: latitude, lng: longitude, accuracy, heading: heading || 45 };
+
+    if (!lastPosRef.current) {
+      lastPosRef.current = newPos;
+      lastTimeRef.current = now;
+      setUserPos(newPos);
+      return;
+    }
+
+    const distMeters = calcMeters(
+      lastPosRef.current.lat,
+      lastPosRef.current.lng,
+      latitude,
+      longitude
+    );
+
+    const timeElapsed = now - lastTimeRef.current;
+
+    // Update if moved >= 2.0 meters OR >= 3000ms elapsed
+    if (distMeters >= 2.0 || timeElapsed >= 3000) {
+      lastPosRef.current = newPos;
+      lastTimeRef.current = now;
+      setUserPos(newPos);
+    }
+  }, []);
+
+  const handlePositionError = useCallback((err) => {
+    console.warn("Geolocation watch warning:", err.code, err.message);
+    if (err.code === 1) { // PERMISSION_DENIED
+      setGpsPermissionState('denied');
+      setGpsErrorMsg("Location permission denied. Please allow location access in your phone browser settings.");
+    } else if (err.code === 2) { // POSITION_UNAVAILABLE
+      setGpsPermissionState('unavailable');
+      setGpsErrorMsg("GPS signal unavailable.");
+    } else if (err.code === 3) { // TIMEOUT
+      setGpsErrorMsg("GPS request timed out.");
+    }
+  }, []);
+
+  // Explicit user-triggered permission request
+  const requestLiveGps = useCallback(() => {
+    if (typeof window === 'undefined') return;
+
+    if (!('geolocation' in navigator)) {
+      setGpsPermissionState('unavailable');
+      setGpsErrorMsg("Geolocation is not supported in this browser.");
+      return;
+    }
+
+    if (window.isSecureContext === false && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+      setGpsPermissionState('insecure');
+      setGpsErrorMsg("Insecure connection (HTTP). Please open via HTTPS to enable phone GPS.");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(handlePositionSuccess, handlePositionError, {
+      enableHighAccuracy: true,
+      timeout: 10000,
+      maximumAge: 0
+    });
+  }, [handlePositionSuccess, handlePositionError]);
+
+  // 1. Initial watch setup
   useEffect(() => {
-    if (!('geolocation' in navigator)) return;
+    if (typeof window === 'undefined' || !('geolocation' in navigator)) {
+      setGpsPermissionState('unavailable');
+      return;
+    }
 
-    const handleSuccess = (pos) => {
-      const { latitude, longitude } = pos.coords;
-      const now = Date.now();
-
-      if (!lastPosRef.current) {
-        lastPosRef.current = { lat: latitude, lng: longitude };
-        lastTimeRef.current = now;
-        setUserPos({ lat: latitude, lng: longitude });
-        return;
-      }
-
-      const distMeters = calcMeters(
-        lastPosRef.current.lat,
-        lastPosRef.current.lng,
-        latitude,
-        longitude
-      );
-
-      const timeElapsed = now - lastTimeRef.current;
-
-      // Only update state if moved >= 3.5 meters OR (moved >= 1.5 meters AND >= 3000ms elapsed)
-      if (distMeters >= 3.5 || (distMeters >= 1.5 && timeElapsed >= 3000)) {
-        lastPosRef.current = { lat: latitude, lng: longitude };
-        lastTimeRef.current = now;
-        setUserPos({ lat: latitude, lng: longitude });
-      }
-    };
-
-    const handleError = (err) => {
-      console.warn("Geolocation watch warning:", err.message);
-    };
+    if (window.isSecureContext === false && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+      setGpsPermissionState('insecure');
+      setGpsErrorMsg("Insecure connection (HTTP). Please open via HTTPS to enable phone GPS.");
+      return;
+    }
 
     // Initial position fetch
-    navigator.geolocation.getCurrentPosition(handleSuccess, handleError, {
+    navigator.geolocation.getCurrentPosition(handlePositionSuccess, handlePositionError, {
       enableHighAccuracy: true,
       timeout: 10000,
       maximumAge: 2000
     });
 
-    // Continuous position watch with maximumAge to prevent rapid battery/sensor polling
-    const watchId = navigator.geolocation.watchPosition(handleSuccess, handleError, {
+    // Continuous watch
+    const watchId = navigator.geolocation.watchPosition(handlePositionSuccess, handlePositionError, {
       enableHighAccuracy: true,
       timeout: 15000,
-      maximumAge: 3000
+      maximumAge: 2000
     });
 
     return () => navigator.geolocation.clearWatch(watchId);
-  }, []);
+  }, [handlePositionSuccess, handlePositionError]);
 
   // 2. Calculate Distance & Step Count
   useEffect(() => {
@@ -135,8 +183,6 @@ export default function useLiveNavigationVoice({ currentLocation, destination })
   // 3. Off-Track Distraction Detection & Voice Warning
   useEffect(() => {
     if (!userPos || !currentLocation || !destination || !voiceEnabled) return;
-
-    // Off-track check disabled to prevent false alarm warnings
     setIsOffTrack(false);
   }, [userPos, currentLocation, destination, voiceEnabled]);
 
@@ -146,6 +192,9 @@ export default function useLiveNavigationVoice({ currentLocation, destination })
     stepsCount,
     isOffTrack,
     voiceEnabled,
-    setVoiceEnabled
+    setVoiceEnabled,
+    gpsPermissionState,
+    gpsErrorMsg,
+    requestLiveGps
   };
 }

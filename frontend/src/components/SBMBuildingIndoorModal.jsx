@@ -4,6 +4,7 @@ import {
   Layers, ChevronRight, Shield, Zap, ArrowRight, Compass, Info, Cpu, Award
 } from 'lucide-react';
 import { SBM_INDOOR_DATA } from '../data/auditoriumData';
+import { getApiBaseUrl } from '../utils/apiConfig';
 
 export default function SBMBuildingIndoorModal({
   isOpen,
@@ -26,8 +27,9 @@ export default function SBMBuildingIndoorModal({
 
   useEffect(() => {
     if (isOpen) {
+      const apiBase = getApiBaseUrl();
       // Fetch rooms from SQLite
-      fetch('http://localhost:5000/api/rooms')
+      fetch(`${apiBase}/api/rooms`)
         .then(res => res.json())
         .then(data => {
           if (data.success && data.rooms.length > 0) {
@@ -40,7 +42,7 @@ export default function SBMBuildingIndoorModal({
         }).catch(err => console.warn("Backend offline, using static room data"));
 
       // Fetch watercoolers from SQLite
-      fetch('http://localhost:5000/api/watercoolers')
+      fetch(`${apiBase}/api/watercoolers`)
         .then(res => res.json())
         .then(data => {
           if (data.success && data.watercoolers.length > 0) {

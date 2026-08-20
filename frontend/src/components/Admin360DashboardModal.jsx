@@ -4,11 +4,13 @@ import {
   Edit3, Save, CheckCircle, AlertCircle, RefreshCw, Key, Layers, ArrowRight, Eye, Play
 } from 'lucide-react';
 import { getMergedMapLocations, saveLocationOverride, hideOrDeleteLocation } from '../utils/locationStore';
+import { getApiBaseUrl } from '../utils/apiConfig';
 
 export default function Admin360DashboardModal({
   isOpen,
   onClose
 }) {
+  const apiBase = getApiBaseUrl();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -76,7 +78,7 @@ export default function Admin360DashboardModal({
   const loadData = async () => {
     try {
       // 1. Fetch Locations
-      const locRes = await fetch('http://localhost:5000/api/locations');
+      const locRes = await fetch(`${apiBase}/api/locations`);
       const locData = await locRes.json();
       if (locData.success) {
         setLocations(locData.locations);
@@ -85,14 +87,14 @@ export default function Admin360DashboardModal({
       }
 
       // 2. Fetch Rooms
-      const roomsRes = await fetch('http://localhost:5000/api/rooms');
+      const roomsRes = await fetch(`${apiBase}/api/rooms`);
       const roomsData = await roomsRes.json();
       if (roomsData.success) {
         setRooms(roomsData.rooms);
       }
 
       // 3. Fetch Watercoolers
-      const wcRes = await fetch('http://localhost:5000/api/watercoolers');
+      const wcRes = await fetch(`${apiBase}/api/watercoolers`);
       const wcData = await wcRes.json();
       if (wcData.success) {
         setWatercoolers(wcData.watercoolers);
@@ -110,7 +112,7 @@ export default function Admin360DashboardModal({
     e.preventDefault();
     setLoginError('');
     try {
-      const res = await fetch('http://localhost:5000/api/auth/login', {
+      const res = await fetch(`${apiBase}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password })
@@ -143,7 +145,7 @@ export default function Admin360DashboardModal({
     formData.append('file', file);
 
     try {
-      const res = await fetch('http://localhost:5000/api/upload', {
+      const res = await fetch(`${apiBase}/api/upload`, {
         method: 'POST',
         body: formData
       });
@@ -189,7 +191,7 @@ export default function Admin360DashboardModal({
     };
 
     try {
-      const res = await fetch('http://localhost:5000/api/locations', {
+      const res = await fetch(`${apiBase}/api/locations`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -229,7 +231,7 @@ export default function Admin360DashboardModal({
   const handleDeleteLocation = async (id) => {
     if (!confirm("Are you sure you want to delete this map location?")) return;
     try {
-      await fetch(`http://localhost:5000/api/locations/${id}`, { method: 'DELETE' });
+      await fetch(`${apiBase}/api/locations/${id}`, { method: 'DELETE' });
       hideOrDeleteLocation(id);
       loadData();
       setStatusMsg({ type: 'success', text: '✅ Deleted location successfully!' });
@@ -273,7 +275,7 @@ export default function Admin360DashboardModal({
     };
 
     try {
-      const res = await fetch('http://localhost:5000/api/rooms', {
+      const res = await fetch(`${apiBase}/api/rooms`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -292,7 +294,7 @@ export default function Admin360DashboardModal({
   const handleDeleteRoom = async (id) => {
     if (!confirm("Are you sure you want to delete this SBM classroom?")) return;
     try {
-      await fetch(`http://localhost:5000/api/rooms/${id}`, { method: 'DELETE' });
+      await fetch(`${apiBase}/api/rooms/${id}`, { method: 'DELETE' });
       loadData();
       setStatusMsg({ type: 'success', text: '✅ Deleted room successfully!' });
     } catch (e) {
@@ -837,7 +839,7 @@ export default function Admin360DashboardModal({
                               const newStatus = prompt("Enter Purifier Status:", wc.status);
                               if (newTemp !== null && newPurity !== null && newStatus !== null) {
                                 try {
-                                  await fetch('http://localhost:5000/api/watercoolers', {
+                                  await fetch(`${apiBase}/api/watercoolers`, {
                                     method: 'POST',
                                     headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify({

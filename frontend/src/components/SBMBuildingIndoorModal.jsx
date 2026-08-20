@@ -50,7 +50,7 @@ export default function SBMBuildingIndoorModal({
   };
 
   return (
-    <div style={{
+    <div className="indoor-modal-overlay" style={{
       position: 'fixed',
       inset: 0,
       zIndex: 1000,
@@ -61,7 +61,7 @@ export default function SBMBuildingIndoorModal({
       justifyContent: 'center',
       padding: '20px'
     }}>
-      <div className="animate-scale-up" style={{
+      <div className="animate-scale-up indoor-modal-container" style={{
         width: '100%',
         maxWidth: '1040px',
         maxHeight: '90vh',
@@ -549,7 +549,7 @@ export default function SBMBuildingIndoorModal({
               </div>
 
               {/* SELECTION CARD */}
-              <div style={{ padding: '20px', borderRadius: '12px', background: 'var(--colors-surface-soft)', border: '1px solid var(--colors-hairline-strong)', display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '16px', alignItems: 'end' }}>
+              <div className="indoor-pathfinder-selection-card" style={{ padding: '20px', borderRadius: '12px', background: 'var(--colors-surface-soft)', border: '1px solid var(--colors-hairline-strong)', alignItems: 'end' }}>
                 <div>
                   <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--colors-ink)', display: 'block', marginBottom: '6px' }}>START POINT:</label>
                   <select 

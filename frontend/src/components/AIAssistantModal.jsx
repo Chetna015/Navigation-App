@@ -127,7 +127,7 @@ export default function AIAssistantModal({
   if (!isOpen) return null;
 
   return (
-    <div className="glass-panel" style={{
+    <div className="glass-panel ai-assistant-modal" style={{
       position: 'fixed',
       bottom: '90px',
       right: '24px',

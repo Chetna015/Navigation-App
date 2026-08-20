@@ -376,6 +376,17 @@ code, pre {
 }
 
 /* Mobile responsive touch rules */
+.navbar-title-mobile {
+  display: none;
+}
+
+.indoor-pathfinder-selection-card {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 16px;
+  align-items: end;
+}
+
 @media (max-width: 768px) {
   html, body {
     overflow-x: hidden;
@@ -398,4 +409,36 @@ code, pre {
     width: auto !important;
     max-width: calc(100vw - 24px) !important;
   }
+
+  .navbar-title-desktop {
+    display: none !important;
+  }
+  .navbar-title-mobile {
+    display: block !important;
+  }
+  .btn-label-desktop {
+    display: none !important;
+  }
+  .indoor-pathfinder-selection-card {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+  .ai-assistant-modal {
+    right: 12px !important;
+    left: 12px !important;
+    bottom: 80px !important;
+    width: auto !important;
+    max-width: none !important;
+  }
+  .indoor-modal-overlay {
+    padding: 8px !important;
+  }
+  .indoor-modal-container {
+    max-height: 95vh !important;
+  }
+  /* Shorten header buttons padding on mobile */
+  .ollama-btn-secondary, .btn-glass, .btn-primary, .ollama-btn-primary {
+    padding: 6px 10px !important;
+  }
 }
+

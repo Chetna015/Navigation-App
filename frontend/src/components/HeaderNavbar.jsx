@@ -47,7 +47,7 @@ export default function HeaderNavbar({
           }}
         />
         <div>
-          <h1 style={{
+          <h1 className="navbar-title-desktop" style={{
             fontSize: '15px',
             fontWeight: 600,
             color: 'var(--colors-ink)',
@@ -55,6 +55,15 @@ export default function HeaderNavbar({
             lineHeight: 1.2
           }}>
             Chhatrapati Shahuji Maharaj University Welcomes You !!
+          </h1>
+          <h1 className="navbar-title-mobile" style={{
+            fontSize: '15px',
+            fontWeight: 600,
+            color: 'var(--colors-ink)',
+            fontFamily: 'var(--font-heading)',
+            lineHeight: 1.2
+          }}>
+            CSJMU Kanpur
           </h1>
           <p style={{
             fontSize: '12px',
@@ -90,7 +99,7 @@ export default function HeaderNavbar({
                 height: '32px'
               }}
             >
-              🏢 <span>SBM Indoor & Watercoolers</span>
+              🏢 <span className="btn-label-desktop">SBM Indoor & Watercoolers</span>
             </button>
           )}
 
@@ -115,7 +124,7 @@ export default function HeaderNavbar({
                 height: '32px'
               }}
             >
-              📷 <span>Upload 360</span>
+              📷 <span className="btn-label-desktop">Upload 360</span>
             </button>
           )}
 
@@ -155,7 +164,7 @@ export default function HeaderNavbar({
               height: '32px'
             }}
           >
-            <AlertTriangle size={14} color="#EF4444" /> SOS Help
+            <AlertTriangle size={14} color="#EF4444" /> <span>SOS<span className="btn-label-desktop"> Help</span></span>
           </button>
 
           {/* Dark/Light Switch */}

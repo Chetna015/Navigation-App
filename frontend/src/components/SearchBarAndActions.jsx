@@ -179,44 +179,44 @@ export default function SearchBarAndActions({
           >
             <Mic size={15} color="var(--colors-on-primary)" />
           </button>
-
-          {/* Pin Location & Manage Pins Buttons */}
-          {(import.meta.env.DEV || (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'))) && (
-            <>
-              {onStartPinningMode && (
-                <button
-                  onClick={onStartPinningMode}
-                  title="Click to drop a pin on the map"
-                  className="ollama-btn-primary"
-                  style={{
-                    padding: '4px 12px',
-                    fontSize: '12px',
-                    height: '28px',
-                    whiteSpace: 'nowrap'
-                  }}
-                >
-                  📍 Pin Location
-                </button>
-              )}
-
-              {onOpenManagePins && (
-                <button
-                  onClick={onOpenManagePins}
-                  title="Manage location pins"
-                  className="ollama-btn-secondary"
-                  style={{
-                    padding: '4px 12px',
-                    fontSize: '12px',
-                    height: '28px',
-                    whiteSpace: 'nowrap'
-                  }}
-                >
-                  📍 Manage Pins
-                </button>
-              )}
-            </>
-          )}
         </div>
+
+        {/* ROW 2.5: CUSTOM PINS ACTIONS (LOCAL DEV / LOCALHOST ONLY) */}
+        {(import.meta.env.DEV || (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'))) && (
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '2px' }}>
+            {onStartPinningMode && (
+              <button
+                onClick={onStartPinningMode}
+                title="Click to drop a pin on the map"
+                className="ollama-btn-primary"
+                style={{
+                  padding: '4px 12px',
+                  fontSize: '12px',
+                  height: '28px',
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                📍 Pin Location
+              </button>
+            )}
+
+            {onOpenManagePins && (
+              <button
+                onClick={onOpenManagePins}
+                title="Manage location pins"
+                className="ollama-btn-secondary"
+                style={{
+                  padding: '4px 12px',
+                  fontSize: '12px',
+                  height: '28px',
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                📍 Manage Pins
+              </button>
+            )}
+          </div>
+        )}
 
         {/* ROW 3: SMART CAMPUS LIFE & MOBILITY QUICK ACTIONS */}
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '2px' }}>

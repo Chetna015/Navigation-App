@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   X, Search, Building2, Droplets, MapPin, Navigation, Sparkles, Clock, CheckCircle2, 
   Layers, ChevronRight, Shield, Zap, ArrowRight, Compass, Info, Cpu, Award

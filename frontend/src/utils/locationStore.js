@@ -24,12 +24,19 @@ export function saveLocationOverride(id, updatedData) {
   const existing = getLocationOverrides();
   existing[id] = {
     ...existing[id],
+    id: id,
     ...updatedData,
+    lat: parseFloat(updatedData.lat),
+    lng: parseFloat(updatedData.lng),
+    isCustom: true,
     updatedAt: new Date().toISOString()
   };
 
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(existing));
+    // Also remove from deleted IDs if previously deleted
+    const deleted = getDeletedLocationIds().filter(dId => dId !== id);
+    localStorage.setItem(DELETED_KEY, JSON.stringify(deleted));
     // Dispatch window custom event so all listeners/maps reload coordinates in real-time
     window.dispatchEvent(new CustomEvent('csjmu_locations_updated', { detail: existing }));
   } catch (e) {
@@ -86,12 +93,23 @@ export function hideOrDeleteLocation(id) {
   const deleted = getDeletedLocationIds();
   if (!deleted.includes(id)) {
     deleted.push(id);
-    try {
-      localStorage.setItem(DELETED_KEY, JSON.stringify(deleted));
-      window.dispatchEvent(new CustomEvent('csjmu_locations_updated', { detail: { deleted } }));
-    } catch (e) {
-      console.error(e);
-    }
+  }
+  try {
+    localStorage.setItem(DELETED_KEY, JSON.stringify(deleted));
+
+    // Also remove from overrides
+    const overrides = getLocationOverrides();
+    delete overrides[id];
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(overrides));
+
+    // Also remove from custom plotted buildings
+    const custom = getStoredPlottedBuildings();
+    delete custom[id];
+    localStorage.setItem('csjmu_custom_plotted_buildings', JSON.stringify(custom));
+
+    window.dispatchEvent(new CustomEvent('csjmu_locations_updated', { detail: { deleted } }));
+  } catch (e) {
+    console.error(e);
   }
 }
 
@@ -138,6 +156,9 @@ export function getMergedCampusBuildings() {
   Object.keys(overrides || {}).forEach(id => {
     if (buildings[id]) {
       buildings[id] = { ...buildings[id], ...overrides[id] };
+    } else {
+      // Add new custom pin
+      buildings[id] = { id, ...overrides[id], isCustom: true };
     }
   });
 

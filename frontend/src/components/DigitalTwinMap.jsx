@@ -21,6 +21,7 @@ export default function DigitalTwinMap({
   accessibilityOptions,
   onOpenEditLocation,
   onOpen3DView,
+  onOpenStreetView,
   onOpenSBMIndoor,
   navMode = 'preview',
   isNavigatingLive = false
@@ -469,6 +470,7 @@ export default function DigitalTwinMap({
           }}
           onOpenEditLocation={onOpenEditLocation}
           onOpen3DView={onOpen3DView}
+          onOpenStreetView={onOpenStreetView}
           onOpenSBMIndoor={onOpenSBMIndoor}
           navMode={navMode}
           isNavigatingLive={isNavigatingLive}

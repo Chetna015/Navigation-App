@@ -1,10 +1,323 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   X, Upload, Image as ImageIcon, MapPin, Compass, Plus, Trash2, 
   Edit3, Save, CheckCircle, AlertCircle, RefreshCw, Key, Layers, ArrowRight, Eye, Play
 } from 'lucide-react';
-import { getMergedMapLocations, saveLocationOverride, hideOrDeleteLocation } from '../utils/locationStore';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+import { getMergedMapLocations, getMergedCampusBuildings, saveLocationOverride, hideOrDeleteLocation } from '../utils/locationStore';
+import { saveCustomPlottedBuilding, deleteCustomPlottedBuilding } from '../utils/pathfinding';
 import { apiService } from '../services/api';
+
+// Interactive Leaflet Satellite GIS Map Plotter for Admin Console
+function AdminCampusMapPlotter({
+  locations = [],
+  selectedLat,
+  selectedLng,
+  onMapClick,
+  onSelectLocation
+}) {
+  const mapContainerRef = useRef(null);
+  const leafletMapRef = useRef(null);
+  const markersGroupRef = useRef(null);
+  const [mapType, setMapType] = useState('hybrid'); // 'hybrid' | 'roadmap'
+  const tileLayerRef = useRef(null);
+
+  // Initialize Map
+  useEffect(() => {
+    if (!mapContainerRef.current) return;
+
+    if (!leafletMapRef.current) {
+      const initialLat = parseFloat(selectedLat) || 26.5015;
+      const initialLng = parseFloat(selectedLng) || 80.2666;
+
+      const map = L.map(mapContainerRef.current, {
+        center: [initialLat, initialLng],
+        zoom: 17,
+        zoomControl: false,
+        attributionControl: false
+      });
+
+      L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+      tileLayerRef.current = L.tileLayer(
+        'https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',
+        { maxZoom: 21, maxNativeZoom: 20, subdomains: ['mt0', 'mt1', 'mt2', 'mt3'] }
+      ).addTo(map);
+
+      markersGroupRef.current = L.layerGroup().addTo(map);
+
+      // Map Click Handler: capture coordinates
+      map.on('click', (e) => {
+        const { lat, lng } = e.latlng;
+        onMapClick(lat, lng);
+      });
+
+      leafletMapRef.current = map;
+    }
+
+    const timer = setTimeout(() => {
+      if (leafletMapRef.current) {
+        leafletMapRef.current.invalidateSize();
+      }
+    }, 200);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Update Tile Layer between Satellite Hybrid and Standard Roadmap
+  useEffect(() => {
+    const map = leafletMapRef.current;
+    if (!map) return;
+
+    if (tileLayerRef.current) {
+      map.removeLayer(tileLayerRef.current);
+    }
+
+    const url = mapType === 'roadmap'
+      ? 'https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}'
+      : 'https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}';
+
+    tileLayerRef.current = L.tileLayer(url, {
+      maxZoom: 21,
+      maxNativeZoom: 20,
+      subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
+    }).addTo(map);
+  }, [mapType]);
+
+  // Render Existing Pins & Active Target Pin
+  useEffect(() => {
+    const map = leafletMapRef.current;
+    if (!map || !markersGroupRef.current) return;
+
+    markersGroupRef.current.clearLayers();
+
+    // 1. Render all existing mapped pins
+    locations.forEach(loc => {
+      if (!loc.lat || !loc.lng) return;
+
+      const markerHtml = `
+        <div style="
+          transform: translate(-50%, -100%);
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          cursor: pointer;
+        ">
+          <div style="
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: #2563EB;
+            border: 2px solid #FFFFFF;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #FFF;
+            font-size: 11px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+          ">
+            📍
+          </div>
+          <div style="
+            background: rgba(15, 23, 42, 0.88);
+            color: #FFF;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 4px;
+            white-space: nowrap;
+            border: 1px solid rgba(255,255,255,0.25);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+          ">
+            ${loc.name}
+          </div>
+        </div>
+      `;
+
+      const customIcon = L.divIcon({
+        className: 'admin-map-existing-pin',
+        html: markerHtml,
+        iconSize: [0, 0],
+        iconAnchor: [0, 0]
+      });
+
+      const marker = L.marker([loc.lat, loc.lng], { icon: customIcon });
+      marker.on('click', (e) => {
+        L.DomEvent.stopPropagation(e);
+        if (onSelectLocation) onSelectLocation(loc);
+      });
+      markersGroupRef.current.addLayer(marker);
+    });
+
+    // 2. Render Active / Selected Pin
+    const sLat = parseFloat(selectedLat);
+    const sLng = parseFloat(selectedLng);
+
+    if (!isNaN(sLat) && !isNaN(sLng)) {
+      const activeHtml = `
+        <div style="
+          transform: translate(-50%, -100%);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          cursor: pointer;
+        ">
+          <div style="
+            background: #EF4444;
+            color: #FFFFFF;
+            font-size: 11px;
+            font-weight: 800;
+            padding: 3px 8px;
+            border-radius: 6px;
+            white-space: nowrap;
+            box-shadow: 0 2px 8px rgba(239,68,68,0.5);
+            border: 1.5px solid #FFFFFF;
+            margin-bottom: 2px;
+          ">
+            🎯 ${sLat.toFixed(5)}, ${sLng.toFixed(5)}
+          </div>
+          <div style="
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #EF4444;
+            border: 2.5px solid #FFFFFF;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #FFF;
+            font-size: 14px;
+            box-shadow: 0 0 16px rgba(239, 68, 68, 0.9), 0 4px 12px rgba(0,0,0,0.5);
+          ">
+            📍
+          </div>
+        </div>
+      `;
+
+      const activeIcon = L.divIcon({
+        className: 'admin-map-active-pin',
+        html: activeHtml,
+        iconSize: [0, 0],
+        iconAnchor: [0, 0]
+      });
+
+      const activeMarker = L.marker([sLat, sLng], { icon: activeIcon, zIndexOffset: 1000 });
+      markersGroupRef.current.addLayer(activeMarker);
+    }
+  }, [locations, selectedLat, selectedLng]);
+
+  return (
+    <div style={{
+      position: 'relative',
+      width: '100%',
+      height: '100%',
+      minHeight: '320px',
+      borderRadius: '12px',
+      overflow: 'hidden',
+      border: '1px solid var(--colors-hairline-strong)',
+      boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+    }}>
+      <div 
+        ref={mapContainerRef} 
+        style={{ width: '100%', height: '100%', minHeight: '320px', cursor: 'crosshair' }} 
+      />
+
+      {/* Floating Top Controls */}
+      <div style={{
+        position: 'absolute',
+        top: '10px',
+        left: '10px',
+        right: '10px',
+        zIndex: 500,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        pointerEvents: 'none'
+      }}>
+        <div style={{
+          background: 'rgba(15, 23, 42, 0.92)',
+          backdropFilter: 'blur(8px)',
+          color: '#FFF',
+          padding: '6px 12px',
+          borderRadius: '8px',
+          fontSize: '11px',
+          fontWeight: 700,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '6px',
+          border: '1px solid rgba(255,255,255,0.2)',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+          pointerEvents: 'auto'
+        }}>
+          <span>👆 Click anywhere to set coordinates</span>
+        </div>
+
+        <div style={{ display: 'flex', gap: '6px', pointerEvents: 'auto' }}>
+          <button
+            type="button"
+            onClick={() => setMapType(mapType === 'hybrid' ? 'roadmap' : 'hybrid')}
+            style={{
+              background: 'var(--colors-surface-card)',
+              color: 'var(--colors-ink)',
+              border: '1px solid var(--colors-hairline-strong)',
+              padding: '5px 10px',
+              borderRadius: '8px',
+              fontSize: '11px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.2)'
+            }}
+          >
+            {mapType === 'hybrid' ? '🗺️ Road View' : '🛰️ Satellite'}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              if (leafletMapRef.current) {
+                leafletMapRef.current.flyTo([26.5015, 80.2666], 17, { duration: 0.8 });
+              }
+            }}
+            style={{
+              background: 'var(--colors-surface-card)',
+              color: 'var(--colors-ink)',
+              border: '1px solid var(--colors-hairline-strong)',
+              padding: '5px 10px',
+              borderRadius: '8px',
+              fontSize: '11px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.2)'
+            }}
+          >
+            🎯 Re-center
+          </button>
+        </div>
+      </div>
+
+      {/* Bottom Coordinate Indicator */}
+      <div style={{
+        position: 'absolute',
+        bottom: '10px',
+        left: '10px',
+        zIndex: 500,
+        background: 'rgba(15, 23, 42, 0.9)',
+        backdropFilter: 'blur(6px)',
+        color: '#34D399',
+        padding: '4px 10px',
+        borderRadius: '6px',
+        fontSize: '11px',
+        fontFamily: 'var(--font-code)',
+        fontWeight: 700,
+        border: '1px solid rgba(52, 211, 153, 0.3)',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
+      }}>
+        📍 Active Coords: {selectedLat || '26.4970'}, {selectedLng || '80.2666'}
+      </div>
+    </div>
+  );
+}
 
 export default function Admin360DashboardModal({
   isOpen,
@@ -76,27 +389,36 @@ export default function Admin360DashboardModal({
 
   const loadData = async () => {
     try {
-      // 1. Fetch Locations
+      // 1. Fetch Locations from Backend API
       const locData = await apiService.getLocations();
-      if (locData.success) {
-        setLocations(locData.locations);
+      const localMerged = getMergedCampusBuildings();
+      
+      if (locData && locData.success && Array.isArray(locData.locations)) {
+        // Merge database locations with local campus locations
+        const combined = { ...localMerged };
+        locData.locations.forEach(loc => {
+          if (loc && loc.id) {
+            combined[loc.id] = { ...(combined[loc.id] || {}), ...loc };
+          }
+        });
+        setLocations(Object.values(combined));
       } else {
-        setLocations(getMergedMapLocations()); // Fallback to local
+        setLocations(Object.values(localMerged));
       }
 
       // 2. Fetch Rooms
       const roomsData = await apiService.getRooms();
-      if (roomsData.success) {
+      if (roomsData && roomsData.success) {
         setRooms(roomsData.rooms);
       }
 
       // 3. Fetch Watercoolers
       const wcData = await apiService.getWatercoolers();
-      if (wcData.success) {
+      if (wcData && wcData.success) {
         setWatercoolers(wcData.watercoolers);
       }
     } catch (e) {
-      console.warn("Failed to connect to backend server. Operating in offline fallback mode.");
+      console.warn("Operating with local storage merged campus data:", e);
       setLocations(getMergedMapLocations());
     }
   };
@@ -162,35 +484,32 @@ export default function Admin360DashboardModal({
     const payload = {
       id: locId,
       name: locName,
-      code: locCode,
-      category: locCategory,
+      code: locCode || 'BLD-CUST',
+      category: locCategory || 'Custom Building',
       lat: parseFloat(locLat),
       lng: parseFloat(locLng),
       x: parseInt(locLat) ? 450 : 0, // Mock layout X/Y
       y: parseInt(locLng) ? 400 : 0,
-      floors: parseInt(locFloors),
-      description: locDescription,
-      cover_image: locCoverImage,
-      video_url: locVideoUrl
+      floors: parseInt(locFloors) || 1,
+      description: locDescription || 'University Campus Location',
+      cover_image: locCoverImage || '',
+      video_url: locVideoUrl || '',
+      isCustom: true
     };
 
     try {
-      const data = await apiService.saveLocation(payload);
-      if (data.success) {
-        setStatusMsg({ type: 'success', text: `✅ Saved Location "${locName}" successfully!` });
-        
-        // Synchronize browser local storage as well for immediate map reload
-        saveLocationOverride(locId, payload);
-        
-        loadData();
-        resetLocationForm();
-      }
+      await apiService.saveLocation(payload);
     } catch (err) {
-      // Local fallback saving
-      saveLocationOverride(locId, payload);
-      setStatusMsg({ type: 'success', text: `✅ Saved to local storage (Offline Mode)` });
-      loadData();
+      console.warn("Backend save failed, saved to local cache", err);
     }
+
+    // Always synchronize browser local storage and plotted buildings for instant map rendering
+    saveLocationOverride(locId, payload);
+    saveCustomPlottedBuilding(payload);
+
+    setStatusMsg({ type: 'success', text: `✅ Saved Location "${locName}" successfully!` });
+    loadData();
+    resetLocationForm();
   };
 
   const handleEditLocation = (loc) => {
@@ -211,13 +530,13 @@ export default function Admin360DashboardModal({
     if (!confirm("Are you sure you want to delete this map location?")) return;
     try {
       await apiService.deleteLocation(id);
-      hideOrDeleteLocation(id);
-      loadData();
-      setStatusMsg({ type: 'success', text: '✅ Deleted location successfully!' });
     } catch (e) {
-      hideOrDeleteLocation(id);
-      loadData();
+      console.warn("Backend delete offline:", e);
     }
+    hideOrDeleteLocation(id);
+    deleteCustomPlottedBuilding(id);
+    loadData();
+    setStatusMsg({ type: 'success', text: '✅ Deleted location successfully!' });
   };
 
   const resetLocationForm = () => {
@@ -232,6 +551,21 @@ export default function Admin360DashboardModal({
     setLocDescription('');
     setLocCoverImage('');
     setLocVideoUrl('');
+  };
+
+  // Map Click handler to auto-fill Latitude & Longitude
+  const handleMapClick = (lat, lng) => {
+    const formattedLat = lat.toFixed(6);
+    const formattedLng = lng.toFixed(6);
+    setLocLat(formattedLat);
+    setLocLng(formattedLng);
+    if (!locId) {
+      setLocId(`loc_custom_${Date.now().toString().slice(-4)}`);
+    }
+    setStatusMsg({
+      type: 'info',
+      text: `📍 Captured Coordinates (${formattedLat}, ${formattedLng}) from map! Please enter Location Name & Description to save.`
+    });
   };
 
   // Rooms Operations
@@ -303,7 +637,8 @@ export default function Admin360DashboardModal({
     }}>
       <div className="animate-scale-up" style={{
         width: '100%',
-        maxWidth: '1000px',
+        maxWidth: '1200px',
+        height: '92vh',
         maxHeight: '92vh',
         background: 'var(--colors-surface-card)',
         borderRadius: '16px',
@@ -577,39 +912,115 @@ export default function Admin360DashboardModal({
                     </div>
                   </form>
 
-                  {/* Right List */}
-                  <div style={{ flex: 1, padding: '24px', overflowY: 'auto' }}>
-                    <h4 style={{ fontSize: '14px', fontWeight: 700, marginBottom: '16px' }}>Mapped Pins Database</h4>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                      {locations.map(loc => (
-                        <div key={loc.id} style={{ padding: '14px', borderRadius: '12px', border: '1px solid var(--colors-hairline)', background: 'var(--colors-surface-card)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                            {loc.cover_image ? (
-                              <img src={loc.cover_image} alt={loc.name} style={{ width: '48px', height: '48px', borderRadius: '8px', objectFit: 'cover' }} />
-                            ) : (
-                              <div style={{ width: '48px', height: '48px', borderRadius: '8px', background: 'var(--colors-surface-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                <MapPin size={20} color="var(--colors-mute)" />
-                              </div>
-                            )}
-                            <div>
-                              <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--colors-ink)' }}>{loc.name} ({loc.code || 'BLD'})</div>
-                              <div style={{ fontSize: '11px', color: 'var(--colors-body)', marginTop: '2px' }}>
-                                category: {loc.category} | coords: {loc.lat.toFixed(4)}, {loc.lng.toFixed(4)}
+                  {/* Right Panel: Mapped Pins Database (Top) + Interactive Map Plotter (Bottom) */}
+                  <div style={{ flex: 1, padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: '16px', overflowY: 'auto' }}>
+                    
+                    {/* 1. Mapped Pins Database Section */}
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <h4 style={{ fontSize: '14px', fontWeight: 700, margin: 0, color: 'var(--colors-ink)' }}>
+                            📍 Mapped Pins Database
+                          </h4>
+                          <span style={{ background: 'var(--colors-surface-soft)', color: 'var(--colors-primary)', fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '9999px', border: '1px solid var(--colors-hairline)' }}>
+                            {locations.length} Pins
+                          </span>
+                        </div>
+                        <span style={{ fontSize: '11px', color: 'var(--colors-body)' }}>
+                          Click any pin to edit details
+                        </span>
+                      </div>
+
+                      <div style={{
+                        maxHeight: '180px',
+                        overflowY: 'auto',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '8px',
+                        paddingRight: '4px'
+                      }}>
+                        {locations.map(loc => (
+                          <div 
+                            key={loc.id} 
+                            style={{ 
+                              padding: '10px 14px', 
+                              borderRadius: '10px', 
+                              border: selectedLocation?.id === loc.id ? '1.5px solid var(--colors-primary)' : '1px solid var(--colors-hairline)', 
+                              background: selectedLocation?.id === loc.id ? 'var(--colors-surface-soft)' : 'var(--colors-surface-card)', 
+                              display: 'flex', 
+                              justifyContent: 'space-between', 
+                              alignItems: 'center',
+                              transition: 'all 0.15s ease'
+                            }}
+                          >
+                            <div style={{ display: 'flex', gap: '10px', alignItems: 'center', cursor: 'pointer' }} onClick={() => handleEditLocation(loc)}>
+                              {loc.cover_image ? (
+                                <img src={loc.cover_image} alt={loc.name} style={{ width: '40px', height: '40px', borderRadius: '8px', objectFit: 'cover' }} />
+                              ) : (
+                                <div style={{ width: '40px', height: '40px', borderRadius: '8px', background: 'var(--colors-surface-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px' }}>
+                                  📍
+                                </div>
+                              )}
+                              <div>
+                                <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--colors-ink)' }}>
+                                  {loc.name} <span style={{ fontSize: '11px', color: 'var(--colors-body)', fontWeight: 500 }}>({loc.code || loc.id})</span>
+                                </div>
+                                <div style={{ fontSize: '11px', color: 'var(--colors-body)', marginTop: '2px' }}>
+                                  <span style={{ fontWeight: 600, color: 'var(--colors-primary)' }}>{loc.category}</span> • coords: {parseFloat(loc.lat).toFixed(4)}, {parseFloat(loc.lng).toFixed(4)}
+                                </div>
                               </div>
                             </div>
-                          </div>
 
-                          <div style={{ display: 'flex', gap: '6px' }}>
-                            <button onClick={() => handleEditLocation(loc)} className="ollama-btn-secondary" style={{ height: '30px', padding: '0 10px', fontSize: '11px', borderRadius: '8px' }}>
-                              <Edit3 size={12} /> Edit
-                            </button>
-                            <button onClick={() => handleDeleteLocation(loc.id)} className="ollama-btn-secondary" style={{ height: '30px', padding: '0 10px', fontSize: '11px', borderRadius: '8px', borderColor: '#EF4444', color: '#EF4444' }}>
-                              <Trash2 size={12} /> Remove
-                            </button>
+                            <div style={{ display: 'flex', gap: '6px' }}>
+                              <button 
+                                type="button" 
+                                onClick={() => handleEditLocation(loc)} 
+                                className="ollama-btn-secondary" 
+                                style={{ height: '28px', padding: '0 10px', fontSize: '11px', borderRadius: '6px' }}
+                                title="Edit coordinates and info"
+                              >
+                                <Edit3 size={12} /> Edit
+                              </button>
+                              <button 
+                                type="button" 
+                                onClick={() => handleDeleteLocation(loc.id)} 
+                                className="ollama-btn-secondary" 
+                                style={{ height: '28px', padding: '0 10px', fontSize: '11px', borderRadius: '6px', borderColor: '#EF4444', color: '#EF4444' }}
+                                title="Remove location pin"
+                              >
+                                <Trash2 size={12} /> Remove
+                              </button>
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
+
+                    {/* 2. Interactive Campus GIS Plotter Map (Bottom Section) */}
+                    <div style={{ flex: 1, minHeight: '340px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <Compass size={16} color="var(--colors-primary)" />
+                          <h4 style={{ fontSize: '14px', fontWeight: 700, margin: 0, color: 'var(--colors-ink)' }}>
+                            🗺️ Interactive Campus Map (Click to Plot Pin)
+                          </h4>
+                        </div>
+                        <span style={{ fontSize: '11px', color: 'var(--colors-primary)', fontWeight: 600 }}>
+                          Auto-fills Lat: {locLat} | Lng: {locLng}
+                        </span>
+                      </div>
+
+                      <div style={{ flex: 1, minHeight: '300px' }}>
+                        <AdminCampusMapPlotter
+                          locations={locations}
+                          selectedLat={locLat}
+                          selectedLng={locLng}
+                          onMapClick={handleMapClick}
+                          onSelectLocation={handleEditLocation}
+                        />
+                      </div>
+                    </div>
+
                   </div>
                 </div>
               )}
@@ -813,15 +1224,11 @@ export default function Admin360DashboardModal({
                               const newStatus = prompt("Enter Purifier Status:", wc.status);
                               if (newTemp !== null && newPurity !== null && newStatus !== null) {
                                 try {
-                                  await fetch(`${apiBase}/api/watercoolers`, {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({
-                                      ...wc,
-                                      temperature: newTemp,
-                                      purity: newPurity,
-                                      status: newStatus
-                                    })
+                                  await apiService.saveWatercooler({
+                                    ...wc,
+                                    temperature: newTemp,
+                                    purity: newPurity,
+                                    status: newStatus
                                   });
                                   loadData();
                                   setStatusMsg({ type: 'success', text: `✅ Updated watercooler telemetry for "${wc.id}" successfully!` });

@@ -23,6 +23,16 @@ export function haversineDistanceMeters(lat1, lon1, lat2, lon2) {
 }
 
 /**
+ * Estimates realistic road network pedestrian walking distance in meters (~1.25x road factor)
+ */
+export function estimateWalkingDistanceMeters(lat1, lon1, lat2, lon2) {
+  const directMeters = haversineDistanceMeters(lat1, lon1, lat2, lon2);
+  if (!isFinite(directMeters) || directMeters <= 0) return 0;
+  if (directMeters <= 30) return directMeters;
+  return Math.round(directMeters * 1.25);
+}
+
+/**
  * Finds the nearest 360° street view node from a dictionary/list of nodes given lat/lng
  */
 export function findNearestStreetViewNode(lat, lng, nodesList = [], fallbackNode = null) {

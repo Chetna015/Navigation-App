@@ -5,6 +5,8 @@ import {
   ArrowUpRight, ArrowRight, Maximize2, Minimize2
 } from 'lucide-react';
 import { getCampusRoute } from '../utils/pathfinding';
+import { haversineDistanceMeters, estimateWalkingDistanceMeters } from '../utils/haversine';
+import { useNavigation } from '../context/NavigationContext';
 
 export default function NavigationBanner({
   currentLocation,
@@ -14,8 +16,8 @@ export default function NavigationBanner({
   isNavigatingLive,
   setIsNavigatingLive
 }) {
+  const { voiceEnabled, toggleVoice } = useNavigation();
   const [routeInfo, setRouteInfo] = useState(null);
-  const [voiceEnabled, setVoiceEnabled] = useState(true);
   const [isExpanded, setIsExpanded] = useState(false);
   const [currentStepIdx, setCurrentStepIdx] = useState(0);
   const [simulatedMetersLeft, setSimulatedMetersLeft] = useState(null);
@@ -34,11 +36,14 @@ export default function NavigationBanner({
       const sLng = currentLocation.lng || 80.2666;
       const eLat = destination.lat || 26.5015;
       const eLng = destination.lng || 80.2688;
+      const instantDist = Math.max(10, estimateWalkingDistanceMeters(sLat, sLng, eLat, eLng));
 
       const info = await getCampusRoute(sLat, sLng, eLat, eLng);
       if (!isCancelled && info) {
         setRouteInfo(info);
-        setSimulatedMetersLeft(info.totalDistanceMeters || 350);
+        setSimulatedMetersLeft(info.totalDistanceMeters || instantDist);
+      } else if (!isCancelled) {
+        setSimulatedMetersLeft(instantDist);
       }
     }
 
@@ -71,7 +76,11 @@ export default function NavigationBanner({
     return () => clearInterval(timer);
   }, [isNavigatingLive, currentStepIdx]);
 
-  const totalDistance = routeInfo ? routeInfo.totalDistanceMeters : 350;
+  const fallbackBannerDist = (currentLocation && destination && (currentLocation.lat || 26.4970) && (destination.lat || 26.5015))
+    ? Math.max(10, estimateWalkingDistanceMeters(currentLocation.lat || 26.4970, currentLocation.lng || 80.2666, destination.lat || 26.5015, destination.lng || 80.2688))
+    : 0;
+
+  const totalDistance = routeInfo ? routeInfo.totalDistanceMeters : fallbackBannerDist;
   const distance = simulatedMetersLeft !== null ? simulatedMetersLeft : totalDistance;
   const walkTime = Math.max(1, Math.ceil(distance / 80));
   const estimatedSteps = Math.ceil(distance * 1.3);
@@ -289,7 +298,7 @@ export default function NavigationBanner({
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <button
-              onClick={() => setVoiceEnabled(!voiceEnabled)}
+              onClick={() => toggleVoice()}
               className="ollama-btn-secondary"
               style={{ width: '30px', height: '30px', padding: 0, borderRadius: '50%' }}
               title={voiceEnabled ? 'Mute Voice' : 'Unmute Voice'}
@@ -435,7 +444,7 @@ export default function NavigationBanner({
         {/* Top Controls */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <button
-            onClick={() => setVoiceEnabled(!voiceEnabled)}
+            onClick={() => toggleVoice()}
             style={{
               background: 'rgba(255, 255, 255, 0.15)',
               border: 'none',

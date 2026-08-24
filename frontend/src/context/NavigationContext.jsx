@@ -11,8 +11,28 @@ const defaultLiveLocation = {
   isLiveUser: true
 };
 
+const getInitialLocation = () => {
+  try {
+    const saved = localStorage.getItem('csjmu_last_gps_location');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed && parsed.lat && parsed.lng) {
+        return {
+          id: 'live_user_location',
+          name: 'My Live GPS Location 📍',
+          lat: parsed.lat,
+          lng: parsed.lng,
+          heading: parsed.heading || 45,
+          isLiveUser: true
+        };
+      }
+    }
+  } catch (e) {}
+  return defaultLiveLocation;
+};
+
 export function NavigationProvider({ children }) {
-  const [currentLocation, setCurrentLocation] = useState(defaultLiveLocation);
+  const [currentLocation, setCurrentLocation] = useState(getInitialLocation);
   const [destination, setDestination] = useState(null);
   const [shortestRoute, setShortestRoute] = useState(null);
   const [navMode, setNavMode] = useState('hidden'); // 'hidden' | 'preview' | 'active'
@@ -20,6 +40,22 @@ export function NavigationProvider({ children }) {
   const [isAdminMode, setIsAdminMode] = useState(false);
   const [voiceEnabled, setVoiceEnabled] = useState(true);
   const [activeFloor, setActiveFloor] = useState('G');
+
+  const toggleVoice = (overrideVal) => {
+    setVoiceEnabled(prev => {
+      const nextVal = typeof overrideVal === 'boolean' ? overrideVal : !prev;
+      if (!nextVal && typeof window !== 'undefined' && 'speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+      return nextVal;
+    });
+  };
+
+  useEffect(() => {
+    if (!voiceEnabled && typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+  }, [voiceEnabled]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -36,7 +72,7 @@ export function NavigationProvider({ children }) {
       navMode, setNavMode,
       isNavigatingLive, setIsNavigatingLive,
       isAdminMode, setIsAdminMode,
-      voiceEnabled, setVoiceEnabled,
+      voiceEnabled, setVoiceEnabled, toggleVoice,
       activeFloor, setActiveFloor,
       defaultLiveLocation
     }}>

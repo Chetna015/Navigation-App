@@ -9,6 +9,7 @@ import {
 import { MAP_LOCATIONS, STARTUP_STALLS, SESSIONS_DATA, SBM_INDOOR_DATA } from '../data/auditoriumData';
 import { getMergedMapLocations } from '../utils/locationStore';
 import { haversineDistanceMeters } from '../utils/haversine';
+import { useNavigation } from '../context/NavigationContext';
 
 /**
  * Helper to retrieve a polite, humble Indian Hindi female voice
@@ -74,9 +75,9 @@ export default function AIAssistantModal({
       card: null
     }
   ]);
+  const { voiceEnabled, toggleVoice } = useNavigation();
   const [inputQuery, setInputQuery] = useState('');
   const [isListening, setIsListening] = useState(false);
-  const [voiceSynthesize, setVoiceSynthesize] = useState(true);
   const [viewMode, setViewMode] = useState('normal'); // 'normal' | 'minimized' | 'expanded'
 
   const messagesEndRef = useRef(null);
@@ -97,7 +98,7 @@ export default function AIAssistantModal({
 
   // Speech output synthesizer with polite Hindi lady voice
   const speakText = (text, spokenHindi = null) => {
-    if (!voiceSynthesize || typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+    if (!voiceEnabled || typeof window === 'undefined' || !('speechSynthesis' in window)) return;
     try {
       window.speechSynthesis.cancel();
       const textToSpeak = spokenHindi || text;
@@ -996,12 +997,12 @@ export default function AIAssistantModal({
         {/* Header Action Controls */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <button
-            onClick={() => setVoiceSynthesize(!voiceSynthesize)}
+            onClick={() => toggleVoice()}
             className="ollama-btn-secondary"
             style={{ width: '28px', height: '28px', borderRadius: '9999px', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-            title={voiceSynthesize ? "आवाज़ बंद करें (Mute Hindi Voice)" : "आवाज़ चालू करें (Enable Hindi Voice)"}
+            title={voiceEnabled ? "आवाज़ बंद करें (Mute Hindi Voice)" : "आवाज़ चालू करें (Enable Hindi Voice)"}
           >
-            {voiceSynthesize ? <Volume2 size={14} color="#10B981" /> : <VolumeX size={14} color="var(--colors-body)" />}
+            {voiceEnabled ? <Volume2 size={14} color="#10B981" /> : <VolumeX size={14} color="var(--colors-body)" />}
           </button>
 
           <button

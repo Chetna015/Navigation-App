@@ -32,7 +32,8 @@ export default function App() {
     isNavigatingLive, setIsNavigatingLive,
     isAdminMode,
     activeFloor, setActiveFloor,
-    defaultLiveLocation
+    defaultLiveLocation,
+    voiceEnabled, setVoiceEnabled, toggleVoice
   } = useNavigation();
 
   const [showSplash, setShowSplash] = useState(false);
@@ -47,18 +48,21 @@ export default function App() {
     }
   }, [destination]);
 
-  // Live Geolocation Tracking & Voice Assistance
+  // Live Geolocation Tracking & Voice Assistance (shared global voice control)
   const {
     userPos,
     distanceMeters,
     stepsCount,
     isOffTrack,
-    voiceEnabled,
-    setVoiceEnabled,
     gpsPermissionState,
     gpsErrorMsg,
     requestLiveGps
-  } = useLiveNavigationVoice({ currentLocation, destination });
+  } = useLiveNavigationVoice({
+    currentLocation,
+    destination,
+    voiceEnabled,
+    setVoiceEnabled
+  });
 
   // Automatically update currentLocation with exact real-time phone GPS position when received
   useEffect(() => {

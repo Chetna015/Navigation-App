@@ -8,6 +8,8 @@ import {
   Maximize2, Minimize2, Search, AlertTriangle, Sparkles, Layers
 } from 'lucide-react';
 import { getCampusRoute } from '../utils/pathfinding';
+import { haversineDistanceMeters, estimateWalkingDistanceMeters } from '../utils/haversine';
+import { useNavigation } from '../context/NavigationContext';
 
 /**
  * Embedded Mini Live Tracking Map Component inside single Card Block
@@ -239,8 +241,8 @@ export default function NavigationSidebar({
   onOpenStreetView,
   onExploreBuilding
 }) {
+  const { voiceEnabled, toggleVoice } = useNavigation();
   const [routeInfo, setRouteInfo] = useState(null);
-  const [voiceEnabled, setVoiceEnabled] = useState(true);
   const [currentStepIdx, setCurrentStepIdx] = useState(0);
   const [showStepsModal, setShowStepsModal] = useState(false);
 
@@ -280,6 +282,8 @@ export default function NavigationSidebar({
       const eLat = destination.lat || 26.5015;
       const eLng = destination.lng || 80.2688;
 
+      const instantDist = Math.max(10, estimateWalkingDistanceMeters(sLat, sLng, eLat, eLng));
+
       if (lastSidebarParamsRef.current) {
         const p = lastSidebarParamsRef.current;
         const isSameDest = Math.abs(p.eLat - eLat) < 0.00001 && Math.abs(p.eLng - eLng) < 0.00001;
@@ -288,8 +292,24 @@ export default function NavigationSidebar({
           return;
         }
         if (!isSameDest) {
-          setRouteInfo(null);
+          setRouteInfo({
+            path: null,
+            latLngList: null,
+            totalDistanceMeters: instantDist,
+            walkingTimeMins: Math.max(1, Math.round(instantDist / 75)),
+            totalSteps: Math.round(instantDist / 0.75),
+            directions: []
+          });
         }
+      } else {
+        setRouteInfo({
+          path: null,
+          latLngList: null,
+          totalDistanceMeters: instantDist,
+          walkingTimeMins: Math.max(1, Math.round(instantDist / 75)),
+          totalSteps: Math.round(instantDist / 0.75),
+          directions: []
+        });
       }
 
       lastSidebarParamsRef.current = { sLat, sLng, eLat, eLng };
@@ -299,13 +319,7 @@ export default function NavigationSidebar({
           setRouteInfo(info);
         } else {
           // Haversine distance metric calculation for info card without drawing straight path
-          const dLat = (eLat - sLat) * Math.PI / 180;
-          const dLon = (eLng - sLng) * Math.PI / 180;
-          const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                    Math.cos(sLat * Math.PI / 180) * Math.cos(eLat * Math.PI / 180) *
-                    Math.sin(dLon/2) * Math.sin(dLon/2);
-          const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-          const distMeters = Math.max(20, Math.round(6371000 * c));
+          const distMeters = Math.max(10, estimateWalkingDistanceMeters(sLat, sLng, eLat, eLng));
 
           setRouteInfo({
             path: null,
@@ -328,9 +342,13 @@ export default function NavigationSidebar({
 
   if (navMode === 'hidden' || !destination) return null;
 
-  const distance = routeInfo ? routeInfo.totalDistanceMeters : 350;
-  const walkTime = routeInfo ? routeInfo.walkingTimeMins : 4;
-  const estimatedSteps = routeInfo ? routeInfo.totalSteps : 460;
+  const fallbackDist = (currentLocation && destination && (currentLocation.lat || 26.4970) && (destination.lat || 26.5015))
+    ? Math.max(10, estimateWalkingDistanceMeters(currentLocation.lat || 26.4970, currentLocation.lng || 80.2666, destination.lat || 26.5015, destination.lng || 80.2688))
+    : 0;
+
+  const distance = (routeInfo && routeInfo.totalDistanceMeters !== undefined) ? routeInfo.totalDistanceMeters : fallbackDist;
+  const walkTime = (routeInfo && routeInfo.walkingTimeMins !== undefined) ? routeInfo.walkingTimeMins : Math.max(1, Math.round(distance / 75));
+  const estimatedSteps = (routeInfo && routeInfo.totalSteps !== undefined) ? routeInfo.totalSteps : Math.round(distance / 0.75);
 
   // Calculate ETA string e.g. 1:02 pm
   const getETAString = (mins) => {
@@ -1011,7 +1029,7 @@ export default function NavigationSidebar({
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <button
-                onClick={() => setVoiceEnabled(!voiceEnabled)}
+                onClick={() => toggleVoice()}
                 style={{
                   background: 'rgba(255, 255, 255, 0.15)',
                   border: 'none',
@@ -1134,7 +1152,7 @@ export default function NavigationSidebar({
 
               {/* Voice Navigation Toggle Button */}
               <button
-                onClick={() => setVoiceEnabled(!voiceEnabled)}
+                onClick={() => toggleVoice()}
                 style={{
                   background: voiceEnabled ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)',
                   border: voiceEnabled ? '1px solid #10B981' : '1px solid #EF4444',

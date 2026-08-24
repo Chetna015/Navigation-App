@@ -86,45 +86,67 @@ export async function getCampusRoute(startLat, startLng, destLat, destLng) {
       return routeCache.get(cacheKey);
     }
 
+    try {
+      const stored = sessionStorage.getItem(`csjmu_route_${cacheKey}`);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        routeCache.set(cacheKey, parsed);
+        return parsed;
+      }
+    } catch (e) {}
+
     if (inFlightRequests.has(cacheKey)) {
       return inFlightRequests.get(cacheKey);
     }
 
     const fetchPromise = (async () => {
-      const url = `https://router.project-osrm.org/route/v1/foot/${startLng},${startLat};${destLng},${destLat}?geometries=geojson&overview=full`;
-      const response = await fetch(url);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 2500);
 
-      if (!response.ok) {
-        throw new Error(`OSRM HTTP Error: ${response.status} ${response.statusText}`);
+      try {
+        const url = `https://router.project-osrm.org/route/v1/foot/${startLng},${startLat};${destLng},${destLat}?geometries=geojson&overview=full`;
+        const response = await fetch(url, { signal: controller.signal });
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+          throw new Error(`OSRM HTTP Error: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+
+        if (!data.routes || data.routes.length === 0) {
+          return null;
+        }
+
+        const route = data.routes[0];
+        const coordinates = route.geometry?.coordinates || [];
+
+        // OSRM returns [Longitude, Latitude]. Convert to Leaflet [Latitude, Longitude]
+        const path = coordinates.map(([lng, lat]) => [lat, lng]);
+
+        const totalDistanceMeters = Math.round(route.distance || 0);
+        const walkingTimeMins = Math.max(1, Math.round(totalDistanceMeters / 75)); // 75 meters/min
+        const totalSteps = Math.round(totalDistanceMeters / 0.75); // 0.75m per step
+
+        const result = {
+          path,
+          latLngList: path,
+          totalDistanceMeters,
+          walkingTimeMins,
+          totalSteps,
+          directions: route.legs?.[0]?.steps || []
+        };
+
+        routeCache.set(cacheKey, result);
+        try {
+          sessionStorage.setItem(`csjmu_route_${cacheKey}`, JSON.stringify(result));
+        } catch (e) {}
+
+        return result;
+      } catch (err) {
+        clearTimeout(timeoutId);
+        throw err;
       }
-
-      const data = await response.json();
-
-      if (!data.routes || data.routes.length === 0) {
-        return null;
-      }
-
-      const route = data.routes[0];
-      const coordinates = route.geometry?.coordinates || [];
-
-      // OSRM returns [Longitude, Latitude]. Convert to Leaflet [Latitude, Longitude]
-      const path = coordinates.map(([lng, lat]) => [lat, lng]);
-
-      const totalDistanceMeters = Math.round(route.distance || 0);
-      const walkingTimeMins = Math.max(1, Math.round(totalDistanceMeters / 75)); // 75 meters/min
-      const totalSteps = Math.round(totalDistanceMeters / 0.75); // 0.75m per step
-
-      const result = {
-        path,
-        latLngList: path,
-        totalDistanceMeters,
-        walkingTimeMins,
-        totalSteps,
-        directions: route.legs?.[0]?.steps || []
-      };
-
-      routeCache.set(cacheKey, result);
-      return result;
     })().finally(() => {
       inFlightRequests.delete(cacheKey);
     });

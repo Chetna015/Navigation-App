@@ -1,21 +1,46 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { getCampusRoute } from '../utils/pathfinding';
+import { haversineDistanceMeters, estimateWalkingDistanceMeters } from '../utils/haversine';
 
 /**
  * Custom Hook for Live HTML5 Geolocation Tracking, Distance & Step calculation,
  * Voice Assistance & Off-Track Distraction Warnings.
  */
-export default function useLiveNavigationVoice({ currentLocation, destination }) {
-  const [userPos, setUserPos] = useState(null);
+export default function useLiveNavigationVoice({
+  currentLocation,
+  destination,
+  voiceEnabled: propVoiceEnabled,
+  setVoiceEnabled: propSetVoiceEnabled
+}) {
+  const [userPos, setUserPos] = useState(() => {
+    try {
+      const saved = localStorage.getItem('csjmu_last_gps_location');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && parsed.lat && parsed.lng) return parsed;
+      }
+    } catch (e) {}
+    return null;
+  });
   const [isOffTrack, setIsOffTrack] = useState(false);
   const [distanceMeters, setDistanceMeters] = useState(0);
   const [stepsCount, setStepsCount] = useState(0);
-  const [voiceEnabled, setVoiceEnabled] = useState(true);
+  const [localVoiceEnabled, setLocalVoiceEnabled] = useState(true);
+  const voiceEnabled = propVoiceEnabled !== undefined ? propVoiceEnabled : localVoiceEnabled;
+  const setVoiceEnabled = propSetVoiceEnabled || setLocalVoiceEnabled;
   const [gpsPermissionState, setGpsPermissionState] = useState('prompt'); // 'prompt' | 'granted' | 'denied' | 'insecure' | 'unavailable'
   const [gpsErrorMsg, setGpsErrorMsg] = useState(null);
 
   const lastPosRef = useRef(null);
   const lastTimeRef = useRef(0);
   const lastSpokenRef = useRef(0);
+
+  // Immediately cancel any playing speech synthesis when muted
+  useEffect(() => {
+    if (!voiceEnabled && typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+  }, [voiceEnabled]);
 
   // Helper to compute Haversine distance in meters
   const calcMeters = (lat1, lon1, lat2, lon2) => {
@@ -35,6 +60,10 @@ export default function useLiveNavigationVoice({ currentLocation, destination })
     setGpsErrorMsg(null);
 
     const newPos = { lat: latitude, lng: longitude, accuracy, heading: heading || 45 };
+
+    try {
+      localStorage.setItem('csjmu_last_gps_location', JSON.stringify(newPos));
+    } catch (e) {}
 
     if (!lastPosRef.current) {
       lastPosRef.current = newPos;
@@ -92,7 +121,7 @@ export default function useLiveNavigationVoice({ currentLocation, destination })
     navigator.geolocation.getCurrentPosition(handlePositionSuccess, handlePositionError, {
       enableHighAccuracy: true,
       timeout: 10000,
-      maximumAge: 0
+      maximumAge: 60000
     });
   }, [handlePositionSuccess, handlePositionError]);
 
@@ -109,11 +138,11 @@ export default function useLiveNavigationVoice({ currentLocation, destination })
       return;
     }
 
-    // Initial position fetch
+    // Initial fast position fetch (using cached GPS if recent to eliminate cold-start delay)
     navigator.geolocation.getCurrentPosition(handlePositionSuccess, handlePositionError, {
       enableHighAccuracy: true,
       timeout: 10000,
-      maximumAge: 2000
+      maximumAge: 60000
     });
 
     // Continuous watch
@@ -126,58 +155,93 @@ export default function useLiveNavigationVoice({ currentLocation, destination })
     return () => navigator.geolocation.clearWatch(watchId);
   }, [handlePositionSuccess, handlePositionError]);
 
-  // 2. Calculate Distance & Step Count
+  // 2. Calculate Distance & Step Count and announce with exact route distance
   useEffect(() => {
+    let isCancelled = false;
     const fromLat = currentLocation?.lat || 26.4970;
     const fromLng = currentLocation?.lng || 80.2666;
 
     if (destination && destination.lat && destination.lng) {
-      const R = 6371000; // Earth radius in meters
-      const dLat = (destination.lat - fromLat) * Math.PI / 180;
-      const dLon = (destination.lng - fromLng) * Math.PI / 180;
-      const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                Math.cos(fromLat * Math.PI / 180) * Math.cos(destination.lat * Math.PI / 180) *
-                Math.sin(dLon/2) * Math.sin(dLon/2);
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-      const meters = Math.round(R * c);
+      // 1. Instant realistic road walking distance estimate (~1.25x road factor) so UI displays accurate estimate immediately without delay
+      const instantMeters = Math.max(10, estimateWalkingDistanceMeters(fromLat, fromLng, destination.lat, destination.lng));
+      setDistanceMeters(instantMeters);
+      setStepsCount(Math.round(instantMeters / 0.75));
 
-      setDistanceMeters(meters);
-      setStepsCount(Math.round(meters / 0.75)); // Average 0.75m per step
+      // 2. Fetch road walking route asynchronously to get exact campus path distance
+      getCampusRoute(fromLat, fromLng, destination.lat, destination.lng)
+        .then((routeInfo) => {
+          if (isCancelled) return;
+          const exactMeters = (routeInfo && routeInfo.totalDistanceMeters) ? routeInfo.totalDistanceMeters : instantMeters;
+          setDistanceMeters(exactMeters);
+          setStepsCount(Math.round(exactMeters / 0.75));
 
-      // Speak initial navigation instruction in polite Hindi lady voice
-      if (voiceEnabled && typeof window !== 'undefined' && 'speechSynthesis' in window) {
-        const now = Date.now();
-        if (now - lastSpokenRef.current > 12000) {
-          lastSpokenRef.current = now;
-          try {
-            window.speechSynthesis.cancel();
-            const hindiSpeech = `जी, ${destination.name || 'गंतव्य'} की ओर आगे बढ़ें। दूरी लगभग ${meters} मीटर है।`;
-            const msg = new SpeechSynthesisUtterance(hindiSpeech);
-            msg.lang = 'hi-IN';
-            msg.pitch = 1.12;
-            msg.rate = 0.92;
+          // Speak initial navigation instruction with EXACT route distance
+          if (voiceEnabled && typeof window !== 'undefined' && 'speechSynthesis' in window) {
+            const now = Date.now();
+            if (now - lastSpokenRef.current > 8000) {
+              lastSpokenRef.current = now;
+              try {
+                window.speechSynthesis.cancel();
+                const hindiSpeech = `जी, ${destination.name || 'गंतव्य'} की ओर आगे बढ़ें। दूरी लगभग ${exactMeters} मीटर है।`;
+                const msg = new SpeechSynthesisUtterance(hindiSpeech);
+                msg.lang = 'hi-IN';
+                msg.pitch = 1.12;
+                msg.rate = 0.92;
 
-            const voices = window.speechSynthesis.getVoices();
-            const hindiFemale = voices.find(v => 
-              (v.lang.includes('hi') || v.lang.includes('HI') || v.name.toLowerCase().includes('hindi')) &&
-              (v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('swara') || v.name.toLowerCase().includes('heera') || v.name.toLowerCase().includes('kalpana') || v.name.toLowerCase().includes('google') || v.name.includes('हिन्दी'))
-            ) || voices.find(v => v.lang.includes('hi') || v.name.toLowerCase().includes('hindi'))
-              || voices.find(v => v.lang.includes('en-IN') && v.name.toLowerCase().includes('female'));
+                const voices = window.speechSynthesis.getVoices();
+                const hindiFemale = voices.find(v => 
+                  (v.lang.includes('hi') || v.lang.includes('HI') || v.name.toLowerCase().includes('hindi')) &&
+                  (v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('swara') || v.name.toLowerCase().includes('heera') || v.name.toLowerCase().includes('kalpana') || v.name.toLowerCase().includes('google') || v.name.includes('हिन्दी'))
+                ) || voices.find(v => v.lang.includes('hi') || v.name.toLowerCase().includes('hindi'))
+                  || voices.find(v => v.lang.includes('en-IN') && v.name.toLowerCase().includes('female'));
 
-            if (hindiFemale) {
-              msg.voice = hindiFemale;
+                if (hindiFemale) {
+                  msg.voice = hindiFemale;
+                }
+
+                window.speechSynthesis.speak(msg);
+              } catch (e) {
+                console.warn("SpeechSynthesis error:", e);
+              }
             }
-
-            window.speechSynthesis.speak(msg);
-          } catch (e) {
-            console.warn("SpeechSynthesis error:", e);
           }
-        }
-      }
+        })
+        .catch((err) => {
+          if (isCancelled) return;
+          console.warn("Route fetch error in useLiveNavigationVoice:", err);
+          if (voiceEnabled && typeof window !== 'undefined' && 'speechSynthesis' in window) {
+            const now = Date.now();
+            if (now - lastSpokenRef.current > 8000) {
+              lastSpokenRef.current = now;
+              try {
+                window.speechSynthesis.cancel();
+                const hindiSpeech = `जी, ${destination.name || 'गंतव्य'} की ओर आगे बढ़ें। दूरी लगभग ${instantMeters} मीटर है।`;
+                const msg = new SpeechSynthesisUtterance(hindiSpeech);
+                msg.lang = 'hi-IN';
+                msg.pitch = 1.12;
+                msg.rate = 0.92;
+                const voices = window.speechSynthesis.getVoices();
+                const hindiFemale = voices.find(v => 
+                  (v.lang.includes('hi') || v.lang.includes('HI') || v.name.toLowerCase().includes('hindi')) &&
+                  (v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('swara') || v.name.toLowerCase().includes('heera') || v.name.toLowerCase().includes('kalpana') || v.name.toLowerCase().includes('google') || v.name.includes('हिन्दी'))
+                ) || voices.find(v => v.lang.includes('hi') || v.name.toLowerCase().includes('hindi'))
+                  || voices.find(v => v.lang.includes('en-IN') && v.name.toLowerCase().includes('female'));
+                if (hindiFemale) msg.voice = hindiFemale;
+                window.speechSynthesis.speak(msg);
+              } catch (e) {
+                console.warn("SpeechSynthesis error:", e);
+              }
+            }
+          }
+        });
     } else {
       setDistanceMeters(0);
       setStepsCount(0);
     }
+
+    return () => {
+      isCancelled = true;
+    };
   }, [userPos, currentLocation, destination, voiceEnabled]);
 
   // 3. Off-Track Distraction Detection & Voice Warning

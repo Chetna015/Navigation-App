@@ -107,9 +107,32 @@ export function restoreAllDeletedLocations() {
   }
 }
 
+function getDistanceMeters(lat1, lon1, lat2, lon2) {
+  if (!lat1 || !lon1 || !lat2 || !lon2) return Infinity;
+  const R = 6371e3;
+  const φ1 = (lat1 * Math.PI) / 180;
+  const φ2 = (lat2 * Math.PI) / 180;
+  const Δφ = ((lat2 - lat1) * Math.PI) / 180;
+  const Δλ = ((lon2 - lon1) * Math.PI) / 180;
+
+  const a =
+    Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+    Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return R * c;
+}
+
+function getSimplifiedKey(name) {
+  if (!name) return '';
+  return name.toLowerCase()
+    .replace(/[^a-z0-9]/g, '')
+    .replace(/(engineeringblock|foodcourt|sportscomplex|auditorium|complex|station|facility|office|offuce|point|centre|center)/g, '');
+}
+
 /**
  * Get merged Campus Buildings object using default buildings, user custom pins, and location overrides, minus deleted locations.
- * Ensures duplicate named locations are merged into a single unique pinpoint.
+ * Ensures duplicate named and duplicate co-located pins are merged into a single unique pinpoint.
  */
 export function getMergedCampusBuildings() {
   const overrides = getLocationOverrides();
@@ -118,6 +141,7 @@ export function getMergedCampusBuildings() {
 
   const rawList = [];
 
+  // Official primary locations first
   (MAP_LOCATIONS || []).forEach(loc => {
     if (loc && loc.id) {
       rawList.push({ ...loc });
@@ -137,19 +161,34 @@ export function getMergedCampusBuildings() {
   });
 
   const buildings = {};
-  const seenNames = new Set();
+  const keptLocations = [];
 
   rawList.forEach(loc => {
-    if (!loc || !loc.name) return;
+    if (!loc || !loc.name || !loc.lat || !loc.lng) return;
+
     const norm = loc.name.toLowerCase().replace(/[^a-z0-9]/g, '');
-    if (seenNames.has(norm)) return; // skip duplicate name
-    seenNames.add(norm);
+    const simp = getSimplifiedKey(loc.name);
+
+    // Check if already in keptLocations by exact name, simplified key, or tight GPS proximity (< 18 meters)
+    const isDuplicate = keptLocations.some(existing => {
+      const existNorm = existing.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+      const existSimp = getSimplifiedKey(existing.name);
+      const dist = getDistanceMeters(loc.lat, loc.lng, existing.lat, existing.lng);
+
+      if (norm === existNorm) return true;
+      if (simp && existSimp && simp === existSimp && dist < 50) return true;
+      if (dist < 15) return true;
+      return false;
+    });
+
+    if (isDuplicate) return;
 
     let finalLoc = { ...loc };
     if (overrides && overrides[loc.id]) {
       finalLoc = { ...finalLoc, ...overrides[loc.id] };
     }
     buildings[loc.id] = finalLoc;
+    keptLocations.push(finalLoc);
   });
 
   (deleted || []).forEach(id => {
@@ -161,22 +200,8 @@ export function getMergedCampusBuildings() {
 
 /**
  * Get merged MAP_LOCATIONS array using default locations, custom pins, and overrides, minus deleted locations.
- * Automatically deduplicates locations sharing the same name.
+ * Automatically deduplicates locations sharing the same name or coordinate footprint.
  */
 export function getMergedMapLocations() {
-  const allBuildings = Object.values(getMergedCampusBuildings());
-  const seenNames = new Set();
-  const deduplicated = [];
-
-  for (const loc of allBuildings) {
-    if (!loc || !loc.name) continue;
-    // Normalize name e.g. "Girls Hostel" -> "girlshostel"
-    const norm = loc.name.toLowerCase().replace(/[^a-z0-9]/g, '');
-    if (!seenNames.has(norm)) {
-      seenNames.add(norm);
-      deduplicated.push(loc);
-    }
-  }
-
-  return deduplicated;
+  return Object.values(getMergedCampusBuildings());
 }

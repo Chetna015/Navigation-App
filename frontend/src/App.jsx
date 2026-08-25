@@ -262,6 +262,18 @@ export default function App() {
     );
   };
 
+  const handleTriggerSOS = () => {
+    const medBooth = MAP_LOCATIONS.find(l => l.id === 'loc_medical_booth') || {
+      id: 'loc_medical_booth',
+      name: 'Emergency Medical Booth 🚑',
+      lat: 26.4985,
+      lng: 80.2662,
+      floor: 'outdoor'
+    };
+    handleSelectLocation(medBooth);
+    setSosBanner(true);
+  };
+
   return (
     <div className="mobile-app-shell">
       {/* 1. Splash Screen Intro */}

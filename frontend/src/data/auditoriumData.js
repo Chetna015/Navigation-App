@@ -886,6 +886,21 @@ export const MAP_LOCATIONS = [
     "y": 428,
     "floors": 3,
     "description": "Primary venue for AI Summit 2026 Workshops, MBA Classrooms, RO Coolers & Computing Labs",
+    "arrivalRadius": 25,
+    "entrances": [
+      {
+        "id": "sbm-main-entrance",
+        "name": "Main Entrance",
+        "lat": 26.50290,
+        "lng": 80.26620
+      },
+      {
+        "id": "sbm-east-entrance",
+        "name": "East Entrance",
+        "lat": 26.50310,
+        "lng": 80.26650
+      }
+    ],
     "departments": ["MBA Dept", "AI Keynote Hall", "Dean Secretariat", "Startup Incubation"]
   },
   {
@@ -925,6 +940,21 @@ export const MAP_LOCATIONS = [
     "y": 318,
     "floors": 2,
     "description": "Grand 1500-seat Plenary Auditorium & Convocation Complex",
+    "arrivalRadius": 25,
+    "entrances": [
+      {
+        "id": "auditorium-main-entrance",
+        "name": "Main Entrance",
+        "lat": 26.50410,
+        "lng": 80.26830
+      },
+      {
+        "id": "auditorium-east-entrance",
+        "name": "East Entrance",
+        "lat": 26.50420,
+        "lng": 80.26860
+      }
+    ],
     "departments": ["Main Stage", "Exhibition Foyer", "VIP Green Rooms"]
   },
   {
@@ -1056,391 +1086,6 @@ export const MAP_LOCATIONS = [
     "floors": 1,
     "description": "24/7 University Emergency Health Centre, First Aid & Doctor on Call",
     "departments": ["Emergency First Aid", "Pharmacy", "Doctor Consultation"]
-  },
-  {
-    "id": "custom_bld_1786258679894",
-    "name": "Nataraj Point",
-    "code": "BLD-711",
-    "category": "Entrance",
-    "lat": 26.500645,
-    "lng": 80.267897,
-    "x": 422,
-    "y": 409,
-    "floors": 1,
-    "description": "Custom Plotted University Facility",
-    "departments": [
-      "General Dept",
-      "Faculty Offices"
-    ],
-    "isCustom": true
-  },
-  {
-    "id": "custom_bld_1786258694497",
-    "name": "Uiet",
-    "code": "BLD-445",
-    "category": "Entrance",
-    "lat": 26.500924,
-    "lng": 80.265507,
-    "x": 451,
-    "y": 329,
-    "floors": 1,
-    "description": "Custom Plotted University Facility",
-    "departments": [
-      "General Dept",
-      "Faculty Offices"
-    ],
-    "isCustom": true
-  },
-  {
-    "id": "custom_bld_1786258709544",
-    "name": "Lecture Hall Complex",
-    "code": "BLD-438",
-    "category": "Entrance",
-    "lat": 26.501216,
-    "lng": 80.264579,
-    "x": 411,
-    "y": 499,
-    "floors": 1,
-    "description": "Custom Plotted University Facility",
-    "departments": [
-      "General Dept",
-      "Faculty Offices"
-    ],
-    "isCustom": true
-  },
-  {
-    "id": "custom_bld_1786258750057",
-    "name": "Open Air Theatre",
-    "code": "BLD-712",
-    "category": "Entrance",
-    "lat": 26.501838,
-    "lng": 80.265006,
-    "x": 405,
-    "y": 420,
-    "floors": 1,
-    "description": "Custom Plotted University Facility",
-    "departments": [
-      "General Dept",
-      "Faculty Offices"
-    ],
-    "isCustom": true
-  },
-  {
-    "id": "custom_bld_1786258953264",
-    "name": "Boys Hostel",
-    "code": "BLD-355",
-    "category": "Entrance",
-    "lat": 26.508427,
-    "lng": 80.26879,
-    "x": 363,
-    "y": 430,
-    "floors": 1,
-    "description": "Custom Plotted University Facility",
-    "departments": [
-      "General Dept",
-      "Faculty Offices"
-    ],
-    "isCustom": true
-  },
-  {
-    "id": "custom_bld_1786259088845",
-    "name": "CSJMU Metro Station",
-    "code": "BLD-367",
-    "category": "Entrance",
-    "lat": 26.49648,
-    "lng": 80.267272,
-    "x": 367,
-    "y": 478,
-    "floors": 1,
-    "description": "Custom Plotted University Facility",
-    "departments": [
-      "General Dept",
-      "Faculty Offices"
-    ],
-    "isCustom": true
-  },
-  {
-    "id": "custom_bld_1786259290495",
-    "name": "Cafeteria",
-    "code": "BLD-102",
-    "category": "Entrance",
-    "lat": 26.499776,
-    "lng": 80.266065,
-    "x": 386,
-    "y": 316,
-    "floors": 1,
-    "description": "Custom Plotted University Facility",
-    "departments": [
-      "General Dept",
-      "Faculty Offices"
-    ],
-    "isCustom": true
-  },
-  {
-    "id": "custom_bld_1786259345815",
-    "name": "School of Business Management(SBM)",
-    "code": "BLD-973",
-    "category": "Entrance",
-    "lat": 26.503022,
-    "lng": 80.266371,
-    "x": 334,
-    "y": 304,
-    "floors": 1,
-    "description": "Custom Plotted University Facility",
-    "arrivalRadius": 25,
-    "entrances": [
-      {
-        "id": "sbm-main-entrance-1",
-        "name": "Main Entrance",
-        "lat": 26.50290,
-        "lng": 80.26620
-      },
-      {
-        "id": "sbm-east-entrance-1",
-        "name": "East Entrance",
-        "lat": 26.50310,
-        "lng": 80.26650
-      }
-    ],
-    "departments": [
-      "General Dept",
-      "Faculty Offices"
-    ],
-    "isCustom": true
-  },
-  {
-    "id": "custom_bld_1786259378721",
-    "name": "Uiet 4",
-    "code": "BLD-645",
-    "category": "Entrance",
-    "lat": 26.502772,
-    "lng": 80.264965,
-    "x": 346,
-    "y": 375,
-    "floors": 1,
-    "description": "Custom Plotted University Facility",
-    "departments": [
-      "General Dept",
-      "Faculty Offices"
-    ],
-    "isCustom": true
-  },
-  {
-    "id": "custom_bld_1786300275720",
-    "name": "Administration Offuce",
-    "code": "BLD-110",
-    "category": "Entrance",
-    "lat": 26.498396,
-    "lng": 80.266183,
-    "x": 408,
-    "y": 385,
-    "floors": 1,
-    "description": "Custom Plotted University Facility",
-    "departments": [
-      "General Dept",
-      "Faculty Offices"
-    ],
-    "isCustom": true
-  },
-  {
-    "id": "custom_bld_1786300306192",
-    "name": "Centre of Academics",
-    "code": "BLD-165",
-    "category": "Entrance",
-    "lat": 26.499243,
-    "lng": 80.266709,
-    "x": 412,
-    "y": 462,
-    "floors": 1,
-    "description": "Custom Plotted University Facility",
-    "departments": [
-      "General Dept",
-      "Faculty Offices"
-    ],
-    "isCustom": true
-  },
-  {
-    "id": "custom_bld_1786300320785",
-    "name": "Girls Hostel",
-    "code": "BLD-769",
-    "category": "Entrance",
-    "lat": 26.49956,
-    "lng": 80.268044,
-    "x": 478,
-    "y": 401,
-    "floors": 1,
-    "description": "Custom Plotted University Facility",
-    "departments": [
-      "General Dept",
-      "Faculty Offices"
-    ],
-    "isCustom": true
-  },
-  {
-    "id": "custom_bld_1786300348670",
-    "name": "Central Library",
-    "code": "BLD-778",
-    "category": "Entrance",
-    "lat": 26.50114,
-    "lng": 80.267025,
-    "x": 445,
-    "y": 369,
-    "floors": 1,
-    "description": "Custom Plotted University Facility",
-    "departments": [
-      "General Dept",
-      "Faculty Offices"
-    ],
-    "isCustom": true
-  },
-  {
-    "id": "custom_bld_1786300361943",
-    "name": "Open Gym",
-    "code": "BLD-387",
-    "category": "Entrance",
-    "lat": 26.500837,
-    "lng": 80.268307,
-    "x": 449,
-    "y": 458,
-    "floors": 1,
-    "description": "Custom Plotted University Facility",
-    "departments": [
-      "General Dept",
-      "Faculty Offices"
-    ],
-    "isCustom": true
-  },
-  {
-    "id": "custom_bld_1786300371977",
-    "name": "UIET",
-    "code": "BLD-304",
-    "category": "Entrance",
-    "lat": 26.500924,
-    "lng": 80.265555,
-    "x": 306,
-    "y": 398,
-    "floors": 1,
-    "description": "Custom Plotted University Facility",
-    "departments": [
-      "General Dept",
-      "Faculty Offices"
-    ],
-    "isCustom": true
-  },
-  {
-    "id": "custom_bld_1786300386758",
-    "name": "Uiet 4",
-    "code": "BLD-689",
-    "category": "Entrance",
-    "lat": 26.502781,
-    "lng": 80.265035,
-    "x": 390,
-    "y": 364,
-    "floors": 1,
-    "description": "Custom Plotted University Facility",
-    "departments": [
-      "General Dept",
-      "Faculty Offices"
-    ],
-    "isCustom": true
-  },
-  {
-    "id": "custom_bld_1786300418619",
-    "name": "School of Business Management(SBM)",
-    "code": "BLD-312",
-    "category": "Entrance",
-    "lat": 26.503031,
-    "lng": 80.266371,
-    "x": 429,
-    "y": 428,
-    "floors": 1,
-    "description": "Custom Plotted University Facility",
-    "arrivalRadius": 25,
-    "entrances": [
-      {
-        "id": "sbm-main-entrance-2",
-        "name": "Main Entrance",
-        "lat": 26.50290,
-        "lng": 80.26620
-      },
-      {
-        "id": "sbm-east-entrance-2",
-        "name": "East Entrance",
-        "lat": 26.50310,
-        "lng": 80.26650
-      }
-    ],
-    "departments": [
-      "General Dept",
-      "Faculty Offices"
-    ],
-    "isCustom": true
-  },
-  {
-    "id": "custom_bld_1786300436659",
-    "name": "CSJM Auditorium",
-    "code": "BLD-650",
-    "category": "Entrance",
-    "lat": 26.504193,
-    "lng": 80.268463,
-    "x": 471,
-    "y": 318,
-    "floors": 1,
-    "description": "Custom Plotted University Facility",
-    "arrivalRadius": 25,
-    "entrances": [
-      {
-        "id": "auditorium-main-entrance",
-        "name": "Main Entrance",
-        "lat": 26.50410,
-        "lng": 80.26830
-      },
-      {
-        "id": "auditorium-east-entrance",
-        "name": "East Entrance",
-        "lat": 26.50420,
-        "lng": 80.26860
-      }
-    ],
-    "departments": [
-      "General Dept",
-      "Faculty Offices"
-    ],
-    "isCustom": true
-  },
-  {
-    "id": "custom_bld_1786300466437",
-    "name": "Swimming Pool",
-    "code": "BLD-687",
-    "category": "Entrance",
-    "lat": 26.505125,
-    "lng": 80.270458,
-    "x": 485,
-    "y": 493,
-    "floors": 1,
-    "description": "Custom Plotted University Facility",
-    "departments": [
-      "General Dept",
-      "Faculty Offices"
-    ],
-    "isCustom": true
-  },
-  {
-    "id": "custom_bld_1786300525357",
-    "name": "Boys Hostel",
-    "code": "BLD-739",
-    "category": "Entrance",
-    "lat": 26.508417,
-    "lng": 80.268779,
-    "x": 327,
-    "y": 490,
-    "floors": 1,
-    "description": "Custom Plotted University Facility",
-    "departments": [
-      "General Dept",
-      "Faculty Offices"
-    ],
-    "isCustom": true
   }
 ];
 

@@ -38,6 +38,7 @@ export default function App() {
   const [currentPage, setCurrentPage] = useState('home');
   const [showSplash, setShowSplash] = useState(false);
   const [building3D, setBuilding3D] = useState(null);
+  const [sosBanner, setSosBanner] = useState(false);
 
   // Live Geolocation Tracking & Voice Assistance
   const {
@@ -257,6 +258,18 @@ export default function App() {
     setBookmarks(prev => 
       prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
     );
+  };
+
+  const handleTriggerSOS = () => {
+    const medBooth = MAP_LOCATIONS.find(l => l.id === 'loc_medical_booth') || {
+      id: 'loc_medical_booth',
+      name: 'Emergency Medical Booth 🚑',
+      lat: 26.4985,
+      lng: 80.2662,
+      floor: 'outdoor'
+    };
+    handleSelectLocation(medBooth);
+    setSosBanner(true);
   };
 
   return (

@@ -17,6 +17,7 @@ import Admin360DashboardModal from './components/Admin360DashboardModal';
 import CampusLifeStatusModal from './components/CampusLifeStatusModal';
 import ParkingFinderModal from './components/ParkingFinderModal';
 import SBMBuildingIndoorModal from './components/SBMBuildingIndoorModal';
+import IndoorBuildingSelectorModal from './components/IndoorBuildingSelectorModal';
 import useLiveNavigationVoice from './hooks/useLiveNavigationVoice';
 import { MAP_LOCATIONS, STARTUP_STALLS } from './data/auditoriumData';
 import { useNavigation } from './context/NavigationContext';
@@ -38,6 +39,7 @@ export default function App() {
   const [currentPage, setCurrentPage] = useState('home');
   const [showSplash, setShowSplash] = useState(false);
   const [building3D, setBuilding3D] = useState(null);
+  const [sosBanner, setSosBanner] = useState(false);
 
   // Live Geolocation Tracking & Voice Assistance
   const {
@@ -94,6 +96,7 @@ export default function App() {
   const [showCampusLifeModal, setShowCampusLifeModal] = useState(false);
   const [showParkingModal, setShowParkingModal] = useState(false);
   const [showSBMIndoorModal, setShowSBMIndoorModal] = useState(false);
+  const [showIndoorSelector, setShowIndoorSelector] = useState(false);
   const [indoorBuildingId, setIndoorBuildingId] = useState('sbm'); // 'sbm' | 'auditorium'
   const [editingLocation, setEditingLocation] = useState(null);
   const [selectedStall, setSelectedStall] = useState(null);
@@ -352,7 +355,7 @@ export default function App() {
         currentPage={currentPage}
         onNavigateTab={(tab) => setCurrentPage(tab)}
         onOpenAIAssistant={() => setShowAIAssistant(true)}
-        onOpenIndoor={() => handleOpenIndoorModal()}
+        onOpenIndoor={() => setShowIndoorSelector(true)}
         onOpenSaved={() => setShowSavedModal(true)}
         hasActiveRoute={!!destination}
       />
@@ -493,6 +496,12 @@ export default function App() {
           handleSelectLocation(bld);
           setShowSBMIndoorModal(false);
         }}
+      />
+
+      <IndoorBuildingSelectorModal
+        isOpen={showIndoorSelector}
+        onClose={() => setShowIndoorSelector(false)}
+        onSelectBuilding={(buildingId) => handleOpenIndoorModal(buildingId)}
       />
 
       {/* Selected Stall Detail Drawer */}

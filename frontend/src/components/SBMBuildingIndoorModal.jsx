@@ -3,19 +3,34 @@ import {
   X, Search, Building2, Droplets, MapPin, Navigation, Sparkles, Clock, CheckCircle2, 
   Layers, ChevronRight, Shield, Zap, ArrowRight, Compass, Info, Cpu, Award
 } from 'lucide-react';
-import { SBM_INDOOR_DATA } from '../data/auditoriumData';
+import { SBM_INDOOR_DATA, AUDITORIUM_INDOOR_DATA } from '../data/auditoriumData';
 import { apiService } from '../services/api';
 
 export default function SBMBuildingIndoorModal({
   isOpen,
   onClose,
-  onNavigateToBuilding
+  onNavigateToBuilding,
+  initialBuildingId = 'sbm'
 }) {
+  const [activeBuildingId, setActiveBuildingId] = useState(initialBuildingId);
   const [activeFloorId, setActiveFloorId] = useState('ground');
   const [activeTab, setActiveTab] = useState('map'); // 'map' | 'watercoolers' | 'rooms' | 'pathfinder'
   const [selectedItem, setSelectedItem] = useState(null); // room or watercooler
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState('all');
+
+  // Sync initial building ID when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setActiveBuildingId(initialBuildingId);
+      setActiveFloorId('ground');
+      setSelectedItem(null);
+      setActivePath(null);
+    }
+  }, [isOpen, initialBuildingId]);
+
+  // Select dynamic active building dataset
+  const activeBuildingData = activeBuildingId === 'auditorium' ? AUDITORIUM_INDOOR_DATA : SBM_INDOOR_DATA;
 
   // Indoor Pathfinder State
   const [pathStartId, setPathStartId] = useState('ENTRANCE_WEST');
@@ -24,6 +39,19 @@ export default function SBMBuildingIndoorModal({
 
   const [dbRooms, setDbRooms] = useState([]);
   const [dbWcs, setDbWcs] = useState([]);
+
+  // Sync pathEndId when active building changes to prevent mismatches
+  useEffect(() => {
+    if (activeBuildingData && activeBuildingData.floors && activeBuildingData.floors[0]) {
+      const firstWC = activeBuildingData.floors[0].waterCoolers?.[0];
+      if (firstWC) {
+        setPathEndId(firstWC.id);
+      } else {
+        const firstRoom = activeBuildingData.floors[0].rooms?.[0];
+        if (firstRoom) setPathEndId(firstRoom.id);
+      }
+    }
+  }, [activeBuildingId, activeBuildingData]);
 
   useEffect(() => {
     if (isOpen) {
@@ -55,19 +83,24 @@ export default function SBMBuildingIndoorModal({
 
   if (!isOpen) return null;
 
-  const currentFloor = SBM_INDOOR_DATA.floors.find(f => f.id === activeFloorId) || SBM_INDOOR_DATA.floors[0];
+  const currentFloor = activeBuildingData.floors.find(f => f.id === activeFloorId) || activeBuildingData.floors[0];
 
-  // Helpers
-  const allWaterCoolers = dbWcs.length > 0 ? dbWcs : SBM_INDOOR_DATA.floors.flatMap(f => f.waterCoolers.map(wc => ({ ...wc, floorName: f.name })));
-  const allRooms = dbRooms.length > 0 ? dbRooms : SBM_INDOOR_DATA.floors.flatMap(f => f.rooms.map(r => ({ ...r, floorName: f.name })));
+  // Helpers (Filtered by active building context)
+  const allWaterCoolers = dbWcs.filter(w => w.location_id === activeBuildingData.buildingCode || w.location_id === activeBuildingData.id).length > 0
+    ? dbWcs.filter(w => w.location_id === activeBuildingData.buildingCode || w.location_id === activeBuildingData.id)
+    : activeBuildingData.floors.flatMap(f => f.waterCoolers.map(wc => ({ ...wc, floorName: f.name })));
+
+  const allRooms = dbRooms.filter(r => r.location_id === activeBuildingData.buildingCode || r.location_id === activeBuildingData.id).length > 0
+    ? dbRooms.filter(r => r.location_id === activeBuildingData.buildingCode || r.location_id === activeBuildingData.id)
+    : activeBuildingData.floors.flatMap(f => f.rooms.map(r => ({ ...r, floorName: f.name })));
 
   const displayedRooms = allRooms.filter(r => {
-    const fl = activeFloorId === 'ground' ? 'ground' : activeFloorId === 'first' ? 'floor1' : 'floor2';
+    const fl = activeFloorId === 'ground' ? 'ground' : activeFloorId === 'floor1' ? 'floor1' : 'floor2';
     return r.floor_level === fl || r.floorName?.toLowerCase().includes(activeFloorId);
   });
 
   const displayedWaterCoolers = allWaterCoolers.filter(w => {
-    const fl = activeFloorId === 'ground' ? 'ground' : activeFloorId === 'first' ? 'floor1' : 'floor2';
+    const fl = activeFloorId === 'ground' ? 'ground' : activeFloorId === 'floor1' ? 'floor1' : 'floor2';
     return w.floor_level === fl || w.floorName?.toLowerCase().includes(activeFloorId);
   });
 
@@ -75,6 +108,7 @@ export default function SBMBuildingIndoorModal({
     const targetRoom = allRooms.find(r => r.id === pathEndId);
     const targetWC = allWaterCoolers.find(w => w.id === pathEndId);
     const destName = targetRoom ? targetRoom.name : (targetWC ? targetWC.name : pathEndId);
+    const bldCode = activeBuildingData.buildingCode || 'SBM';
 
     setActivePath({
       from: pathStartId === 'ENTRANCE_WEST' ? 'West Main Gate Entrance' : 'Central Atrium Elevator',
@@ -83,9 +117,9 @@ export default function SBMBuildingIndoorModal({
       stepsCount: Math.floor(35 + Math.random() * 60),
       durationMins: 1,
       steps: [
-        'Enter through SBM Main Corridor entrance.',
+        `Enter through ${bldCode} Main Corridor entrance.`,
         'Follow the primary central corridor path.',
-        'Pass SBM-01 AI Keynote Hall on your left.',
+        `Pass ${bldCode}-01 Keynote/Plenary Hall on your left.`,
         `Arrive at your target destination: ${destName}.`
       ]
     });
@@ -138,10 +172,35 @@ export default function SBMBuildingIndoorModal({
               <Building2 size={20} />
             </div>
             <div>
-              <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--colors-ink)', fontFamily: 'var(--font-heading)' }}>
-                🏢 School of Business Management (SBM) Digital Twin
-              </h3>
-              <p style={{ fontSize: '12px', color: 'var(--colors-body)', fontFamily: 'var(--font-main)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--colors-ink)', fontFamily: 'var(--font-heading)', margin: 0 }}>
+                  🏢 Indoor Blueprint:
+                </h3>
+                <select
+                  value={activeBuildingId}
+                  onChange={(e) => {
+                    setActiveBuildingId(e.target.value);
+                    setActiveFloorId('ground');
+                    setSelectedItem(null);
+                    setActivePath(null);
+                  }}
+                  style={{
+                    background: 'var(--colors-canvas)',
+                    border: '1px solid var(--colors-hairline-strong)',
+                    color: 'var(--colors-ink)',
+                    padding: '4px 10px',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    fontWeight: 700,
+                    outline: 'none',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <option value="sbm">School of Business Management (SBM)</option>
+                  <option value="auditorium">CSJM Auditorium</option>
+                </select>
+              </div>
+              <p style={{ fontSize: '12px', color: 'var(--colors-body)', fontFamily: 'var(--font-main)', marginTop: '4px', margin: 0 }}>
                 AI Summit Rooms, Classrooms, Watercoolers Network & Corridor Paths
               </p>
             </div>
@@ -152,9 +211,9 @@ export default function SBMBuildingIndoorModal({
               <button
                 onClick={() => {
                   onNavigateToBuilding({
-                    name: 'School of Business Management (SBM)',
-                    lat: 26.503022,
-                    lng: 80.266371
+                    name: activeBuildingData.buildingName,
+                    lat: activeBuildingData.lat,
+                    lng: activeBuildingData.lng
                   });
                   onClose();
                 }}
@@ -226,7 +285,7 @@ export default function SBMBuildingIndoorModal({
             <span style={{ fontSize: '11px', color: 'var(--colors-body)', fontWeight: 600, marginRight: '4px' }}>
               FLOOR:
             </span>
-            {SBM_INDOOR_DATA.floors.map(floor => (
+            {activeBuildingData.floors.map(floor => (
               <button
                 key={floor.id}
                 onClick={() => setActiveFloorId(floor.id)}
@@ -469,7 +528,7 @@ export default function SBMBuildingIndoorModal({
 
                       <button
                         onClick={() => {
-                          const floor = SBM_INDOOR_DATA.floors.find(f => f.waterCoolers.some(w => w.id === wc.id));
+                          const floor = activeBuildingData.floors.find(f => f.waterCoolers.some(w => w.id === wc.id));
                           if (floor) setActiveFloorId(floor.id);
                           setSelectedItem(wc);
                           setActiveTab('map');
@@ -492,7 +551,7 @@ export default function SBMBuildingIndoorModal({
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
                 <div>
                   <h4 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--colors-ink)', fontFamily: 'var(--font-heading)', margin: '0 0 4px' }}>
-                    🏫 SBM Classrooms, Keynote Halls & GPU Labs
+                    🏫 {activeBuildingData.buildingName} Classrooms, Keynote Halls & GPU Labs
                   </h4>
                   <p style={{ fontSize: '12px', color: 'var(--colors-body)', margin: 0 }}>
                     All lecture rooms, ML computer labs, keynote auditoriums, and research suites
@@ -561,7 +620,7 @@ export default function SBMBuildingIndoorModal({
 
                       <button
                         onClick={() => {
-                          const floor = SBM_INDOOR_DATA.floors.find(f => f.rooms.some(r => r.id === room.id));
+                          const floor = activeBuildingData.floors.find(f => f.rooms.some(r => r.id === room.id));
                           if (floor) setActiveFloorId(floor.id);
                           setSelectedItem(room);
                           setActiveTab('map');

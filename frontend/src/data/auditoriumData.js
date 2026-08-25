@@ -325,6 +325,207 @@ export const SBM_INDOOR_DATA = {
   ]
 };
 
+export const AUDITORIUM_INDOOR_DATA = {
+  buildingName: "CSJM Auditorium",
+  buildingCode: "AUD-MAIN",
+  lat: 26.504193,
+  lng: 80.268463,
+  totalFloors: 2,
+  description: "1,500-seat Plenary Auditorium Hall, Exhibition Arena & AI Summit Hub.",
+  floors: [
+    {
+      id: "ground",
+      name: "Ground Floor (L0)",
+      level: 0,
+      corridorName: "Main Entrance & Exhibition Corridor",
+      corridorLengthMeters: 150,
+      image: "/assets/buildings/auditorium.jpg",
+      rooms: [
+        {
+          id: "AUD-01",
+          name: "AUD-01: Plenary Auditorium Hall",
+          type: "Hall / Auditorium",
+          capacity: "1,500 Seats",
+          equipment: "4K Laser Projection, Dolby Atmos Surround Sound",
+          currentEvent: "Summit Plenary & Keynotes",
+          floor: "Ground Floor",
+          coordinates: { x: 300, y: 140 },
+          status: "In Use",
+          tags: ["Keynote", "Plenary", "Auditorium"]
+        },
+        {
+          id: "AUD-02",
+          name: "AUD-02: VIP Lounge",
+          type: "VIP Lounge",
+          capacity: "50 Seats",
+          equipment: "Premium Seating, Dining Area, VC Facilities",
+          currentEvent: "VC & Speaker Private Networking",
+          floor: "Ground Floor",
+          coordinates: { x: 480, y: 140 },
+          status: "VIP Only",
+          tags: ["VIP", "Lounge"]
+        },
+        {
+          id: "AUD-03",
+          name: "AUD-03: Startup Exhibition Hall",
+          type: "Exhibition Hall",
+          capacity: "500 Visitors",
+          equipment: "Booths S01-S20, Digital displays",
+          currentEvent: "AI Summit Startup Exhibition",
+          floor: "Ground Floor",
+          coordinates: { x: 640, y: 140 },
+          status: "Open to All",
+          tags: ["Exhibition", "Startup"]
+        },
+        {
+          id: "AUD-04",
+          name: "AUD-04: Registration & Desk Area",
+          type: "Registration Hall",
+          capacity: "100 Visitors",
+          equipment: "RFID check-in desk, badge scanners",
+          currentEvent: "AI Summit Delegate Registrations",
+          floor: "Ground Floor",
+          coordinates: { x: 120, y: 140 },
+          status: "Active Registration",
+          tags: ["Registration", "Help Desk"]
+        },
+        {
+          id: "AUD-05",
+          name: "AUD-05: Press & Media Center",
+          type: "Media Center",
+          capacity: "40 Seats",
+          equipment: "Broadcast cameras, editing rigs, high-speed fiber",
+          currentEvent: "Press Briefings & Interviews",
+          floor: "Ground Floor",
+          coordinates: { x: 800, y: 140 },
+          status: "Media Only",
+          tags: ["Media", "Press"]
+        }
+      ],
+      waterCoolers: [
+        {
+          id: "AUD-WC-01",
+          name: "Auditorium Water Cooler #1 (Main Foyer RO)",
+          type: "Touchless Smart Refill Station",
+          temperature: "6.1°C (Chilled)",
+          purity: "99.9% Purified",
+          capacity: "80 Litres/Hr",
+          status: "Operational • Active",
+          image: "/assets/buildings/watercooler_touchless.jpg",
+          locationDescription: "Main Foyer near AUD-04 Registration Desk",
+          coordinates: { x: 200, y: 220 },
+          features: ["Touchless Hydration", "Digital Temp Display", "Eco Counter (2,400 saved)"]
+        },
+        {
+          id: "AUD-WC-02",
+          name: "Auditorium Water Cooler #2 (VIP Corridor RO)",
+          type: "Alkaline RO Water System",
+          temperature: "5.8°C (Cold)",
+          purity: "100.0% Purified",
+          capacity: "40 Litres/Hr",
+          status: "Operational • Active",
+          image: "/assets/buildings/watercooler_ro.jpg",
+          locationDescription: "VIP Lounge East Corridor passage",
+          coordinates: { x: 550, y: 220 },
+          features: ["Double Cup Dispenser", "Mineral Booster", "Cold Taps"]
+        }
+      ],
+      corridors: [
+        {
+          id: "CORR-AUD01",
+          name: "Auditorium Main Lobby Corridor Walkway",
+          widthMeters: 5.0,
+          pathPoints: [{ x: 80, y: 220 }, { x: 300, y: 220 }, { x: 500, y: 220 }, { x: 750, y: 220 }, { x: 880, y: 220 }],
+          description: "Main Foyer walkway connecting Entrance, Auditorium Hall, and Exit."
+        }
+      ],
+      amenities: [
+        { id: "STAIR-AUD-A", name: "Staircase Alpha (West)", type: "Stairs", coordinates: { x: 90, y: 260 } },
+        { id: "STAIR-AUD-B", name: "Staircase Beta (East)", type: "Stairs", coordinates: { x: 860, y: 260 } },
+        { id: "ELEV-AUD1", name: "Elevator Lobby (Central)", type: "Elevator", coordinates: { x: 490, y: 260 } },
+        { id: "WASH-AUD1", name: "Restrooms (Gents & Ladies)", type: "Washroom", coordinates: { x: 720, y: 260 } },
+        { id: "EXIT-AUD1", name: "Main Entrance Doors", type: "Exit", coordinates: { x: 920, y: 220 } }
+      ]
+    },
+    {
+      id: "floor1",
+      name: "First Floor (L1)",
+      level: 1,
+      corridorName: "Auditorium Balcony & Tech Booth Gallery",
+      corridorLengthMeters: 150,
+      image: "/assets/buildings/watercooler_touchless.jpg",
+      rooms: [
+        {
+          id: "AUD-101",
+          name: "AUD-101: Balcony Seating Area",
+          type: "Seating Gallery",
+          capacity: "400 Seats",
+          equipment: "Tiered seating, safety glass rails",
+          currentEvent: "Summit Plenary Session View",
+          floor: "First Floor",
+          coordinates: { x: 200, y: 140 },
+          status: "Open",
+          tags: ["Balcony", "Seating"]
+        },
+        {
+          id: "AUD-102",
+          name: "AUD-102: Tech Control Room & Translation Hub",
+          type: "Control Room",
+          capacity: "15 Techs",
+          equipment: "A/V mixing desks, live translation consoles",
+          currentEvent: "Live translation & video mixing",
+          floor: "First Floor",
+          coordinates: { x: 500, y: 140 },
+          status: "Authorized Only",
+          tags: ["Control", "Translation"]
+        },
+        {
+          id: "AUD-103",
+          name: "AUD-103: Green Room (VIP Speakers)",
+          type: "Green Room",
+          capacity: "20 Seats",
+          equipment: "Lounge seating, mirrors, restrooms",
+          currentEvent: "Speaker preparation & briefing",
+          floor: "First Floor",
+          coordinates: { x: 750, y: 140 },
+          status: "Speakers Only",
+          tags: ["Green Room", "Speakers"]
+        }
+      ],
+      waterCoolers: [
+        {
+          id: "AUD-WC-03",
+          name: "Auditorium Water Cooler #3 (Balcony Passage RO)",
+          type: "Standard RO Dispenser",
+          temperature: "6.0°C (Cold)",
+          purity: "99.8% Purified",
+          capacity: "50 Litres/Hr",
+          status: "Operational • Active",
+          image: "/assets/buildings/watercooler_ro.jpg",
+          locationDescription: "First Floor Balcony Left Entrance",
+          coordinates: { x: 350, y: 220 },
+          features: ["Disposable Cup Holder", "Fast Refill Basin"]
+        }
+      ],
+      corridors: [
+        {
+          id: "CORR-AUD101",
+          name: "First Floor Balcony Walkway",
+          widthMeters: 4.0,
+          pathPoints: [{ x: 80, y: 220 }, { x: 300, y: 220 }, { x: 500, y: 220 }, { x: 750, y: 220 }, { x: 880, y: 220 }],
+          description: "Upper balcony corridor path connecting seating area, control booth, and green room."
+        }
+      ],
+      amenities: [
+        { id: "STAIR-AUD1A", name: "Staircase Alpha (West)", type: "Stairs", coordinates: { x: 90, y: 260 } },
+        { id: "STAIR-AUD1B", name: "Staircase Beta (East)", type: "Stairs", coordinates: { x: 860, y: 260 } },
+        { id: "ELEV-AUD2", name: "Elevator Lobby (First Floor)", type: "Elevator", coordinates: { x: 490, y: 260 } },
+        { id: "WASH-AUD2", name: "1st Floor Restrooms", type: "Washroom", coordinates: { x: 720, y: 260 } }
+      ]
+    }
+  ]
+};
+
 export const STARTUP_STALLS = [
   {
     id: "S01",
@@ -807,6 +1008,21 @@ export const MAP_LOCATIONS = [
     "y": 304,
     "floors": 1,
     "description": "Custom Plotted University Facility",
+    "arrivalRadius": 25,
+    "entrances": [
+      {
+        "id": "sbm-main-entrance-1",
+        "name": "Main Entrance",
+        "lat": 26.50290,
+        "lng": 80.26620
+      },
+      {
+        "id": "sbm-east-entrance-1",
+        "name": "East Entrance",
+        "lat": 26.50310,
+        "lng": 80.26650
+      }
+    ],
     "departments": [
       "General Dept",
       "Faculty Offices"
@@ -960,6 +1176,21 @@ export const MAP_LOCATIONS = [
     "y": 428,
     "floors": 1,
     "description": "Custom Plotted University Facility",
+    "arrivalRadius": 25,
+    "entrances": [
+      {
+        "id": "sbm-main-entrance-2",
+        "name": "Main Entrance",
+        "lat": 26.50290,
+        "lng": 80.26620
+      },
+      {
+        "id": "sbm-east-entrance-2",
+        "name": "East Entrance",
+        "lat": 26.50310,
+        "lng": 80.26650
+      }
+    ],
     "departments": [
       "General Dept",
       "Faculty Offices"
@@ -977,6 +1208,21 @@ export const MAP_LOCATIONS = [
     "y": 318,
     "floors": 1,
     "description": "Custom Plotted University Facility",
+    "arrivalRadius": 25,
+    "entrances": [
+      {
+        "id": "auditorium-main-entrance",
+        "name": "Main Entrance",
+        "lat": 26.50410,
+        "lng": 80.26830
+      },
+      {
+        "id": "auditorium-east-entrance",
+        "name": "East Entrance",
+        "lat": 26.50420,
+        "lng": 80.26860
+      }
+    ],
     "departments": [
       "General Dept",
       "Faculty Offices"

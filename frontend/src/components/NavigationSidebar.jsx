@@ -236,12 +236,31 @@ export default function NavigationSidebar({
   accessibilityOptions,
   navMode = 'preview',
   setNavMode,
-  onOpenStreetView
+  onOpenStreetView,
+  onExploreBuilding
 }) {
   const [routeInfo, setRouteInfo] = useState(null);
   const [voiceEnabled, setVoiceEnabled] = useState(true);
   const [currentStepIdx, setCurrentStepIdx] = useState(0);
   const [showStepsModal, setShowStepsModal] = useState(false);
+
+  const [isMobile, setIsMobile] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(true);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    if (navMode === 'active') {
+      setIsCollapsed(true);
+    }
+  }, [navMode]);
 
   const lastSidebarParamsRef = useRef(null);
 
@@ -359,7 +378,22 @@ export default function NavigationSidebar({
     return (
       <div 
         className="animate-slide-up navigation-sidebar-card"
-        style={{
+        style={isMobile ? {
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          width: '100%',
+          borderRadius: '20px 20px 0 0',
+          padding: '20px 20px 30px',
+          zIndex: 600,
+          borderTop: '1px solid var(--colors-hairline-strong)',
+          borderLeft: 'none',
+          borderRight: 'none',
+          borderBottom: 'none',
+          boxShadow: '0 -8px 24px rgba(0, 0, 0, 0.15)',
+          background: 'var(--colors-surface-card)'
+        } : {
           position: 'absolute',
           bottom: '24px',
           left: '24px',
@@ -498,9 +532,427 @@ export default function NavigationSidebar({
   }
 
   // -------------------------------------------------------------
+  // STATE 3: 'arrived' MODE - ARRIVED CARD
+  // -------------------------------------------------------------
+  if (navMode === 'arrived') {
+    return (
+      <div 
+        className="animate-slide-up navigation-sidebar-card"
+        style={isMobile ? {
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          width: '100%',
+          borderRadius: '20px 20px 0 0',
+          padding: '24px 20px 30px',
+          zIndex: 850,
+          borderTop: '1px solid var(--colors-hairline-strong)',
+          boxShadow: '0 -8px 24px rgba(0, 0, 0, 0.15)',
+          background: 'var(--colors-surface-card)',
+          textAlign: 'center'
+        } : {
+          position: 'absolute',
+          bottom: '24px',
+          left: '24px',
+          width: '380px',
+          maxWidth: 'calc(100vw - 48px)',
+          borderRadius: '12px',
+          padding: '24px 20px',
+          zIndex: 850,
+          border: '1px solid var(--colors-hairline-strong)',
+          boxShadow: 'var(--shadow-md)',
+          background: 'var(--colors-surface-card)',
+          textAlign: 'center'
+        }}
+      >
+        <div style={{
+          width: '56px',
+          height: '56px',
+          borderRadius: '50%',
+          background: '#DCFCE7',
+          color: '#15803D',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          margin: '0 auto 16px',
+          boxShadow: '0 4px 12px rgba(22, 163, 74, 0.2)'
+        }}>
+          <CheckCircle2 size={32} />
+        </div>
+
+        <h3 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--colors-ink)', fontFamily: 'var(--font-heading)', margin: '0 0 6px' }}>
+          ✓ You've Arrived
+        </h3>
+        
+        <p style={{ fontSize: '15px', fontWeight: 700, color: 'var(--colors-body)', margin: '0 0 20px' }}>
+          {destination?.originalBuilding?.name || destination?.name}
+        </p>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <button
+            onClick={() => {
+              if (onExploreBuilding) {
+                onExploreBuilding(destination?.originalBuilding || destination);
+              }
+            }}
+            className="ollama-btn-primary"
+            style={{
+              width: '100%',
+              height: '42px',
+              fontSize: '14px',
+              fontWeight: 700,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              cursor: 'pointer'
+            }}
+          >
+            Explore Building 🏢
+          </button>
+
+          <button
+            onClick={handleExitRoute}
+            className="ollama-btn-secondary"
+            style={{
+              width: '100%',
+              height: '38px',
+              fontSize: '13px',
+              cursor: 'pointer'
+            }}
+          >
+            Dismiss Navigation
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // -------------------------------------------------------------
   // STATE 2: 'active' MODE - SINGLE UNIFIED NAVIGATION CARD BLOCK
   // -------------------------------------------------------------
   if (navMode === 'active') {
+    if (isMobile) {
+      return (
+        <div 
+          className="animate-slide-up"
+          style={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            width: '100%',
+            height: isCollapsed ? '135px' : '70vh',
+            maxHeight: '85vh',
+            zIndex: 850,
+            borderRadius: '20px 20px 0 0',
+            overflow: 'hidden',
+            boxShadow: '0 -8px 24px rgba(0, 0, 0, 0.15)',
+            borderTop: '1px solid var(--colors-hairline-strong)',
+            display: 'flex',
+            flexDirection: 'column',
+            background: 'var(--colors-surface-card)',
+            transition: 'height 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+          }}
+        >
+          {/* Drag Handle Bar */}
+          <div 
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            style={{
+              width: '100%',
+              padding: '10px 0 6px',
+              display: 'flex',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              flexShrink: 0
+            }}
+          >
+            <div style={{
+              width: '40px',
+              height: '5px',
+              background: '#CBD5E1',
+              borderRadius: '9999px'
+            }} />
+          </div>
+
+          {/* Collapsed State View */}
+          {isCollapsed ? (
+            <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '4px 20px 8px'
+              }}>
+                <div>
+                  <span style={{ fontSize: '24px', fontWeight: 900, color: '#16A34A' }}>
+                    {walkTime} min <span style={{ fontSize: '18px' }}>🌿</span>
+                  </span>
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#475569', marginLeft: '8px' }}>
+                    {distance} m • {getETAString(walkTime)}
+                  </span>
+                </div>
+
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <button
+                    onClick={() => setIsCollapsed(false)}
+                    className="ollama-btn-secondary"
+                    style={{ height: '32px', padding: '0 12px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}
+                  >
+                    <Maximize2 size={13} />
+                    <span>Details</span>
+                  </button>
+                  <button
+                    onClick={handleExitRoute}
+                    style={{
+                      height: '32px',
+                      width: '32px',
+                      borderRadius: '50%',
+                      background: '#FEF2F2',
+                      border: '1px solid #FCA5A5',
+                      color: '#EF4444',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer'
+                    }}
+                    title="Exit Route"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              </div>
+
+              <div style={{
+                background: '#F1F5F9',
+                borderTop: '1px solid #E2E8F0',
+                padding: '8px 20px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                fontSize: '13px',
+                color: '#0F172A',
+                fontWeight: 600,
+                flex: 1
+              }}>
+                <StepIcon size={18} color="#005A52" style={{ flexShrink: 0 }} />
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  Next: {currentStep.text}
+                </span>
+              </div>
+            </div>
+          ) : (
+            /* Expanded State View */
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              flex: 1,
+              overflow: 'hidden'
+            }}>
+              <div style={{
+                background: 'var(--colors-surface-dark)',
+                color: 'var(--colors-on-dark)',
+                padding: '12px 20px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexShrink: 0
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div style={{
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '50%',
+                    background: 'rgba(255,255,255,0.15)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}>
+                    <StepIcon size={16} color="var(--colors-on-dark)" />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '10px', textTransform: 'uppercase', opacity: 0.7, fontWeight: 500 }}>
+                      Navigating to
+                    </div>
+                    <div style={{ fontSize: '14px', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '180px' }}>
+                      {destination?.name || 'Destination'}
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <button
+                    onClick={() => setVoiceEnabled(!voiceEnabled)}
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.15)',
+                      border: 'none',
+                      borderRadius: '50%',
+                      width: '32px',
+                      height: '32px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: 'var(--colors-on-dark)',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {voiceEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
+                  </button>
+                  <button
+                    onClick={() => setIsCollapsed(true)}
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.15)',
+                      border: 'none',
+                      borderRadius: '50%',
+                      width: '32px',
+                      height: '32px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: 'var(--colors-on-dark)',
+                      cursor: 'pointer'
+                    }}
+                    title="Minimize Sheet"
+                  >
+                    <Minimize2 size={16} />
+                  </button>
+                </div>
+              </div>
+
+              <div style={{
+                flex: 1,
+                padding: '20px',
+                overflowY: 'auto',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '16px',
+                background: '#FFFFFF'
+              }}>
+                <div style={{
+                  background: '#F8FAFC',
+                  border: '1px solid #E2E8F0',
+                  borderRadius: '16px',
+                  padding: '16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between'
+                }}>
+                  <div>
+                    <div style={{ fontSize: '26px', fontWeight: 900, color: '#16A34A' }}>
+                      {walkTime} min 🌿
+                    </div>
+                    <div style={{ fontSize: '13px', fontWeight: 700, color: '#475569', marginTop: '2px' }}>
+                      {distance} m • {getETAString(walkTime)}
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    {onOpenStreetView && (
+                      <button
+                        onClick={onOpenStreetView}
+                        style={{
+                          background: 'rgba(2, 132, 199, 0.12)',
+                          border: '1px solid rgba(2, 132, 199, 0.4)',
+                          color: '#0284C7',
+                          padding: '8px 10px',
+                          borderRadius: '12px',
+                          fontSize: '11px',
+                          fontWeight: 800,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        <Eye size={14} color="#0284C7" />
+                        <span>360° View</span>
+                      </button>
+                    )}
+                    <div style={{
+                      background: '#EEF2FF',
+                      border: '1px solid #C7D2FE',
+                      borderRadius: '12px',
+                      padding: '6px 10px',
+                      textAlign: 'center'
+                    }}>
+                      <div style={{ fontSize: '9px', color: '#4F46E5', fontWeight: 800 }}>STEPS</div>
+                      <div style={{ fontSize: '14px', fontWeight: 900, color: '#1E1B4B' }}>{estimatedSteps}</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{
+                  background: '#F1F5F9',
+                  border: '1px solid #E2E8F0',
+                  borderRadius: '14px',
+                  padding: '12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px'
+                }}>
+                  <StepIcon size={20} color="#005A52" />
+                  <div>
+                    <div style={{ fontSize: '9px', color: '#005A52', fontWeight: 800 }}>CURRENT MANEUVER</div>
+                    <div style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A' }}>{currentStep.text}</div>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <div style={{ fontSize: '13px', fontWeight: 900, color: '#0F172A' }}>Route Directions</div>
+                  {steps.map((st, idx) => (
+                    <div 
+                      key={idx} 
+                      style={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        gap: '10px', 
+                        fontSize: '12px', 
+                        color: '#334155', 
+                        padding: '10px', 
+                        background: idx === currentStepIdx ? '#ECFDF5' : '#F8FAFC', 
+                        borderRadius: '12px', 
+                        border: idx === currentStepIdx ? '1px solid #A7F3D0' : '1px solid #E2E8F0' 
+                      }}
+                    >
+                      <st.icon size={16} color={idx === currentStepIdx ? '#059669' : '#64748B'} />
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontWeight: 700, color: idx === currentStepIdx ? '#065F46' : '#1E293B' }}>{st.text}</div>
+                        <div style={{ fontSize: '11px', color: '#64748B' }}>{st.dist}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '10px', marginTop: 'auto', paddingTop: '10px' }}>
+                  <button
+                    onClick={handleExitRoute}
+                    style={{
+                      padding: '12px',
+                      borderRadius: '14px',
+                      background: '#FEF2F2',
+                      border: '1px solid #FCA5A5',
+                      color: '#EF4444',
+                      fontSize: '13px',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '6px'
+                    }}
+                  >
+                    <X size={16} /> Exit Active Route
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // Original Desktop Sidebar View
     return (
       <div 
         className="animate-slide-up navigation-active-card"

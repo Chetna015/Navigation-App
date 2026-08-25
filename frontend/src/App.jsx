@@ -316,6 +316,7 @@ export default function App() {
             requestLiveGps={requestLiveGps}
             userPos={userPos}
           />
+        ) : (
           <MobileMapPage
             isAdminMode={isAdminMode}
             currentLocation={currentLocation}

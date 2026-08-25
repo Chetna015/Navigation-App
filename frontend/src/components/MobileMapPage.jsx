@@ -117,18 +117,6 @@ export default function MobileMapPage({
               🏢 <span className="pill-hide-xs">Indoor</span>
             </button>
           )}
-
-          {/* 360 Street View */}
-          {onOpenStreetView && (
-            <button
-              type="button"
-              className="mobile-map-action-pill"
-              onClick={onOpenStreetView}
-              title="360° Panoramic Campus Tour"
-            >
-              📷 <span className="pill-hide-xs">360°</span>
-            </button>
-          )}
         </div>
       </header>
 

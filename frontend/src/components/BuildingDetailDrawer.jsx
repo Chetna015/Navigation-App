@@ -16,14 +16,6 @@ export default function BuildingDetailDrawer({
 
   const totalFloors = parseInt(building.floors) || 2;
 
-  const handle360Click = () => {
-    if (onOpen3DView) {
-      onOpen3DView(building);
-    } else if (onOpenStreetView) {
-      onOpenStreetView();
-    }
-  };
-
   return (
     <div className="animate-slide-up" style={{
       position: 'absolute',
@@ -281,30 +273,8 @@ export default function BuildingDetailDrawer({
         </div>
       </div>
 
-      {/* 3. Action Buttons: 360 View + Show Path */}
+      {/* Action Button: Show Path */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '4px' }}>
-        <button
-          type="button"
-          onClick={handle360Click}
-          className="ollama-btn-secondary"
-          style={{
-            width: '100%',
-            height: '40px',
-            borderRadius: '10px',
-            fontSize: '13px',
-            fontWeight: 600,
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '8px',
-            border: '1px solid var(--colors-hairline-strong)',
-            background: 'var(--colors-surface-soft)'
-          }}
-        >
-          📷 View Building in 360° View
-        </button>
-
         {onNavigateToBuilding && (
           <button
             type="button"

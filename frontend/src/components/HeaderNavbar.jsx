@@ -103,31 +103,6 @@ export default function HeaderNavbar({
             </button>
           )}
 
-          {/* Upload 360 Admin Dashboard Button */}
-          {onOpenAdmin360 && (
-            <button
-              onClick={onOpenAdmin360}
-              title="Upload custom 360 panoramas & manage hotspots"
-              className="ollama-btn-secondary"
-              style={{
-                padding: '6px 14px',
-                borderRadius: '9999px',
-                color: 'var(--colors-ink)',
-                fontWeight: 500,
-                fontSize: '13px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                border: '1px solid var(--colors-hairline-strong)',
-                background: 'var(--colors-surface-soft)',
-                cursor: 'pointer',
-                height: '32px'
-              }}
-            >
-              📷 <span className="btn-label-desktop">Upload 360</span>
-            </button>
-          )}
-
           {/* Accessibility Button */}
           <button
             onClick={onOpenAccessibility}

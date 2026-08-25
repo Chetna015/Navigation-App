@@ -515,24 +515,8 @@ export default function NavigationSidebar({
           </div>
         </div>
 
-        {/* Start Live Navigation & 360° View Buttons */}
+        {/* Start Live Navigation Button */}
         <div style={{ display: 'flex', gap: '10px' }}>
-          {onOpenStreetView && (
-            <button
-              onClick={onOpenStreetView}
-              className="ollama-btn-secondary"
-              style={{
-                flex: '0 0 auto',
-                height: '40px',
-                fontSize: '13px'
-              }}
-              title="Open 360° Panoramic Street View"
-            >
-              <Eye size={16} />
-              <span>360° View</span>
-            </button>
-          )}
-
           <button
             onClick={handleStartLiveNavigation}
             className="ollama-btn-primary"
@@ -866,27 +850,6 @@ export default function NavigationSidebar({
                   </div>
 
                   <div style={{ display: 'flex', gap: '8px' }}>
-                    {onOpenStreetView && (
-                      <button
-                        onClick={onOpenStreetView}
-                        style={{
-                          background: 'rgba(2, 132, 199, 0.12)',
-                          border: '1px solid rgba(2, 132, 199, 0.4)',
-                          color: '#0284C7',
-                          padding: '8px 10px',
-                          borderRadius: '12px',
-                          fontSize: '11px',
-                          fontWeight: 800,
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                          cursor: 'pointer'
-                        }}
-                      >
-                        <Eye size={14} color="#0284C7" />
-                        <span>360° View</span>
-                      </button>
-                    )}
                     <div style={{
                       background: '#EEF2FF',
                       border: '1px solid #C7D2FE',
@@ -1126,30 +1089,6 @@ export default function NavigationSidebar({
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              {/* 360° Street View Button */}
-              {onOpenStreetView && (
-                <button
-                  onClick={onOpenStreetView}
-                  style={{
-                    background: 'rgba(2, 132, 199, 0.12)',
-                    border: '1px solid rgba(2, 132, 199, 0.4)',
-                    color: '#0284C7',
-                    padding: '8px 10px',
-                    borderRadius: '12px',
-                    fontSize: '11px',
-                    fontWeight: 800,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    cursor: 'pointer'
-                  }}
-                  title="Open 360° Panoramic Street View"
-                >
-                  <Eye size={15} color="#0284C7" />
-                  <span>360° View</span>
-                </button>
-              )}
-
               {/* Voice Navigation Toggle Button */}
               <button
                 onClick={() => toggleVoice()}

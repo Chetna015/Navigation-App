@@ -736,16 +736,6 @@ export default function AIAssistantModal({
             });
           }
 
-          if (onOpenStreetView) {
-            cardActions.push({
-              label: '📷 360° पैनोरमा दर्शन',
-              primary: false,
-              onClick: () => {
-                onOpenStreetView();
-              }
-            });
-          }
-
           if (onCancelNavigation) {
             cardActions.push({
               label: '❌ मार्ग रद्द करें',

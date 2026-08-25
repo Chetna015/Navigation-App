@@ -12,8 +12,6 @@ import StallDetailDrawer from './components/StallDetailDrawer';
 import EditLocationModal from './components/EditLocationModal';
 import ManagePinsModal from './components/ManagePinsModal';
 import Building3DViewerModal from './components/Building3DViewerModal';
-import CampusStreetViewModal from './components/CampusStreetViewModal';
-import Admin360DashboardModal from './components/Admin360DashboardModal';
 import CampusLifeStatusModal from './components/CampusLifeStatusModal';
 import ParkingFinderModal from './components/ParkingFinderModal';
 import SBMBuildingIndoorModal from './components/SBMBuildingIndoorModal';
@@ -91,8 +89,6 @@ export default function App() {
   const [showAccessibilityModal, setShowAccessibilityModal] = useState(false);
   const [showEditLocationModal, setShowEditLocationModal] = useState(false);
   const [showManagePinsModal, setShowManagePinsModal] = useState(false);
-  const [showStreetViewModal, setShowStreetViewModal] = useState(false);
-  const [showAdmin360Modal, setShowAdmin360Modal] = useState(false);
   const [showCampusLifeModal, setShowCampusLifeModal] = useState(false);
   const [showParkingModal, setShowParkingModal] = useState(false);
   const [showSBMIndoorModal, setShowSBMIndoorModal] = useState(false);
@@ -321,7 +317,6 @@ export default function App() {
             onOpenSBMIndoor={() => setShowSBMIndoorModal(true)}
             onOpenStalls={() => setShowStallsModal(true)}
             onOpenSessions={() => setShowSessionsModal(true)}
-            onOpenStreetView={() => setShowStreetViewModal(true)}
             onOpenAccessibility={() => setShowAccessibilityModal(true)}
             theme={theme}
             setTheme={setTheme}
@@ -347,7 +342,6 @@ export default function App() {
             onOpenEditLocation={handleOpenEditLocation}
             onOpen3DView={(bld) => setBuilding3D(bld)}
             onOpenSBMIndoor={() => setShowSBMIndoorModal(true)}
-            onOpenStreetView={() => setShowStreetViewModal(true)}
             onOpenAIAssistant={() => setShowAIAssistant(true)}
             navMode={navMode}
             setNavMode={setNavMode}
@@ -392,7 +386,6 @@ export default function App() {
         onOpenStalls={() => setShowStallsModal(true)}
         onOpenSessions={() => setShowSessionsModal(true)}
         onOpen3DView={(bld) => setBuilding3D(bld)}
-        onOpenStreetView={() => setShowStreetViewModal(true)}
         onOpenSBMIndoor={() => setShowSBMIndoorModal(true)}
         onOpenParking={() => setShowParkingModal(true)}
         onOpenCampusLife={() => setShowCampusLifeModal(true)}
@@ -461,24 +454,6 @@ export default function App() {
         onNavigateToBuilding={(bld) => {
           handleSelectLocation(bld);
           setBuilding3D(null);
-        }}
-      />
-
-      {/* Interactive 360° Panoramic Street View Modal */}
-      <CampusStreetViewModal
-        isOpen={showStreetViewModal}
-        onClose={() => setShowStreetViewModal(false)}
-        currentLocation={currentLocation}
-        destination={destination}
-      />
-
-      {/* Admin 360° Photo Uploader & Hotspot Dashboard Modal */}
-      <Admin360DashboardModal
-        isOpen={showAdmin360Modal}
-        onClose={() => setShowAdmin360Modal(false)}
-        onOpenPreview360={(node) => {
-          setShowAdmin360Modal(false);
-          setShowStreetViewModal(true);
         }}
       />
 

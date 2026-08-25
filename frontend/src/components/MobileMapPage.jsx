@@ -1,0 +1,250 @@
+import React, { useState } from 'react';
+import { 
+  ArrowLeft, Search, MapPin, Navigation, Compass, Layers, 
+  Sparkles, Eye, Mic, X, Volume2, VolumeX, Building2,
+  ChevronDown, Maximize2
+} from 'lucide-react';
+import DigitalTwinMap from './DigitalTwinMap';
+import NavigationSidebar from './NavigationSidebar';
+import { getMergedMapLocations } from '../utils/locationStore';
+
+export default function MobileMapPage({
+  isAdminMode,
+  currentLocation,
+  setCurrentLocation,
+  destination,
+  setDestination,
+  activeFloor,
+  setActiveFloor,
+  selectedStall,
+  setSelectedStall,
+  highlightDomain,
+  accessibilityOptions,
+  navMode,
+  setNavMode,
+  isNavigatingLive,
+  setIsNavigatingLive,
+  onBackToHome,
+  onOpenEditLocation,
+  onOpen3DView,
+  onOpenSBMIndoor,
+  onOpenStreetView,
+  onOpenAIAssistant,
+  voiceEnabled,
+  setVoiceEnabled,
+  isListening,
+  startVoiceSearch
+}) {
+  const [mapSearchQuery, setMapSearchQuery] = useState('');
+  const [showMapSearchSheet, setShowMapSearchSheet] = useState(false);
+
+  const activeLocations = getMergedMapLocations();
+
+  const filteredLocations = mapSearchQuery.trim()
+    ? activeLocations.filter(loc => 
+        loc.name.toLowerCase().includes(mapSearchQuery.toLowerCase()) ||
+        (loc.code && loc.code.toLowerCase().includes(mapSearchQuery.toLowerCase())) ||
+        (loc.category && loc.category.toLowerCase().includes(mapSearchQuery.toLowerCase()))
+      ).slice(0, 6)
+    : [];
+
+  const handleSelectMapDest = (loc) => {
+    setDestination(loc);
+    setShowMapSearchSheet(false);
+    setMapSearchQuery('');
+    if (loc.floor && loc.floor !== activeFloor) {
+      setActiveFloor(loc.floor);
+    }
+  };
+
+  return (
+    <div className="mobile-map-page-container">
+      {/* 1. Mobile Map Top Header Bar */}
+      <header className="mobile-map-top-bar">
+        {/* Back to Home Button */}
+        <button
+          type="button"
+          className="mobile-back-btn"
+          onClick={onBackToHome}
+          title="Back to Home Page"
+        >
+          <ArrowLeft size={18} />
+          <span className="mobile-back-text">Home</span>
+        </button>
+
+        {/* Destination Bar / Search Trigger */}
+        <div 
+          className="mobile-map-dest-pill"
+          onClick={() => setShowMapSearchSheet(true)}
+        >
+          <div className="dest-pill-icon">
+            {destination ? <Navigation size={13} color="#3B82F6" /> : <Search size={13} color="var(--colors-body)" />}
+          </div>
+          <div className="dest-pill-text">
+            {destination ? (
+              <span className="dest-active-name">{destination.name}</span>
+            ) : (
+              <span className="dest-placeholder">Search destination on map...</span>
+            )}
+          </div>
+          {destination && (
+            <button
+              type="button"
+              className="dest-clear-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                setDestination(null);
+                setIsNavigatingLive(false);
+                setNavMode('hidden');
+              }}
+              title="Clear Destination"
+            >
+              <X size={13} />
+            </button>
+          )}
+        </div>
+
+        {/* Quick Map Action Buttons */}
+        <div className="mobile-map-top-actions">
+          {/* SBM Indoor Blueprint */}
+          {onOpenSBMIndoor && (
+            <button
+              type="button"
+              className="mobile-map-action-pill"
+              onClick={onOpenSBMIndoor}
+              title="SBM Indoor Blueprint & RO Watercoolers"
+            >
+              🏢 <span className="pill-hide-xs">Indoor</span>
+            </button>
+          )}
+
+          {/* 360 Street View */}
+          {onOpenStreetView && (
+            <button
+              type="button"
+              className="mobile-map-action-pill"
+              onClick={onOpenStreetView}
+              title="360° Panoramic Campus Tour"
+            >
+              📷 <span className="pill-hide-xs">360°</span>
+            </button>
+          )}
+        </div>
+      </header>
+
+      {/* 2. Interactive Vector & Satellite Digital Twin Map */}
+      <div className="mobile-map-canvas-area">
+        <DigitalTwinMap
+          isAdminMode={isAdminMode}
+          currentLocation={currentLocation}
+          setCurrentLocation={setCurrentLocation}
+          destination={destination}
+          setDestination={setDestination}
+          activeFloor={activeFloor}
+          setActiveFloor={setActiveFloor}
+          selectedStall={selectedStall}
+          setSelectedStall={setSelectedStall}
+          highlightDomain={highlightDomain}
+          accessibilityOptions={accessibilityOptions}
+          onOpenEditLocation={onOpenEditLocation}
+          onOpen3DView={onOpen3DView}
+          onOpenSBMIndoor={onOpenSBMIndoor}
+          navMode={navMode}
+          isNavigatingLive={isNavigatingLive}
+        />
+
+        {/* Floating Quick Action: Ask AI Assistant */}
+        <button
+          type="button"
+          onClick={onOpenAIAssistant}
+          className="mobile-map-floating-ai-btn"
+          title="Open AI Campus Assistant"
+        >
+          🤖 <span className="ai-btn-text">AI Guide</span>
+        </button>
+
+        {/* Active Route Sidebar / Mobile Bottom Sheet Card */}
+        {destination && (
+          <NavigationSidebar
+            currentLocation={currentLocation}
+            destination={destination}
+            onCancelNavigation={() => {
+              setDestination(null);
+              setIsNavigatingLive(false);
+              setNavMode('hidden');
+            }}
+            accessibilityOptions={accessibilityOptions}
+            navMode={navMode}
+            setNavMode={(mode) => {
+              setNavMode(mode);
+              if (mode === 'active') setIsNavigatingLive(true);
+              else if (mode === 'hidden') setIsNavigatingLive(false);
+            }}
+            onOpenStreetView={onOpenStreetView}
+          />
+        )}
+      </div>
+
+      {/* 3. Search Destination Bottom Sheet Modal on Map */}
+      {showMapSearchSheet && (
+        <div className="mobile-map-search-overlay" onClick={() => setShowMapSearchSheet(false)}>
+          <div className="mobile-map-search-sheet animate-slide-up" onClick={(e) => e.stopPropagation()}>
+            <div className="search-sheet-handle" />
+            <div className="search-sheet-header">
+              <h3>Choose Destination</h3>
+              <button 
+                type="button"
+                className="search-sheet-close"
+                onClick={() => setShowMapSearchSheet(false)}
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <div className="search-sheet-input-row">
+              <Search size={16} color="var(--colors-body)" />
+              <input
+                type="text"
+                placeholder="Search UIET, SBM, Library, Hostel, Canteen..."
+                value={mapSearchQuery}
+                onChange={(e) => setMapSearchQuery(e.target.value)}
+                autoFocus
+              />
+              {mapSearchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setMapSearchQuery('')}
+                  style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}
+                >
+                  <X size={16} color="var(--colors-body)" />
+                </button>
+              )}
+            </div>
+
+            {/* Suggestions list */}
+            <div className="search-sheet-results">
+              {(mapSearchQuery.trim() ? filteredLocations : activeLocations.slice(0, 8)).map(loc => (
+                <div
+                  key={loc.id}
+                  className="search-sheet-item"
+                  onClick={() => handleSelectMapDest(loc)}
+                >
+                  <div className="sheet-item-icon">
+                    <MapPin size={16} color="var(--colors-primary)" />
+                  </div>
+                  <div className="sheet-item-info">
+                    <div className="sheet-item-name">{loc.name}</div>
+                    <div className="sheet-item-category">{loc.category || 'University Building'}</div>
+                  </div>
+                  <button type="button" className="sheet-item-go-btn">
+                    Select ➔
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

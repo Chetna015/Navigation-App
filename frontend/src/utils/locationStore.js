@@ -108,37 +108,48 @@ export function restoreAllDeletedLocations() {
 }
 
 /**
- * Get merged Campus Buildings object using default buildings, user custom pins, and location overrides, minus deleted locations
+ * Get merged Campus Buildings object using default buildings, user custom pins, and location overrides, minus deleted locations.
+ * Ensures duplicate named locations are merged into a single unique pinpoint.
  */
 export function getMergedCampusBuildings() {
   const overrides = getLocationOverrides();
   const custom = getStoredPlottedBuildings();
   const deleted = getDeletedLocationIds();
 
-  const buildings = {};
+  const rawList = [];
 
   (MAP_LOCATIONS || []).forEach(loc => {
     if (loc && loc.id) {
-      buildings[loc.id] = { ...loc };
+      rawList.push({ ...loc });
     }
   });
 
   Object.values(DEFAULT_CAMPUS_BUILDINGS || {}).forEach(loc => {
-    if (loc && loc.id && !buildings[loc.id]) {
-      buildings[loc.id] = { ...loc };
+    if (loc && loc.id) {
+      rawList.push({ ...loc });
     }
   });
 
   Object.values(custom || {}).forEach(loc => {
     if (loc && loc.id) {
-      buildings[loc.id] = { ...(buildings[loc.id] || {}), ...loc, isCustom: true };
+      rawList.push({ ...loc, isCustom: true });
     }
   });
 
-  Object.keys(overrides || {}).forEach(id => {
-    if (buildings[id]) {
-      buildings[id] = { ...buildings[id], ...overrides[id] };
+  const buildings = {};
+  const seenNames = new Set();
+
+  rawList.forEach(loc => {
+    if (!loc || !loc.name) return;
+    const norm = loc.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+    if (seenNames.has(norm)) return; // skip duplicate name
+    seenNames.add(norm);
+
+    let finalLoc = { ...loc };
+    if (overrides && overrides[loc.id]) {
+      finalLoc = { ...finalLoc, ...overrides[loc.id] };
     }
+    buildings[loc.id] = finalLoc;
   });
 
   (deleted || []).forEach(id => {
@@ -149,8 +160,23 @@ export function getMergedCampusBuildings() {
 }
 
 /**
- * Get merged MAP_LOCATIONS array using default locations, custom pins, and overrides, minus deleted locations
+ * Get merged MAP_LOCATIONS array using default locations, custom pins, and overrides, minus deleted locations.
+ * Automatically deduplicates locations sharing the same name.
  */
 export function getMergedMapLocations() {
-  return Object.values(getMergedCampusBuildings());
+  const allBuildings = Object.values(getMergedCampusBuildings());
+  const seenNames = new Set();
+  const deduplicated = [];
+
+  for (const loc of allBuildings) {
+    if (!loc || !loc.name) continue;
+    // Normalize name e.g. "Girls Hostel" -> "girlshostel"
+    const norm = loc.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+    if (!seenNames.has(norm)) {
+      seenNames.add(norm);
+      deduplicated.push(loc);
+    }
+  }
+
+  return deduplicated;
 }

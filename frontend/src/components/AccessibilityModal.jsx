@@ -213,36 +213,6 @@ export default function AccessibilityModal({
             </div>
           </div>
         </div>
-
-        {/* SOS Emergency Help Launcher */}
-        <div style={{
-          borderTop: '1px solid var(--colors-hairline)',
-          paddingTop: '16px'
-        }}>
-          <button
-            onClick={() => {
-              onTriggerSOS();
-              onClose();
-            }}
-            style={{
-              width: '100%',
-              background: 'var(--colors-surface-dark)',
-              color: 'var(--colors-on-dark)',
-              border: '1px solid var(--colors-hairline-strong)',
-              borderRadius: '9999px',
-              padding: '12px',
-              fontWeight: 600,
-              fontSize: '14px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '8px',
-              cursor: 'pointer'
-            }}
-          >
-            <HeartPulse size={18} color="#EF4444" /> Trigger SOS Emergency Medical Help
-          </button>
-        </div>
       </div>
     </div>
   );

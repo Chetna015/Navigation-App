@@ -279,6 +279,10 @@ app.delete('/api/watercoolers/:id', (req, res) => {
   });
 });
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`CSJMU SQLite API Server running on http://0.0.0.0:${PORT} (LAN & Localhost)`);
-});
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`CSJMU SQLite API Server running on http://0.0.0.0:${PORT} (LAN & Localhost)`);
+  });
+}
+
+export { app, db };

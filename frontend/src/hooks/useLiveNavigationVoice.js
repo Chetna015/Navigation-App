@@ -10,7 +10,10 @@ export default function useLiveNavigationVoice({
   currentLocation,
   destination,
   voiceEnabled: propVoiceEnabled,
-  setVoiceEnabled: propSetVoiceEnabled
+  setVoiceEnabled: propSetVoiceEnabled,
+  voiceLang = 'hi-IN',
+  voiceRate = 1.0,
+  isNavigatingLive = false
 }) {
   const [userPos, setUserPos] = useState(() => {
     try {
@@ -25,7 +28,7 @@ export default function useLiveNavigationVoice({
   const [isOffTrack, setIsOffTrack] = useState(false);
   const [distanceMeters, setDistanceMeters] = useState(0);
   const [stepsCount, setStepsCount] = useState(0);
-  const [localVoiceEnabled, setLocalVoiceEnabled] = useState(true);
+  const [localVoiceEnabled, setLocalVoiceEnabled] = useState(false);
   const voiceEnabled = propVoiceEnabled !== undefined ? propVoiceEnabled : localVoiceEnabled;
   const setVoiceEnabled = propSetVoiceEnabled || setLocalVoiceEnabled;
   const [gpsPermissionState, setGpsPermissionState] = useState('prompt'); // 'prompt' | 'granted' | 'denied' | 'insecure' | 'unavailable'
@@ -175,28 +178,36 @@ export default function useLiveNavigationVoice({
           setDistanceMeters(exactMeters);
           setStepsCount(Math.round(exactMeters / 0.75));
 
-          // Speak initial navigation instruction with EXACT route distance
-          if (voiceEnabled && typeof window !== 'undefined' && 'speechSynthesis' in window) {
+          // Speak initial navigation instruction with EXACT route distance ONLY when live navigating and voice enabled
+          if (voiceEnabled && isNavigatingLive && typeof window !== 'undefined' && 'speechSynthesis' in window) {
             const now = Date.now();
             if (now - lastSpokenRef.current > 8000) {
               lastSpokenRef.current = now;
               try {
                 window.speechSynthesis.cancel();
-                const hindiSpeech = `जी, ${destination.name || 'गंतव्य'} की ओर आगे बढ़ें। दूरी लगभग ${exactMeters} मीटर है।`;
-                const msg = new SpeechSynthesisUtterance(hindiSpeech);
-                msg.lang = 'hi-IN';
-                msg.pitch = 1.12;
-                msg.rate = 0.92;
+                const isHindi = voiceLang.startsWith('hi');
+                const speechText = isHindi
+                  ? `जी, ${destination.name || 'गंतव्य'} की ओर आगे बढ़ें। दूरी लगभग ${exactMeters} मीटर है।`
+                  : `Please head towards ${destination.name || 'destination'}. Distance is approximately ${exactMeters} meters.`;
+
+                const msg = new SpeechSynthesisUtterance(speechText);
+                msg.lang = isHindi ? 'hi-IN' : 'en-IN';
+                msg.pitch = 1.08;
+                msg.rate = voiceRate || 1.0;
 
                 const voices = window.speechSynthesis.getVoices();
-                const hindiFemale = voices.find(v => 
-                  (v.lang.includes('hi') || v.lang.includes('HI') || v.name.toLowerCase().includes('hindi')) &&
-                  (v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('swara') || v.name.toLowerCase().includes('heera') || v.name.toLowerCase().includes('kalpana') || v.name.toLowerCase().includes('google') || v.name.includes('हिन्दी'))
-                ) || voices.find(v => v.lang.includes('hi') || v.name.toLowerCase().includes('hindi'))
-                  || voices.find(v => v.lang.includes('en-IN') && v.name.toLowerCase().includes('female'));
-
-                if (hindiFemale) {
-                  msg.voice = hindiFemale;
+                if (isHindi) {
+                  const hindiFemale = voices.find(v => 
+                    (v.lang.includes('hi') || v.lang.includes('HI') || v.name.toLowerCase().includes('hindi')) &&
+                    (v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('swara') || v.name.toLowerCase().includes('heera') || v.name.toLowerCase().includes('kalpana') || v.name.toLowerCase().includes('google') || v.name.includes('हिन्दी'))
+                  ) || voices.find(v => v.lang.includes('hi') || v.name.toLowerCase().includes('hindi'))
+                    || voices.find(v => v.lang.includes('en-IN') && v.name.toLowerCase().includes('female'));
+                  if (hindiFemale) msg.voice = hindiFemale;
+                } else {
+                  const engVoice = voices.find(v => 
+                    v.lang.includes('en-IN') || v.name.toLowerCase().includes('india') || v.lang.includes('en_IN')
+                  ) || voices.find(v => v.lang.startsWith('en'));
+                  if (engVoice) msg.voice = engVoice;
                 }
 
                 window.speechSynthesis.speak(msg);
@@ -209,24 +220,36 @@ export default function useLiveNavigationVoice({
         .catch((err) => {
           if (isCancelled) return;
           console.warn("Route fetch error in useLiveNavigationVoice:", err);
-          if (voiceEnabled && typeof window !== 'undefined' && 'speechSynthesis' in window) {
+          if (voiceEnabled && isNavigatingLive && typeof window !== 'undefined' && 'speechSynthesis' in window) {
             const now = Date.now();
             if (now - lastSpokenRef.current > 8000) {
               lastSpokenRef.current = now;
               try {
                 window.speechSynthesis.cancel();
-                const hindiSpeech = `जी, ${destination.name || 'गंतव्य'} की ओर आगे बढ़ें। दूरी लगभग ${instantMeters} मीटर है।`;
-                const msg = new SpeechSynthesisUtterance(hindiSpeech);
-                msg.lang = 'hi-IN';
-                msg.pitch = 1.12;
-                msg.rate = 0.92;
+                const isHindi = voiceLang.startsWith('hi');
+                const speechText = isHindi
+                  ? `जी, ${destination.name || 'गंतव्य'} की ओर आगे बढ़ें। दूरी लगभग ${instantMeters} मीटर है।`
+                  : `Please proceed towards ${destination.name || 'destination'}. Distance is approximately ${instantMeters} meters.`;
+
+                const msg = new SpeechSynthesisUtterance(speechText);
+                msg.lang = isHindi ? 'hi-IN' : 'en-IN';
+                msg.pitch = 1.08;
+                msg.rate = voiceRate || 1.0;
+
                 const voices = window.speechSynthesis.getVoices();
-                const hindiFemale = voices.find(v => 
-                  (v.lang.includes('hi') || v.lang.includes('HI') || v.name.toLowerCase().includes('hindi')) &&
-                  (v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('swara') || v.name.toLowerCase().includes('heera') || v.name.toLowerCase().includes('kalpana') || v.name.toLowerCase().includes('google') || v.name.includes('हिन्दी'))
-                ) || voices.find(v => v.lang.includes('hi') || v.name.toLowerCase().includes('hindi'))
-                  || voices.find(v => v.lang.includes('en-IN') && v.name.toLowerCase().includes('female'));
-                if (hindiFemale) msg.voice = hindiFemale;
+                if (isHindi) {
+                  const hindiFemale = voices.find(v => 
+                    (v.lang.includes('hi') || v.lang.includes('HI') || v.name.toLowerCase().includes('hindi')) &&
+                    (v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('swara') || v.name.toLowerCase().includes('heera') || v.name.toLowerCase().includes('kalpana') || v.name.toLowerCase().includes('google') || v.name.includes('हिन्दी'))
+                  ) || voices.find(v => v.lang.includes('hi') || v.name.toLowerCase().includes('hindi'))
+                    || voices.find(v => v.lang.includes('en-IN') && v.name.toLowerCase().includes('female'));
+                  if (hindiFemale) msg.voice = hindiFemale;
+                } else {
+                  const engVoice = voices.find(v => 
+                    v.lang.includes('en-IN') || v.name.toLowerCase().includes('india') || v.lang.includes('en_IN')
+                  ) || voices.find(v => v.lang.startsWith('en'));
+                  if (engVoice) msg.voice = engVoice;
+                }
                 window.speechSynthesis.speak(msg);
               } catch (e) {
                 console.warn("SpeechSynthesis error:", e);
@@ -242,7 +265,7 @@ export default function useLiveNavigationVoice({
     return () => {
       isCancelled = true;
     };
-  }, [userPos, currentLocation, destination, voiceEnabled]);
+  }, [userPos, currentLocation, destination, voiceEnabled, voiceLang, voiceRate, isNavigatingLive]);
 
   // 3. Off-Track Distraction Detection & Voice Warning
   useEffect(() => {

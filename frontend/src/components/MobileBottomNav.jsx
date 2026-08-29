@@ -1,14 +1,26 @@
 import React from 'react';
-import { Home, Map, Bot, Building2, Star } from 'lucide-react';
+import { Home, Map, Bot, Building2, Calendar } from 'lucide-react';
 
 export default function MobileBottomNav({
   currentPage,
   onNavigateTab,
   onOpenAIAssistant,
   onOpenIndoor,
+  onOpenSchedule,
+  onOpenSessions,
   onOpenSaved,
   hasActiveRoute
 }) {
+  const handleScheduleClick = () => {
+    if (onOpenSchedule) {
+      onOpenSchedule();
+    } else if (onOpenSessions) {
+      onOpenSessions();
+    } else if (onOpenSaved) {
+      onOpenSaved();
+    }
+  };
+
   return (
     <nav className="mobile-bottom-nav">
       {/* 1. Home Tab */}
@@ -64,17 +76,17 @@ export default function MobileBottomNav({
         <span className="mobile-nav-label">Indoor</span>
       </button>
 
-      {/* 5. Saved Places / Bookmarks Tab */}
+      {/* 5. AI Summit 2026 Schedule Tab */}
       <button
         type="button"
         className="mobile-nav-item"
-        onClick={onOpenSaved}
-        title="Saved & Favorite Places"
+        onClick={handleScheduleClick}
+        title="AI Summit 2026 Complete Schedule"
       >
         <div className="mobile-nav-icon-wrap">
-          <Star size={20} />
+          <Calendar size={20} />
         </div>
-        <span className="mobile-nav-label">Saved</span>
+        <span className="mobile-nav-label">Schedule</span>
       </button>
     </nav>
   );

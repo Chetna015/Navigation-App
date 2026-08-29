@@ -1,9 +1,11 @@
 import React from 'react';
 import { 
   Building2, MapPin, Compass, Layers, Accessibility, 
-  AlertTriangle, Sun, Moon, Sparkles, ChevronDown 
+  AlertTriangle, Sun, Moon, Sparkles, ChevronDown, Calendar,
+  Bot, Volume2, VolumeX
 } from 'lucide-react';
 import { getMergedMapLocations } from '../utils/locationStore';
+import { useNavigation } from '../context/NavigationContext';
 
 export default function HeaderNavbar({
   currentLocation,
@@ -18,8 +20,12 @@ export default function HeaderNavbar({
   onStartPinningMode,
   onOpenManagePins,
   onOpenAdmin360,
-  onOpenSBMIndoor
+  onOpenSBMIndoor,
+  onOpenSchedule,
+  onOpenSessions,
+  onOpenAIAssistant
 }) {
+  const { voiceEnabled, toggleVoice } = useNavigation();
   const activeLocations = getMergedMapLocations();
   return (
     <header style={{
@@ -78,6 +84,56 @@ export default function HeaderNavbar({
 
       {/* Right Actions Header Buttons */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {/* AI Guide Button */}
+          {onOpenAIAssistant && (
+            <button
+              onClick={onOpenAIAssistant}
+              title="Open CSJMU AI Campus Guide & Assistant"
+              className="ollama-btn-secondary"
+              style={{
+                padding: '6px 14px',
+                borderRadius: '9999px',
+                color: 'var(--colors-ink)',
+                fontWeight: 600,
+                fontSize: '13px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                border: '1px solid #3B82F6',
+                background: 'rgba(59, 130, 246, 0.1)',
+                cursor: 'pointer',
+                height: '32px'
+              }}
+            >
+              <Bot size={15} color="#2563EB" /> <span className="btn-label-desktop">AI Guide</span>
+            </button>
+          )}
+
+          {/* AI Summit Schedule Button */}
+          {(onOpenSchedule || onOpenSessions) && (
+            <button
+              onClick={onOpenSchedule || onOpenSessions}
+              title="Open AI Summit 2026 Complete Schedule"
+              className="ollama-btn-secondary"
+              style={{
+                padding: '6px 14px',
+                borderRadius: '9999px',
+                color: 'var(--colors-ink)',
+                fontWeight: 500,
+                fontSize: '13px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                border: '1px solid var(--colors-hairline-strong)',
+                background: 'var(--colors-surface-soft)',
+                cursor: 'pointer',
+                height: '32px'
+              }}
+            >
+              <Calendar size={14} color="#2563EB" /> <span className="btn-label-desktop">Schedule</span>
+            </button>
+          )}
+
           {/* SBM Building Indoor & Watercoolers Button */}
           {onOpenSBMIndoor && (
             <button

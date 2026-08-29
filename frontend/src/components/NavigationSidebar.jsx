@@ -5,7 +5,8 @@ import {
   Navigation, Clock, Footprints, 
   Volume2, VolumeX, X, Compass, MapPin, Eye,
   ArrowUpRight, ArrowLeft, ArrowRight, CornerUpRight, CornerUpLeft,
-  Maximize2, Minimize2, Search, AlertTriangle, Sparkles, Layers
+  Maximize2, Minimize2, Search, AlertTriangle, Sparkles, Layers,
+  Bot, RotateCcw, Languages, Gauge
 } from 'lucide-react';
 import { getCampusRoute } from '../utils/pathfinding';
 import { haversineDistanceMeters, estimateWalkingDistanceMeters } from '../utils/haversine';
@@ -239,9 +240,15 @@ export default function NavigationSidebar({
   navMode = 'preview',
   setNavMode,
   onOpenStreetView,
-  onExploreBuilding
+  onExploreBuilding,
+  onOpenAIAssistant
 }) {
-  const { voiceEnabled, toggleVoice } = useNavigation();
+  const { 
+    voiceEnabled, toggleVoice, 
+    voiceLang, toggleVoiceLang, 
+    voiceRate, cycleVoiceRate, 
+    speakInstruction: ctxSpeakInstruction 
+  } = useNavigation();
   const [routeInfo, setRouteInfo] = useState(null);
   const [currentStepIdx, setCurrentStepIdx] = useState(0);
   const [showStepsModal, setShowStepsModal] = useState(false);
@@ -357,31 +364,65 @@ export default function NavigationSidebar({
     return now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }).toLowerCase();
   };
 
-  // Turn directions
+  // Turn directions with Hindi translations
   const steps = [
-    { text: `Walk straight along Central Campus Avenue`, dist: "80m", icon: ArrowUpRight },
-    { text: `Turn left towards ${destination?.name || 'Destination'}`, dist: "140m", icon: CornerUpLeft },
-    { text: `Arrive at ${destination?.name || 'Destination'}`, dist: "30m", icon: MapPin }
+    { 
+      text: `Walk straight along Central Campus Avenue`, 
+      hindiText: `सेंट्रल कैंपस एवेन्यू पर सीधे आगे बढ़ें`,
+      dist: "80m", 
+      icon: ArrowUpRight 
+    },
+    { 
+      text: `Turn left towards ${destination?.name || 'Destination'}`, 
+      hindiText: `${destination?.name || 'गंतव्य'} की ओर बायें मुड़ें`,
+      dist: "140m", 
+      icon: CornerUpLeft 
+    },
+    { 
+      text: `Arrive at ${destination?.name || 'Destination'}`, 
+      hindiText: `आप ${destination?.name || 'गंतव्य'} पर पहुँच रहे हैं`,
+      dist: "30m", 
+      icon: MapPin 
+    }
   ];
 
   const currentStep = steps[currentStepIdx] || steps[0];
   const StepIcon = currentStep.icon || Navigation;
 
-  // Voice speech synthesis
-  const speakInstruction = (text) => {
-    if (!voiceEnabled || !('speechSynthesis' in window)) return;
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 1.0;
-    utterance.pitch = 1.0;
-    window.speechSynthesis.speak(utterance);
+  // Speak turn direction helper
+  const handleSpeakCurrentStep = () => {
+    const enText = `In ${currentStep.dist || '40 meters'}, ${currentStep.text}. ${distance} meters remaining.`;
+    const hiText = `${currentStep.dist || '40 मीटर'} में, ${currentStep.hindiText}। ${distance} मीटर दूरी शेष है।`;
+    if (ctxSpeakInstruction) {
+      ctxSpeakInstruction(enText, hiText);
+    }
+  };
+
+  const handleToggleVoiceAssistantWithSpeech = () => {
+    const nextVoiceState = !voiceEnabled;
+    toggleVoice(nextVoiceState);
+    if (nextVoiceState) {
+      const enText = `Navigation Voice Assistant active. In ${currentStep.dist || '40 meters'}, ${currentStep.text}. ${distance} meters remaining.`;
+      const hiText = `नेविगेशन वॉइस असिस्टेंट चालू है। ${currentStep.dist || '40 मीटर'} में, ${currentStep.hindiText}। ${distance} मीटर दूरी शेष है।`;
+      if (ctxSpeakInstruction) {
+        ctxSpeakInstruction(enText, hiText);
+      }
+    } else {
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+    }
   };
 
   const handleStartLiveNavigation = () => {
     if (setNavMode) {
       setNavMode('active');
     }
-    speakInstruction(`Starting live turn-by-turn navigation to ${destination?.name}. Head straight.`);
+    if (voiceEnabled && ctxSpeakInstruction) {
+      const enText = `Starting live turn-by-turn navigation to ${destination?.name}. Head straight.`;
+      const hiText = `${destination?.name || 'गंतव्य'} के लिए नेविगेशन शुरू। सीधे आगे बढ़ें।`;
+      ctxSpeakInstruction(enText, hiText);
+    }
   };
 
   const handleExitRoute = () => {
@@ -513,6 +554,115 @@ export default function NavigationSidebar({
               {estimatedSteps}
             </div>
           </div>
+        </div>
+
+        {/* AI Voice Assistant Control Box */}
+        <div style={{
+          background: voiceEnabled ? 'rgba(37, 99, 235, 0.08)' : 'var(--colors-surface-soft)',
+          border: voiceEnabled ? '1px solid #3B82F6' : '1px solid var(--colors-hairline-strong)',
+          borderRadius: '10px',
+          padding: '8px 10px',
+          marginBottom: '12px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '6px'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <Bot size={15} color={voiceEnabled ? '#2563EB' : 'var(--colors-body)'} />
+              <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--colors-ink)' }}>
+                Navigation Voice Assistant
+              </span>
+            </div>
+            <button
+              onClick={handleToggleVoiceAssistantWithSpeech}
+              style={{
+                background: voiceEnabled ? '#10B981' : 'var(--colors-canvas)',
+                border: voiceEnabled ? '1px solid #059669' : '1px solid var(--colors-hairline-strong)',
+                color: voiceEnabled ? '#FFFFFF' : 'var(--colors-ink)',
+                borderRadius: '9999px',
+                padding: '3px 10px',
+                fontSize: '10px',
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '3px',
+                boxShadow: voiceEnabled ? '0 2px 6px rgba(16, 185, 129, 0.3)' : 'none'
+              }}
+              title="Click to turn on Voice Assistant and recite path"
+            >
+              {voiceEnabled ? <Volume2 size={11} /> : <VolumeX size={11} />}
+              {voiceEnabled ? 'VOICE ON' : 'TURN VOICE ON'}
+            </button>
+          </div>
+
+          {voiceEnabled && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '5px', flexWrap: 'wrap', paddingTop: '4px', borderTop: '1px solid var(--colors-hairline)' }}>
+              <button
+                onClick={handleSpeakCurrentStep}
+                style={{
+                  background: 'var(--colors-canvas)',
+                  border: '1px solid var(--colors-hairline)',
+                  color: '#2563EB',
+                  borderRadius: '6px',
+                  padding: '3px 6px',
+                  fontSize: '10px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '3px'
+                }}
+                title="Recite Direction"
+              >
+                <RotateCcw size={11} />
+                Recite
+              </button>
+
+              <button
+                onClick={toggleVoiceLang}
+                style={{
+                  background: 'var(--colors-canvas)',
+                  border: '1px solid var(--colors-hairline)',
+                  color: 'var(--colors-ink)',
+                  borderRadius: '6px',
+                  padding: '3px 6px',
+                  fontSize: '10px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '3px'
+                }}
+                title="Toggle Voice Language"
+              >
+                <Languages size={11} color="#3B82F6" />
+                {voiceLang.startsWith('hi') ? '🇮🇳 हिन्दी' : '🇬🇧 EN'}
+              </button>
+
+              <button
+                onClick={cycleVoiceRate}
+                style={{
+                  background: 'var(--colors-canvas)',
+                  border: '1px solid var(--colors-hairline)',
+                  color: 'var(--colors-ink)',
+                  borderRadius: '6px',
+                  padding: '3px 6px',
+                  fontSize: '10px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '3px'
+                }}
+                title="Cycle Voice Speed"
+              >
+                <Gauge size={11} color="#8B5CF6" />
+                {voiceRate}x
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Start Live Navigation Button */}
@@ -861,6 +1011,48 @@ export default function NavigationSidebar({
                       <div style={{ fontSize: '14px', fontWeight: 900, color: '#1E1B4B' }}>{estimatedSteps}</div>
                     </div>
                   </div>
+                </div>
+
+                {/* Navigation Voice Assistant Control Option */}
+                <div style={{
+                  background: voiceEnabled ? '#ECFDF5' : '#F8FAFC',
+                  border: voiceEnabled ? '1px solid #10B981' : '1px solid #E2E8F0',
+                  borderRadius: '14px',
+                  padding: '12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Bot size={18} color={voiceEnabled ? '#059669' : '#64748B'} />
+                    <div>
+                      <div style={{ fontSize: '12px', fontWeight: 800, color: '#0F172A' }}>Navigation Voice Assistant</div>
+                      <div style={{ fontSize: '11px', color: '#64748B' }}>
+                        {voiceEnabled ? 'Reciting route & distances' : 'Voice muted (Click to enable)'}
+                      </div>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={handleToggleVoiceAssistantWithSpeech}
+                    style={{
+                      background: voiceEnabled ? '#10B981' : '#FFFFFF',
+                      border: voiceEnabled ? '1px solid #059669' : '1px solid #CBD5E1',
+                      color: voiceEnabled ? '#FFFFFF' : '#0F172A',
+                      borderRadius: '9999px',
+                      padding: '6px 12px',
+                      fontSize: '11px',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}
+                    title="Click to turn on Voice Assistant and recite path"
+                  >
+                    {voiceEnabled ? <Volume2 size={13} /> : <VolumeX size={13} />}
+                    {voiceEnabled ? 'VOICE ON' : 'TURN VOICE ON'}
+                  </button>
                 </div>
 
                 <div style={{

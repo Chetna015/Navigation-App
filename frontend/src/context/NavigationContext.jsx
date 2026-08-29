@@ -38,7 +38,16 @@ export function NavigationProvider({ children }) {
   const [navMode, setNavMode] = useState('hidden'); // 'hidden' | 'preview' | 'active'
   const [isNavigatingLive, setIsNavigatingLive] = useState(false);
   const [isAdminMode, setIsAdminMode] = useState(false);
-  const [voiceEnabled, setVoiceEnabled] = useState(true);
+  const [voiceEnabled, setVoiceEnabled] = useState(false);
+  const [voiceLang, setVoiceLang] = useState(() => {
+    try {
+      return localStorage.getItem('csjmu_voice_lang') || 'hi-IN';
+    } catch (e) {
+      return 'hi-IN';
+    }
+  });
+  const [voiceRate, setVoiceRate] = useState(1.0);
+  const [lastSpokenText, setLastSpokenText] = useState('');
   const [activeFloor, setActiveFloor] = useState('G');
 
   const toggleVoice = (overrideVal) => {
@@ -49,6 +58,72 @@ export function NavigationProvider({ children }) {
       }
       return nextVal;
     });
+  };
+
+  const toggleVoiceLang = () => {
+    setVoiceLang(prev => {
+      const next = prev.startsWith('hi') ? 'en-IN' : 'hi-IN';
+      try {
+        localStorage.setItem('csjmu_voice_lang', next);
+      } catch (e) {}
+      return next;
+    });
+  };
+
+  const cycleVoiceRate = () => {
+    setVoiceRate(prev => {
+      if (prev === 1.0) return 1.2;
+      if (prev === 1.2) return 0.8;
+      return 1.0;
+    });
+  };
+
+  const speakInstruction = (englishText, hindiText) => {
+    if (!voiceEnabled || typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+    try {
+      window.speechSynthesis.cancel();
+      const isHindi = voiceLang.startsWith('hi');
+      const textToSpeak = isHindi ? (hindiText || englishText) : englishText;
+      if (!textToSpeak) return;
+
+      setLastSpokenText(textToSpeak);
+
+      const cleanText = textToSpeak
+        .replace(/[*#_`]/g, '')
+        .replace(/[📍🏛️📚☕🏢💧🚻🚀🎤🚗🚌🧭🚶📷❌✅•🙏🌿➔]/g, '')
+        .trim();
+
+      const utterance = new SpeechSynthesisUtterance(cleanText);
+      utterance.lang = isHindi ? 'hi-IN' : 'en-IN';
+      utterance.rate = voiceRate;
+      utterance.pitch = 1.05;
+
+      const voices = window.speechSynthesis.getVoices();
+      if (voices && voices.length > 0) {
+        if (isHindi) {
+          const hindiVoice = voices.find(v => 
+            (v.lang.includes('hi') || v.lang.includes('HI') || v.name.toLowerCase().includes('hindi')) &&
+            (v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('swara') || v.name.toLowerCase().includes('google') || v.name.includes('हिन्दी'))
+          ) || voices.find(v => v.lang.includes('hi') || v.name.toLowerCase().includes('hindi'));
+          if (hindiVoice) utterance.voice = hindiVoice;
+        } else {
+          const engVoice = voices.find(v => 
+            v.lang.includes('en-IN') || v.name.toLowerCase().includes('india') || v.lang.includes('en_IN')
+          ) || voices.find(v => v.lang.startsWith('en'));
+          if (engVoice) utterance.voice = engVoice;
+        }
+      }
+
+      window.speechSynthesis.speak(utterance);
+    } catch (e) {
+      console.warn("SpeechSynthesis error:", e);
+    }
+  };
+
+  const replayLastInstruction = () => {
+    if (lastSpokenText) {
+      speakInstruction(lastSpokenText, lastSpokenText);
+    }
   };
 
   useEffect(() => {
@@ -73,6 +148,9 @@ export function NavigationProvider({ children }) {
       isNavigatingLive, setIsNavigatingLive,
       isAdminMode, setIsAdminMode,
       voiceEnabled, setVoiceEnabled, toggleVoice,
+      voiceLang, setVoiceLang, toggleVoiceLang,
+      voiceRate, setVoiceRate, cycleVoiceRate,
+      speakInstruction, replayLastInstruction, lastSpokenText,
       activeFloor, setActiveFloor,
       defaultLiveLocation
     }}>

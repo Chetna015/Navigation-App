@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import { 
   ArrowLeft, Search, MapPin, Navigation, Compass, Layers, 
   Sparkles, Eye, Mic, X, Volume2, VolumeX, Building2,
-  ChevronDown, Maximize2
+  ChevronDown, Maximize2, RotateCcw, Languages, Bot
 } from 'lucide-react';
 import DigitalTwinMap from './DigitalTwinMap';
 import NavigationSidebar from './NavigationSidebar';
 import { getMergedMapLocations } from '../utils/locationStore';
+import { useNavigation } from '../context/NavigationContext';
 
 export default function MobileMapPage({
   isAdminMode,
@@ -30,11 +31,17 @@ export default function MobileMapPage({
   onOpenSBMIndoor,
   onOpenStreetView,
   onOpenAIAssistant,
-  voiceEnabled,
-  setVoiceEnabled,
+  voiceEnabled: propVoiceEnabled,
+  setVoiceEnabled: propSetVoiceEnabled,
   isListening,
   startVoiceSearch
 }) {
+  const { 
+    voiceEnabled, toggleVoice, 
+    voiceLang, toggleVoiceLang, 
+    voiceRate, cycleVoiceRate,
+    replayLastInstruction, lastSpokenText
+  } = useNavigation();
   const [mapSearchQuery, setMapSearchQuery] = useState('');
   const [showMapSearchSheet, setShowMapSearchSheet] = useState(false);
 
@@ -104,20 +111,6 @@ export default function MobileMapPage({
           )}
         </div>
 
-        {/* Quick Map Action Buttons */}
-        <div className="mobile-map-top-actions">
-          {/* SBM Indoor Blueprint */}
-          {onOpenSBMIndoor && (
-            <button
-              type="button"
-              className="mobile-map-action-pill"
-              onClick={onOpenSBMIndoor}
-              title="SBM Indoor Blueprint & RO Watercoolers"
-            >
-              🏢 <span className="pill-hide-xs">Indoor</span>
-            </button>
-          )}
-        </div>
       </header>
 
       {/* 2. Interactive Vector & Satellite Digital Twin Map */}
@@ -141,16 +134,6 @@ export default function MobileMapPage({
           isNavigatingLive={isNavigatingLive}
         />
 
-        {/* Floating Quick Action: Ask AI Assistant */}
-        <button
-          type="button"
-          onClick={onOpenAIAssistant}
-          className="mobile-map-floating-ai-btn"
-          title="Open AI Campus Assistant"
-        >
-          🤖 <span className="ai-btn-text">AI Guide</span>
-        </button>
-
         {/* Active Route Sidebar / Mobile Bottom Sheet Card */}
         {destination && (
           <NavigationSidebar
@@ -169,6 +152,7 @@ export default function MobileMapPage({
               else if (mode === 'hidden') setIsNavigatingLive(false);
             }}
             onOpenStreetView={onOpenStreetView}
+            onOpenAIAssistant={onOpenAIAssistant}
           />
         )}
       </div>

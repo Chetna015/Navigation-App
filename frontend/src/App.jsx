@@ -30,7 +30,9 @@ export default function App() {
     isAdminMode,
     activeFloor, setActiveFloor,
     defaultLiveLocation,
-    voiceEnabled, setVoiceEnabled, toggleVoice
+    voiceEnabled, setVoiceEnabled, toggleVoice,
+    voiceLang, setVoiceLang,
+    voiceRate, setVoiceRate
   } = useNavigation();
 
   // Mobile App Active View: 'home' (Mobile Home Page) | 'map' (Mobile Map Navigation)
@@ -52,7 +54,10 @@ export default function App() {
     currentLocation,
     destination,
     voiceEnabled,
-    setVoiceEnabled
+    setVoiceEnabled,
+    voiceLang,
+    voiceRate,
+    isNavigatingLive
   });
 
   // Automatically update currentLocation with exact real-time phone GPS position when received
@@ -312,11 +317,12 @@ export default function App() {
             onOpenMap={() => setCurrentPage('map')}
             onOpenAIAssistant={() => setShowAIAssistant(true)}
             onOpenSaved={() => setShowSavedModal(true)}
+            onOpenSchedule={() => setShowSessionsModal(true)}
+            onOpenSessions={() => setShowSessionsModal(true)}
             onOpenCampusLife={() => setShowCampusLifeModal(true)}
             onOpenParking={() => setShowParkingModal(true)}
             onOpenSBMIndoor={() => setShowSBMIndoorModal(true)}
             onOpenStalls={() => setShowStallsModal(true)}
-            onOpenSessions={() => setShowSessionsModal(true)}
             onOpenAccessibility={() => setShowAccessibilityModal(true)}
             theme={theme}
             setTheme={setTheme}
@@ -356,12 +362,14 @@ export default function App() {
         )}
       </div>
 
-      {/* 3. Mobile Bottom Navigation Bar (Home, Map, AI Guide, Indoor Floorplans, Saved Places) */}
+      {/* 3. Mobile Bottom Navigation Bar (Home, Map, AI Guide, Indoor Floorplans, AI Summit Schedule) */}
       <MobileBottomNav
         currentPage={currentPage}
         onNavigateTab={(tab) => setCurrentPage(tab)}
         onOpenAIAssistant={() => setShowAIAssistant(true)}
         onOpenIndoor={() => setShowIndoorSelector(true)}
+        onOpenSchedule={() => setShowSessionsModal(true)}
+        onOpenSessions={() => setShowSessionsModal(true)}
         onOpenSaved={() => setShowSavedModal(true)}
         hasActiveRoute={!!destination}
       />
@@ -409,10 +417,12 @@ export default function App() {
         onToggleBookmark={handleToggleBookmark}
       />
 
+      {/* AI Summit 2026 Complete Schedule Modal */}
       <EventSessionsModal
         isOpen={showSessionsModal}
         onClose={() => setShowSessionsModal(false)}
         onNavigateToVenue={handleSelectLocation}
+        onOpenIndoorModal={handleOpenIndoorModal}
         bookmarks={bookmarks}
         onToggleBookmark={handleToggleBookmark}
       />

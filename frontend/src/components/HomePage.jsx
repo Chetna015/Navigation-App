@@ -1,10 +1,12 @@
 import React, { useState, useMemo } from 'react';
 import { 
   Search, Mic, MapPin, Navigation, ArrowRight, 
-  Sun, Moon, Accessibility, Footprints, X, Star, Building2
+  Sun, Moon, Accessibility, Footprints, X, Star, Building2, Calendar, Sparkles,
+  Bot, Volume2, VolumeX
 } from 'lucide-react';
 import { getMergedMapLocations } from '../utils/locationStore';
 import { haversineDistanceMeters } from '../utils/haversine';
+import { useNavigation } from '../context/NavigationContext';
 
 export default function HomePage({
   currentLocation,
@@ -13,6 +15,7 @@ export default function HomePage({
   onOpenMap,
   onOpenAIAssistant,
   onOpenSaved,
+  onOpenSchedule,
   onOpenCampusLife,
   onOpenParking,
   onOpenSBMIndoor,
@@ -28,6 +31,7 @@ export default function HomePage({
   requestLiveGps,
   userPos
 }) {
+  const { voiceEnabled, toggleVoice } = useNavigation();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
 
@@ -118,6 +122,28 @@ export default function HomePage({
         </div>
 
         <div className="mobile-header-actions">
+          {/* AI Guide Button */}
+          <button
+            type="button"
+            className="mobile-header-icon-btn"
+            onClick={onOpenAIAssistant}
+            title="Open CSJMU AI Campus Guide"
+            style={{ 
+              color: '#2563EB', 
+              background: 'rgba(59, 130, 246, 0.12)', 
+              border: '1px solid rgba(59, 130, 246, 0.3)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              padding: '0 8px',
+              borderRadius: '9999px',
+              height: '32px'
+            }}
+          >
+            <Bot size={16} color="#2563EB" />
+            <span style={{ fontSize: '11px', fontWeight: 700 }}>AI Guide</span>
+          </button>
+
           {/* Theme Toggle */}
           <button
             type="button"
@@ -138,15 +164,15 @@ export default function HomePage({
             <Accessibility size={17} />
           </button>
 
-          {/* Saved Places Button */}
+          {/* AI Summit 2026 Schedule Button */}
           <button
             type="button"
             className="mobile-header-icon-btn"
-            onClick={onOpenSaved}
-            title="Saved Places"
-            style={{ color: '#D97706' }}
+            onClick={onOpenSchedule || onOpenSessions}
+            title="AI Summit 2026 Complete Schedule"
+            style={{ color: 'var(--colors-ink)' }}
           >
-            <Star size={17} fill="#D97706" />
+            <Calendar size={17} />
           </button>
         </div>
       </header>
@@ -350,6 +376,33 @@ export default function HomePage({
                 </div>
               </div>
             ))}
+          </div>
+        </section>
+
+        {/* 5. AI Summit 2026 Schedule Banner Card */}
+        <section className="mobile-section">
+          <div 
+            className="mobile-ai-banner-card" 
+            onClick={onOpenSchedule || onOpenSessions}
+            style={{
+              background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.12) 0%, rgba(147, 51, 234, 0.12) 100%)',
+              border: '1px solid rgba(59, 130, 246, 0.25)'
+            }}
+          >
+            <div className="ai-banner-left">
+              <div className="ai-avatar-badge" style={{ background: 'linear-gradient(135deg, #3B82F6, #8B5CF6)' }}>📅</div>
+              <div>
+                <h4 className="ai-banner-title">National AI Manthan 2.0 Schedule</h4>
+                <p className="ai-banner-sub">Plenary, Agriculture, Medical & General Tracks • 12–13 Sept</p>
+                <div className="ai-chips-preview">
+                  <span className="ai-chip" style={{ background: 'rgba(59, 130, 246, 0.15)', color: '#2563EB', fontWeight: 600 }}>12–13 Sept 2026 • 27 Sessions</span>
+                  <span className="ai-chip" style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#DC2626', fontWeight: 600 }}>🔴 Live Now</span>
+                </div>
+              </div>
+            </div>
+            <div className="ai-banner-arrow">
+              <ArrowRight size={18} />
+            </div>
           </div>
         </section>
 

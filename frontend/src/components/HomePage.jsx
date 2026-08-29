@@ -120,61 +120,6 @@ export default function HomePage({
             <p className="mobile-app-subtitle">Smart Campus Navigation • Kanpur</p>
           </div>
         </div>
-
-        <div className="mobile-header-actions">
-          {/* AI Guide Button */}
-          <button
-            type="button"
-            className="mobile-header-icon-btn"
-            onClick={onOpenAIAssistant}
-            title="Open CSJMU AI Campus Guide"
-            style={{ 
-              color: '#2563EB', 
-              background: 'rgba(59, 130, 246, 0.12)', 
-              border: '1px solid rgba(59, 130, 246, 0.3)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
-              padding: '0 8px',
-              borderRadius: '9999px',
-              height: '32px'
-            }}
-          >
-            <Bot size={16} color="#2563EB" />
-            <span style={{ fontSize: '11px', fontWeight: 700 }}>AI Guide</span>
-          </button>
-
-          {/* Theme Toggle */}
-          <button
-            type="button"
-            className="mobile-header-icon-btn"
-            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-            title="Toggle Light/Dark Theme"
-          >
-            {theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
-          </button>
-
-          {/* Accessibility */}
-          <button
-            type="button"
-            className="mobile-header-icon-btn"
-            onClick={onOpenAccessibility}
-            title="Accessibility Settings"
-          >
-            <Accessibility size={17} />
-          </button>
-
-          {/* AI Summit 2026 Schedule Button */}
-          <button
-            type="button"
-            className="mobile-header-icon-btn"
-            onClick={onOpenSchedule || onOpenSessions}
-            title="AI Summit 2026 Complete Schedule"
-            style={{ color: 'var(--colors-ink)' }}
-          >
-            <Calendar size={17} />
-          </button>
-        </div>
       </header>
 
       {/* GPS Status & Insecure Notice Banner */}

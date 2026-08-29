@@ -120,6 +120,18 @@ export default function HomePage({
             <p className="mobile-app-subtitle">Smart Campus Navigation • Kanpur</p>
           </div>
         </div>
+
+        <div className="mobile-header-actions">
+          {/* Theme Toggle Only */}
+          <button
+            type="button"
+            className="mobile-header-icon-btn"
+            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            title="Toggle Light/Dark Theme"
+          >
+            {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+          </button>
+        </div>
       </header>
 
       {/* GPS Status & Insecure Notice Banner */}
